@@ -22,15 +22,12 @@ def get_size(fname):
             
 
 def piece_size_exp(size):
-    min_psize_exp = 14 #16 KiB piece size
+    min_psize_exp = 15 #32 KiB piece size
     max_psize_exp = 24 #16 MiB piece size
     target_pnum_exp = 10 #1024 pieces
     
     psize_exp = int(math.floor(log2(size)-target_pnum_exp))
-    psize_exp = min(psize_exp, max_psize_exp)
-    psize_exp = max(psize_exp, min_psize_exp)
-    
-    return psize_exp
+    return max(min(psize_exp, max_psize_exp), min_psize_exp)
 
 
 def make_torrent(fname):
