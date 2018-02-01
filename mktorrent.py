@@ -55,7 +55,6 @@ def make_torrent(fname):
         if mktorrent.returncode:
             print mktorrent.stdout.read()
             
-        print "Torrent file created at file://{}".format(out_fname)
         return out_fname
 
 

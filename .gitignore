@@ -11,3 +11,4 @@ include/
 lib/
 man/
 imgur.config
+pythonbits.cfg

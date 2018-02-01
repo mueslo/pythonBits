@@ -6,12 +6,14 @@ Pythonbits2.py
 Created by Ichabond on 2012-07-01.
 """
 
-__version__ = (2, 0)
+__version__ = (2, 1)
 __version_str__ = '.'.join(str(x) for x in __version__)
 
 import sys
 import os
+import re
 import subprocess
+from textwrap import dedent
 import unicodedata
 
 import ImdbParser
@@ -21,7 +23,9 @@ from Screenshots import createScreenshots
 
 from ImgurUploader import ImgurUploader
 
-from optparse import OptionParser
+from mktorrent import make_torrent
+
+from argparse import ArgumentParser
 
 
 def generateSeriesSummary(summary):
@@ -63,21 +67,33 @@ def generateSeriesSummary(summary):
     return description
 
 
-def generateMoviesSummary(summary):
-    description = "[b]Description[/b] \n"
-    description += "[quote]%s[/quote]\n" % summary['description']
-    description += "[b]Information:[/b]\n"
-    description += "[quote]IMDB Url: %s\n" % summary['url']
-    description += "Title: %s\n" % summary['name']
-    description += "Year: %s\n" % summary['year']
-    description += "MPAA: %s\n" % summary['mpaa']
-    description += "Rating: %s/10\n" % summary['rating']
-    description += "Votes: %s\n" % summary['votes']
-    description += "Runtime: %s\n" % summary['runtime']
-    description += "Director(s): %s\n" % summary['director']
-    description += "Writer(s): %s\n" % summary['writers']
-    description += "[/quote]"
-
+def generateMovieDescription(summary):
+    description = dedent("""\
+    [b]Description[/b]
+    [quote]{description}[/quote]
+    [b]Information:[/b]
+    [quote]IMDB Url: {url}
+    Title: {name}
+    Year: {year}
+    MPAA: {mpaa}
+    Rating: {rating}
+    Votes: {votes}
+    Runtime: {runtime}
+    Director(s): {directors}
+    Writer(s): {writers}
+    [/quote]""").format(
+        description=summary['description'],
+        url=summary['url'],
+        name=summary['name'],
+        year=summary['year'],
+        mpaa=summary['mpaa'],
+        rating=summary['rating'],
+        votes=summary['votes'],
+        runtime=summary['runtime'],
+        directors=summary['directors'],
+        writers=summary['writers'],
+        )
+        
     return description
 
 def remove_accents(input_str):
@@ -108,78 +124,95 @@ def findMediaInfo(path):
 
     return mediainfo
 
+def parse_title(fname):
+    pass
 
 def main(argv):
-    usage = 'Usage: %prog [OPTIONS] "MOVIENAME/SERIESNAME" FILENAME'
-    parser = OptionParser(usage=usage, version="%%prog %s" % __version_str__)
-    parser.add_option("-I", "--info", action="store_true", dest="info",
-                      help="Output only info, uses episode or season arguments if available")
-    parser.add_option("-e", "--episode", type="string", action="store", dest="episode",
-                      help="Provide the TV episode identifier (1x2 or S01E02)")
-    parser.add_option("-p", "--season", type="int", action="store", dest="season",
-                      help="Provide the season number for season packs")
-    parser.add_option("-s", "--screenshots", type="int", action="store", dest="screenshots",
-                      help="Set the amount of screenshots, max 7")
-    parser.add_option("-S", "--screenshotsonly", type="int", action="store", dest="screenshotsonly",
-                      help="Output only screenshots, set the amount of screenshots, max 7")
-    options, args = parser.parse_args()
-    if len(args) == 0:
-        parser.print_help()
-        sys.exit(1)
-    if options.screenshotsonly:
-        filename = args[0]
-        screenshot = createScreenshots(filename, shots=options.screenshotsonly)
-    else:
-        search_string = args[0]
-        if not options.info:
-            filename = args[1]
-            if options.screenshots:
-                screenshot = createScreenshots(filename, shots=options.screenshots)
-            else:
-                screenshot = createScreenshots(filename)
-    if options.screenshotsonly:
-        for shot in screenshot:
-            print shot
-    elif options.season or options.episode:
-        tvdb = TvdbParser.TVDB()
-        if options.season:
-            tvdb.search(search_string, season=options.season)
-        if options.episode:
-            tvdb.search(search_string, episode=options.episode)
-        summary = tvdb.summary()
-        summary = generateSeriesSummary(summary)
-        if not options.info:
-            summary += "Screenshots:\n[quote][align=center]"
+    parser = ArgumentParser(version="%%prog %s" % __version_str__, description="A Python pretty printer for generating attractive movie descriptions with screenshots.")
+    parser.add_argument("title", metavar='TITLE', help="Title of media (e.g. \"The Walking Dead S01\")")
+    parser.add_argument("path", metavar='PATH', help="File or directory of media")
+    
+    feature_toggle = parser.add_argument_group(title="Feature toggle", description="Enables only the selected features, while everything else will not be executed.")
+    default_features = ["d", "i", "s"]
+    feature_toggle.add_argument("-d", "--description", action="append_const",
+        const="d", help="Generate description of media (default on)", dest="tags")
+    feature_toggle.add_argument("-i", "--mediainfo", action="append_const", 
+        const="i", help="Generate mediainfo output (default on)", dest="tags")
+    feature_toggle.add_argument("-s", "--screenshots", action="append_const", 
+        const="s", help="Generate screenshots and upload to imgur (default on)", dest="tags")
+    feature_toggle.add_argument("-t", "--torrent", action="append_const", 
+        const="t", help="Generate torrent file from given PATH (default off)", dest="tags")
+    
+    options = parser.add_argument_group(title="Tunables", description="Additional options such as number of screenshots")
+    options.add_argument("--num-screenshots", type=int, default=2, action="store", help="Number of screenshots (default 2)")
+    
+    args = parser.parse_args()
+    if args.tags is None:
+        args.tags = default_features
+    
+    filename = args.path
+    if "s" in args.tags:
+        screenshot = createScreenshots(filename, shots=args.num_screenshots)
+        if "d" not in args.tags:
             for shot in screenshot:
-                summary += "[img=%s]" % shot
-            summary += "[/align][/quote]"
-            mediainfo = findMediaInfo(filename)
-            if mediainfo:
+                print shot
+    
+    if "i" in args.tags:
+        mediainfo = findMediaInfo(filename)
+        if "d" not in args.tags:
+            print "[mediainfo]\n{}\n[/mediainfo]".format(mediainfo)
+    
+    if "d" in args.tags:
+        tv_re = r"^(?P<title>.+)(?<!season) (?P<season_marker>(s|season |))(?P<season>((?<= s)[0-9]{2,})|(?<= )[0-9]+(?=x)|(?<=season )[0-9]+(?=$))((?P<episode_marker>[ex])(?P<episode>[0-9]+))?$"
+        match = re.match(tv_re, args.title, re.IGNORECASE)
+        if match: # TV
+            search_string = match.group('title')
+            tvdb = TvdbParser.TVDB()
+            if match.group('episode'): # Episode
+                episode_string = "S"+match.group('season')+"E"+match.group('episode')
+                tvdb.search(search_string, episode=episode_string)
+            else: # Season pack
+                tvdb.search(search_string, season=int(match.group('season')))
+            summary = tvdb.summary()
+            summary = generateSeriesSummary(summary)
+            
+            if "s" in args.tags:
+                summary += "Screenshots:\n[quote][align=center]"
+                for shot in screenshot:
+                    summary += "[img=%s]" % shot
+                summary += "[/align][/quote]"
+                
+            if "i" in args.tags:
                 summary += "[mediainfo]\n%s\n[/mediainfo]" % mediainfo
-        print summary
-    else:
-        imdb = ImdbParser.IMDB()
-        imdb.search(search_string)
-        imdb.movieSelector()
-        summary = imdb.summary()
-        movie = generateMoviesSummary(summary)
-        tags = generateTags(summary)
-        print "\n\n\n"
-        print "Year: ", summary['year']
-        print "\n\n\n"
-        print "Tags: ", ",".join(tags)
-        print "\n\n\n"
-        print "Movie Description: \n", movie
-        print "\n\n\n"
-        if not options.info:
-            mediainfo = findMediaInfo(filename)
-            if mediainfo:
+            print summary
+        else: # Movie
+            search_string = args.title
+            imdb = ImdbParser.IMDB()
+            imdb.search(search_string)
+            imdb.movieSelector()
+            summary = imdb.summary()
+            description = generateMovieDescription(summary)
+            tags = generateTags(summary)
+            print "\n\n\n"
+            print "Year: ", summary['year']
+            print "\n\n\n"
+            print "Tags: ", ",".join(tags)
+            print "\n\n\n"
+            print "Movie Description: \n", description
+            print "\n\n\n"
+            if "i" in args.tags:
                 print "Mediainfo: \n", "[mediainfo]\n",mediainfo,"\n[/mediainfo]"
-            for shot in screenshot:
-                print "Screenshot: %s" % shot
-            cover = ImgurUploader([summary['cover']]).upload()
-            if cover:
-                print "Image (Optional): ", cover[0]
+            
+            if "s" in args.tags:
+                for shot in screenshot:
+                    print "Screenshot: %s" % shot
+                cover = ImgurUploader([summary['cover']]).upload()
+                if cover:
+                    print "Image (Optional): ", cover[0]
+                    
+    if "t" in args.tags:
+        torrentfile = make_torrent(args.path)
+        print "Torrent file created at file://{}".format(torrentfile)
 
 
 if __name__ == '__main__':

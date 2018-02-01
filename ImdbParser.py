@@ -70,8 +70,8 @@ class IMDB(object):
             self.movie.credits = self.imdb.get_title_credits(movie_id)['credits']
             self.movie.genres = self.imdb.get_title_genres(movie_id)['genres']
             
-            return {'director': u" | ".join([director.name for director in self.movie.credits.director]),
-                    'runtime': str(self.movie.base.runningTimeInMinutes)+" min", 'rating': self.movie.ratings.rating,
+            return {'directors': u" | ".join([director.name for director in self.movie.credits.director]),
+                    'runtime': str(self.movie.base.runningTimeInMinutes)+" min", 'rating': str(self.movie.ratings.rating)+"/10",
                     'name': self.movie.base.title, 'votes': self.movie.ratings.ratingCount, 'cover': self.movie.base.image.url,
                     'genres': self.movie.genres,
                     'cast': [actor.name for actor in self.movie.credits.cast],
