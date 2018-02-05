@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 Ffmpeg.py
 
@@ -16,6 +15,7 @@ from tempfile import mkdtemp
 from hashlib import md5
 
 
+#argh
 class FFMpeg(object):
     def __init__(self, filepath):
         self.file = filepath

@@ -1,47 +1,24 @@
+# -*- coding: utf-8 -*-
 import urllib2
 import urllib
 import ConfigParser
 import json
-import MultipartPostHandler
 import re
 import os
 import sys
 
+from . import MultipartPostHandler
+from .config import config
 
 API_URL = 'https://api.imgur.com/'
 USER_URL_TEMPLATE = "https://api.imgur.com/oauth2/authorize?client_id=%s&response_type=pin"
 
 class ImgurAuth(object):
     def __init__(self, file):
-        self.config_file = file
-        self.client_id = None
-        self.client_secret = None
-        self.refresh_token = None
-        self.access_token = None
-        self.read_config()
-
-    def read_config(self):
-        config = ConfigParser.SafeConfigParser()
-        config.read(self.config_file)
-        if config.has_section("client"):
-            self.client_id = config.get("client", "client_id")
-            self.client_secret = config.get("client", "client_secret")
-
-        if config.has_section("user"):
-            self.refresh_token = config.get("user", "refresh_token")
-
-    def write_config(self):
-        config = ConfigParser.SafeConfigParser()
-        config.add_section("client")
-        config.set("client", "client_id", self.client_id)
-        config.set("client", "client_secret", self.client_secret)
-
-        if self.refresh_token:
-            config.add_section("user")
-            config.set("user", "refresh_token", self.refresh_token)
-
-        with(open(self.config_file, 'wb')) as configfile:
-            config.write(configfile)
+        self.client_id = config.get('Imgur', 'client_id')
+        self.client_secret = config.get('Imgur', 'client_secret')
+        self.refresh_token = config.get('Imgur', 'refresh_token')
+        self.access_token =  None
 
     def prepare(self):
         if self.access_token:
@@ -53,16 +30,12 @@ class ImgurAuth(object):
                     (self.client_id, self.client_secret) )
             self.request_client_details()
 
-        self.write_config()
-
         if self.refresh_token:
             self.refresh_access_token()
 
         while not self.access_token:
             print("You are not currently logged in.")
             self.request_login()
-
-        self.write_config()
 
 
     def request_client_details(self):
@@ -159,6 +132,3 @@ class ImgurUploader(object):
                     print("Exception uploading image: %s, skipping. Exception: " % (image, e))
         return self.imageurls
 
-if __name__ == "__main__":
-    results = ImgurUploader([sys.argv[1]]).upload()
-    print(results)

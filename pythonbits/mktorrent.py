@@ -1,13 +1,12 @@
-#!/usr/bin/env python2
-
+# -*- coding: utf-8 -*-
 import os
 import subprocess
 import sys
 import math
 import tempfile
 
-import config
-config = config.Config()
+from . import _release as release
+from .config import config
 
 l2 = math.log(2)
 def log2(x):
@@ -29,8 +28,11 @@ def piece_size_exp(size):
     psize_exp = int(math.floor(log2(size)-target_pnum_exp))
     return max(min(psize_exp, max_psize_exp), min_psize_exp)
 
+class MkTorrentException(Exception):
+    pass
 
 def make_torrent(fname):
+        # todo: multiprocessing
         fsize = get_size(fname)
         psize_exp = piece_size_exp(fsize)
         
@@ -43,21 +45,16 @@ def make_torrent(fname):
             mktorrent = subprocess.Popen([r"mktorrent", "--private",
                                           "-l", str(psize_exp),
                                           "-a", announce_url,
-                                          "-c", "made with Pythonbits",
+                                          "-c", release,
                                           "-o", out_fname,
-                                          fname],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                                          fname], shell=False)
         except OSError:
             print >> sys.stderr, "Error: mktorrent not found"
             exit(1)
-            
+
+        print "Waiting for torrent creation to complete..."
         mktorrent.wait()
         if mktorrent.returncode:
-            print mktorrent.stdout.read()
+            raise MkTorrentException(mktorrent.stdout.read())
             
         return out_fname
-
-
-if __name__ == '__main__':
-    fname = sys.argv[1]
-    make_torrent(fname)

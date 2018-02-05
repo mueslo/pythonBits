@@ -1,14 +1,23 @@
-*.pyc
-.idea
-.DS_Store
-/.DS_Store
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 .Python
-bin/
 build/
-doc/
-etc/
-include/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
 lib/
-man/
-imgur.config
-pythonbits.cfg
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST

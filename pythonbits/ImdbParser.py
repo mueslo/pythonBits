@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 """
 ImdbParser.py
 
@@ -14,11 +13,7 @@ import sys
 import json
 from attrdict import AttrDict
 
-try:
-    import imdbpie
-except ImportError:
-    print >> sys.stderr, "IMDbPie is required for Pythonbits to function"
-    sys.exit(1)
+import imdbpie
 
 
 class IMDB(object):
@@ -70,21 +65,20 @@ class IMDB(object):
             self.movie.credits = self.imdb.get_title_credits(movie_id)['credits']
             self.movie.genres = self.imdb.get_title_genres(movie_id)['genres']
             
-            return {'directors': u" | ".join([director.name for director in self.movie.credits.director]),
-                    'runtime': str(self.movie.base.runningTimeInMinutes)+" min", 'rating': str(self.movie.ratings.rating)+"/10",
-                    'name': self.movie.base.title, 'votes': self.movie.ratings.ratingCount, 'cover': self.movie.base.image.url,
-                    'genres': self.movie.genres,
-                    'cast': [actor.name for actor in self.movie.credits.cast],
-                    'writers': u" | ".join([writer.name for writer in self.movie.credits.writer]),
-                    'mpaa': u"",
-                    'description': self.movie.plot.outline.text,
-                    'url': u"http://www.imdb.com/title/%s" % movie_id,
-                    'year': self.movie.base.year}
-
-
-if __name__ == "__main__":
-    imdb = IMDB()
-    imdb.search("Tinker Tailor Soldier Spy")
-    imdb.movieSelector()
-    summary = imdb.summary()
-    print summary
+            return {
+                'title': self.movie.base.title, 
+                'directors': u" | ".join(
+                    [director.name for director in self.movie.credits.director]),
+                'runtime': str(self.movie.base.runningTimeInMinutes)+" min", 
+                'rating': str(self.movie.ratings.rating)+"/10",
+                'name': self.movie.base.title, 
+                'votes': self.movie.ratings.ratingCount, 
+                'cover': self.movie.base.image.url,
+                'genres': list(self.movie.genres),
+                'cast': [actor.name for actor in self.movie.credits.cast],
+                'writers': u" | ".join(
+                    [writer.name for writer in self.movie.credits.writer]),
+                'mpaa': u"",
+                'description': self.movie.plot.outline.text,
+                'url': u"http://www.imdb.com/title/%s" % movie_id,
+                'year': self.movie.base.year}
