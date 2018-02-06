@@ -37,6 +37,7 @@ bb_center = lambda x: "[align=center]{}[/align]".format(x)
 
 
 class Submission(object):
+    #todo remove required_fields?
     required_fields = ['category', 'torrentfile', 'title', 'description']
     fields = {}
     options = {}
@@ -409,7 +410,7 @@ class TvSubmission(VideoSubmission):
                         self['resolution']] + self['additional']
         markers = " / ".join(markers_list)
         
-        if self['tv_specifier'].episode:
+        if self['tv_specifier'].episode is not None:
             return "{t} S{s:02d}E{e:02d} [{m}]".format(
             t=self['title'], s=self['tv_specifier'].season, 
             e=self['tv_specifier'].episode, 

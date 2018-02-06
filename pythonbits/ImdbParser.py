@@ -33,6 +33,7 @@ class IMDB(object):
         self.results = results
 
     def movieSelector(self):
+        #todo: allow input of alternate search string
         try:
             print "Movies found:"
             for (counter, movie) in enumerate(self.results):

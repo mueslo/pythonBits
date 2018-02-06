@@ -96,7 +96,7 @@ class ImgurAuth(object):
         print
 
     def get_auth_header(self):
-       return ("Authorization", "Bearer %s" % IMGUR_AUTH.access_token)     
+       return ("Authorization", "Bearer %s" % self.access_token)     
 
 
 class ImgurUploader(object):
@@ -104,11 +104,12 @@ class ImgurUploader(object):
     def __init__(self, filelist):
         self.images = filelist
         self.imageurls = []
+        self.imgur_auth = ImgurAuth()
 
     def upload(self):
-        IMGUR_AUTH.prepare()
+        self.imgur_auth.prepare()
         opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
-        opener.addheaders = [IMGUR_AUTH.get_auth_header()]
+        opener.addheaders = [self.imgur_auth.get_auth_header()]
         matcher = re.compile(r'http(s)*://')
         for image in self.images:
             try:

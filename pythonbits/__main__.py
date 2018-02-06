@@ -25,7 +25,7 @@ def main():
     category = parser.add_argument("-c", "--category",choices=("tv","movie"))
     
     n_to_p = lambda x: "--"+x.replace('_','-')
-    default_fields = ["form_title", "tags"]
+    default_fields = ["form_title", "tags", "cover"]
     feature_d = {
         'description': {'short_param': '-d', 'default': True,
                         'help': "Generate description of media"},
@@ -50,7 +50,8 @@ def main():
             default_fields.append(name)
         feature_toggle.add_argument(short, n_to_p(name), action='append_const',
                                     const=name, dest='fields', **vals)
-        
+    
+    #explicit/extra features
     feature_toggle.add_argument('-f', '--features', action='store',
                                 dest='fields_ex', nargs='+', metavar='FIELD',
                                 help="Enable custom fields")
