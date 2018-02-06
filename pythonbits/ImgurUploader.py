@@ -6,6 +6,7 @@ import json
 import re
 import os
 import sys
+from textwrap import dedent
 
 from . import MultipartPostHandler
 from .config import config
@@ -13,11 +14,26 @@ from .config import config
 API_URL = 'https://api.imgur.com/'
 USER_URL_TEMPLATE = "https://api.imgur.com/oauth2/authorize?client_id=%s&response_type=pin"
 
+config.register('Imgur', 'client_id',
+                dedent("""\
+                To upload images to Imgur, you must first create an Imgur account and application
+                1. Sign up for an imgur account: https://imgur.com/register
+                2. Create an application: https://api.imgur.com/oauth2/addclient
+                    - Application name: Your choice
+                    - Authorization type: "OAuth 2 authorization without a callback URL"
+                    - Authorization callback URL: Leave blank
+                    - Application website: Leave blank
+                    - Email: Your choice
+                    - Description: Your choice
+                3. Enter the Client ID and Client Secret below
+                Client ID"""))
+config.register('Imgur', 'client_secret', "Client Secret")
+
 class ImgurAuth(object):
-    def __init__(self, file):
+    def __init__(self):
         self.client_id = config.get('Imgur', 'client_id')
         self.client_secret = config.get('Imgur', 'client_secret')
-        self.refresh_token = config.get('Imgur', 'refresh_token')
+        self.refresh_token = config.get('Imgur', 'refresh_token', None)
         self.access_token =  None
 
     def prepare(self):
@@ -39,23 +55,15 @@ class ImgurAuth(object):
 
 
     def request_client_details(self):
-        print("To upload images to Imgur, you must first create an Imgur account and application")
-        print("   1. Sign up for an imgur account: https://imgur.com/register")
-        print("   2. Create an application: https://api.imgur.com/oauth2/addclient")
-        print('      - Application name: Your choice')
-        print('      - Authorization type: "OAuth 2 authorization without a callback URL"')
-        print('      - Authorization callback URL: Leave blank')
-        print('      - Application website: Leave blank')
-        print('      - Email: Your choice')
-        print('      - Description: Your choice')
-        print('   3. Enter the Client ID and Client Secret below')
+        #todo properly query these
+
         self.client_id = raw_input("Client ID: ")
         self.client_secret = raw_input("Client Secret: ")
       
 
     def request_login(self):
         user_url = USER_URL_TEMPLATE % self.client_id
-        print("Pythonbits needs access to your account.")
+        print("pythonBits needs access to your account.")
         print("To authorize:")
         print("   1. In your browser, open: " + user_url)
         print("   2. Log in to Imgur and authorize the application")
@@ -67,9 +75,10 @@ class ImgurAuth(object):
         self.fetch_access_token('refresh_token', self.refresh_token)
 
     def fetch_access_token(self, grant_type, value):
+        #grant type: pin or refresh_token
         data = urllib.urlencode({
-            'client_id': self.client_id,
-            'client_secret': self.client_secret,
+            'client_id': config.get('Imgur', 'client_id'),
+            'client_secret': config.get('Imgur', 'client_secret'),
             'grant_type': grant_type,
             grant_type : value
         })
@@ -81,19 +90,17 @@ class ImgurAuth(object):
 
         if response["refresh_token"]:
             self.refresh_token = response["refresh_token"]
+            config.set('Imgur', 'refresh_token', self.refresh_token)
 
         print("Logged in to Imgur as %s" % response["account_username"])
         print
 
     def get_auth_header(self):
-       return ("Authorization", "Bearer %s" % IMGUR_AUTH.access_token)
+       return ("Authorization", "Bearer %s" % IMGUR_AUTH.access_token)     
 
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-IMGUR_AUTH = ImgurAuth(os.path.join(__location__,"imgur.config"))
-        
 
 class ImgurUploader(object):
+    # todo: upload to album to avoid clutter
     def __init__(self, filelist):
         self.images = filelist
         self.imageurls = []

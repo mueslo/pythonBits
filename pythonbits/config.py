@@ -1,49 +1,61 @@
 # -*- coding: utf-8 -*-
-from os import path
+from os import path, chmod
 
 import ConfigParser
 import getpass
 import appdirs
 
-# todo: ensure 600 perms
 CONFIG_NAME = 'pythonbits.cfg'
 CONFIG_PATH = path.join(appdirs.user_config_dir("pythonbits"), CONFIG_NAME)
 
-registry = {
-    ('Tracker','announce_url'): "Please enter your personal announce URL",
-    ('Tracker','username'): "Username",
-    ('Tracker','password'): "Password",
-    ('Tracker','domain'): "Please enter the tracker's domain, e.g. 'mydomain.net'",
-        }
-
 class Config():
-    def __init__(self):
+    registry = {}
+    def __init__(self, config_path=None):
+        self.config_path = config_path or CONFIG_PATH
         self._config = ConfigParser.SafeConfigParser()
+    
+    def register(self, section, option, query, ask=False, getpass=False):
+        self.registry[(section, option)] = {
+            'query': query, 'ask': ask, 'getpass': getpass}
         
-    def get(self, section, option, ask_to_save=False, use_getpass=False):
-        self._config.read(CONFIG_PATH)
+        #todo: ask to remember choice if save is declined
+    
+    def set(self, section, option, value):
+        self._config.set(section, option, value)
+        with open(self.config_path, 'wb') as configfile:
+            self._config.write(configfile)
+        chmod(self.config_path, 384) #0o600
+    
+    def get(self, section, option, default='dontguessthis'):
+        self._config.read(self.config_path)
         try:
             return self._config.get(section, option)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            query_msg = "{}: ".format(
-                registry.get((section, option),
-                             "Please enter {}.{}".format(section, option)))
-                
-            if use_getpass:
-                value = getpass.getpass(query_msg)
-            else:
-                value = raw_input(query_msg).strip()
             
-            if ask_to_save and raw_input('Would you like to save this value in {}? [Y/n] '.format(CONFIG_PATH)).lower() == 'n':
+            try:
+                reg_option = self.registry[(section, option)]
+            except KeyError:
+                if default != 'dontguessthis': #dirty hack
+                    return default
+                else:
+                    raise
+            
+            if reg_option['getpass']:
+                value = getpass.getpass(reg_option['query'])
+            else:
+                value = raw_input(reg_option['query'] + ": ").strip()
+            
+            if reg_option['ask'] and raw_input('Would you like to save this value in {}? [Y/n] '.format(self.config_path)).lower() == 'n':
                 return value
             
             if not self._config.has_section(section):
                 self._config.add_section(section)
             self._config.set(section, option, value)
             
-            with open(CONFIG_PATH, 'wb') as configfile:
+            with open(self.config_path, 'wb') as configfile:
                 self._config.write(configfile)
-                
+            chmod(self.config_path, 384) #0o600
+            
             return value
 
 config = Config()

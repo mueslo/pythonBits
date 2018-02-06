@@ -4,15 +4,22 @@ import requests
 import contextlib
 import re
 
-from . import __version__ as version
+from . import __version__ as version, __title__ as title
 from .config import config
+
+config.register('Tracker', 'announce_url',
+                "Please enter your personal announce URL")
+config.register('Tracker', 'username', "Username", ask=True)
+config.register('Tracker', 'password', "Password", ask=True, getpass=True)
+config.register('Tracker', 'domain', 
+                "Please enter the tracker's domain, e.g. 'mydomain.net'")
 
 class TrackerException(Exception):
     pass
 
 #todo: get domain from announce_url
 class Tracker():
-    headers={'User-Agent': 'pythonBits/{}'.format(version)}
+    headers={'User-Agent': '{}/{}'.format(title, version)}
     
     @staticmethod
     def logged_in(resp):
