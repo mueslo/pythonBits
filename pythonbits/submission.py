@@ -37,11 +37,8 @@ bb_center = lambda x: "[align=center]{}[/align]".format(x)
 
 
 class Submission(object):
-    fields = {}
-    options = {}
-
     def __init__(self, **kwargs):
-        self.fields.update(**kwargs)
+        self.fields = kwargs
     
     def __getitem__(self, field):
         try:
@@ -163,9 +160,10 @@ class VideoSubmission(Submission):
             match = re.match(title_tv_re, self['title_arg'],
                              re.IGNORECASE)
             if match:
+                episode = match.group('episode')
                 return TvSpecifier(match.group('title'),
                                    int(match.group('season')),
-                                   int(match.group('episode')))
+                                   episode and int(episode)) #if episode is None
             
             #todo: test tv show name from title_arg, but episode from filename
         
