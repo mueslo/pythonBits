@@ -14,7 +14,7 @@ def test_attribute_logic():
     assert s['fieldname'] == 'somevalue'
     assert s['title'] == 'overrides_render'
      
-# title path correct_specifier
+# title, path, correct_specifier
 tv_names = [(None, 'some.series.s02e11.avi', ('some series', 2, 11)),
             (None, 'another series s04e02.mkv', ('another series', 4, 2)),
             (None, 'A.Series.S10.BluRay', ('A Series', 10, None)),

@@ -144,8 +144,6 @@ from collections import namedtuple
 TvSpecifier = namedtuple('TvSpecifier', ['title', 'season', 'episode'])
 
 class VideoSubmission(Submission):
-    #todo: automated rules checking:
-    #    -bitrate
     default_fields = ("form_title", "tags", "cover")
     
     def _render_category(self):
@@ -426,10 +424,10 @@ class TvSubmission(VideoSubmission):
         else: # Season pack
             tvdb.search(self['search_title'], season=season)
     
+        #todo offer choice of cover if multiple?
         return tvdb.summary()
     
     def _render_description(self):
-        # todo: templating
         summary = self['summary']
         
         # todo: fix this horrid mess
@@ -505,7 +503,6 @@ class TvSubmission(VideoSubmission):
 class MovieSubmission(VideoSubmission):
     default_fields = (VideoSubmission.default_fields + 
                       ("description", "mediainfo", "screenshots"))
-    #todo cover
     
     def _render_category(self):
         return 'movie'
