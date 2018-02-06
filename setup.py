@@ -6,10 +6,6 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the README file
-with codecs.open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
-
 def read(*parts):
     with codecs.open(path.join(here, *parts), 'r') as fp:
         return fp.read()
@@ -27,11 +23,18 @@ setup(
     version=find_version("pythonbits", "__init__.py"),
     description="A pretty printer for media",
     license='GPLv3',
-    #long_description=long_description,  # Optional
-    #url='https://github.com/mueslo/Pythonbits',  # Optional
-    #author_email='mueslo@mueslo.de',  # Optional
-    #keywords='sample setuptools development',  # Optional
+    url='https://github.com/mueslo/pythonBits',
+    #keywords='sample setuptools development',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    install_requires=[
+        "imdbpie~=5.2",
+        "requests~=2.18",
+        "tvdb-api~=1.9",
+        "attrdict~=2.0",
+        "appdirs~=1.4",
+        "pymediainfo~=2.2",
+        "guessit~=2.1"],
+    python_requires="~=2.7",
     entry_points={
         'console_scripts': [
             'pythonbits = pythonbits.__main__:main'

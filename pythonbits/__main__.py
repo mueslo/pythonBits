@@ -42,7 +42,7 @@ def parse_args():
         'torrentfile': {'short_param': '-t', 'default': False,
                         'help': "Create torrent file"},
         'submit':      {'short_param': '-b', 'default': False,
-                        'help': "Submit generated description and torrent"},
+                        'help': "Generate complete submission and post it"},
         }
         
     
@@ -64,6 +64,7 @@ def parse_args():
                                 dest='fields_ex', nargs='+', metavar='FIELD',
                                 help="Output values of any field(s), e.g. tags")
     
+    #todo: move to submission.py
     options_d = {
         'num_screenshots': {'type': int, 'default': 2,
                             'help': "Number of screenshots"},
