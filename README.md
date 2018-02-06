@@ -27,7 +27,8 @@ In most cases it is enough to just run `pythonbits <path>`
 * Print mediainfo: `pythonbits -i <path>`, equivalent to `pythonbits -f mediainfo <path>`
 * Make screenshots, but don't upload: `pythonbits -s --dry-run <path>`
 * Write a description: `pythonbits -d <path>`
-* Generate complete submission: `pythonbits -b <path>` (Note: this is an untested, experimental feature)
+* Generate complete submission: `pythonbits -b <path>` (Note: this is an untested, experimental feature. YOU are responsible)
+* Generate complete submission, don't upload anything, and use supplied torrent file: `pythonbits -b -u torrentfile <torrentfile> --dry-run <path>`
 
 In case the media title and type cannot be guessed from the path alone, you can explicitly specify them, e.g. `pythonbits <path> "Doctor Who (2005) S06"`or `pythonbits <path> -c movie`.
 
