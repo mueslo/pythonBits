@@ -3,7 +3,7 @@
 [![PyPI version fury.io](https://badge.fury.io/py/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
 [![GitHub license](https://img.shields.io/github/license/mueslo/pythonbits.svg)](https://github.com/mueslo/pythonbits/blob/master/LICENSE)
-[![Travis](https://img.shields.io/travis/mueslo/pythonbits.svg)]()
+[![Travis](https://travis-ci.org/mueslo/pythonBits.svg?branch=master)]()
 #### A Python description generator for movies and TV shows
 
 ## Install
