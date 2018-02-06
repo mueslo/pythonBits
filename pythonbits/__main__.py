@@ -105,7 +105,6 @@ def main():
     consolewidth = 80
     sub.validate(args.fields) #also caches values
     for field in args.fields:
-        #print "="*consolewidth
         v = sub[field]
         print ("  "+field+"  ").center(consolewidth, "=")
         print v

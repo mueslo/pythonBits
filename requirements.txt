@@ -1,6 +1,6 @@
 imdbpie~=5.2
 requests~=2.18
-tvdb-api~=2.0
+tvdb-api~=1.9
 #wsgiref==0.1.2
 attrdict~=2.0
 appdirs~=1.4

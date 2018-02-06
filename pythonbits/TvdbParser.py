@@ -52,7 +52,8 @@ class TVDB(object):
         #use highest rated season banner
         season_banners = self.show['_banners']['season']['season']
 
-        best_banner = lambda banners: sorted(banners, key=lambda b: float(b['rating']))[-1]
+        best_banner = lambda banners: sorted(
+            banners, key=lambda b: float(b.get('rating', 0)))[-1]
                                                     
         season_banners = [banner for banner in self.show['_banners']['season']['season'].values() if banner['season'] == str(season_number)]
                

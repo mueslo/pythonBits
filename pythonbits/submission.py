@@ -75,6 +75,7 @@ class Submission(object):
     def _render_category(self):
         return None
 
+    # todo: rename
     def validate(self, required_fields=None):
         if not required_fields:
             required_fields = self.required_fields
@@ -97,7 +98,6 @@ class Submission(object):
                                     ", ".join(missing_keys)+")")
         
     def _render_scene(self):
-        #self.fields['scene'] = 'on'
         while True:
             choice = raw_input('Is this a scene release? [y/N] ')
             
@@ -108,11 +108,14 @@ class Submission(object):
 
     def _render_payload_preview(self):
         preview = ""
+        
         #todo dict map field names
+        #todo truncate mediainfo in preview
         consolewidth = 80
-        for field, value in self['payload'].items():
-            preview += ("  "+field+"  ").center(consolewidth, "=") + "\n"
-            preview += str(value) + "\n"
+        for t, fields in self['payload'].items():
+            for name, value in fields.items():
+                preview += ("  "+name+"  ").center(consolewidth, "=") + "\n"
+                preview += str(value) + "\n"
             
         return preview
     
@@ -140,7 +143,7 @@ class Submission(object):
                 break
             elif choice.lower() == 'y':
                 t = Tracker()
-                return t.upload(files={'desc': 'bla'}) #todo: use actual payload
+                return t.upload(**payload)
 
 
 title_tv_re = r"^(?P<title>.+)(?<!season) (?P<season_marker>(s|season |))(?P<season>((?<= s)[0-9]{2,})|(?<= )[0-9]+(?=x)|(?<=season )[0-9]+(?=$))((?P<episode_marker>[ex])(?P<episode>[0-9]+))?$"
@@ -185,7 +188,8 @@ class VideoSubmission(Submission):
     def _render_tags(self):
         # todo: get episode-specific actors (from imdb?)
         # todo: offer option to edit tags before submitting
-        
+        # todo: tag map, so that either science.fiction or sci.fi will be used,
+        #       rules prefer the former (no abbreviations)
         def format_tag(tag):
             nfkd_form = unicodedata.normalize('NFKD', tag)
             tag = nfkd_form.encode('ASCII', 'ignore')
@@ -390,7 +394,7 @@ class VideoSubmission(Submission):
         if self['options']['dry_run']:
             print 'Upload of cover image skipped due to dry run'
             return banner_url
-        return ImgurUploader([banner_url]).upload()
+        return ImgurUploader([banner_url]).upload()[0]
 
 
 class TvSubmission(VideoSubmission):
@@ -485,23 +489,28 @@ class TvSubmission(VideoSubmission):
                     mi=self['mediainfo'])
     
     def _render_payload(self):
-        payload = {
+        data = {
             'submit': 'true',
             'type': self['form_type'],
-            'file_input': open(self['torrentfile'], 'rb'),
             'title': self['form_title'],
             'tags': self['tags'],
             'desc': self['form_description'],
             'image': self['cover']
             }
-        
+
+        torrentfile = open(self['torrentfile'], 'rb')
+        files = {'file_input': (os.path.basename(torrentfile.name), 
+                                torrentfile, 
+                                'application/octet-stream')}
+
         if self['scene']:
-            payload['scene'] = 'on'
+            data['scene'] = 'on'
             
-        return payload
+        return {'files': files, 'data': data}
         
 
 class MovieSubmission(VideoSubmission):
+    #todo cover
     required_fields = VideoSubmission.required_fields + [
         'source', 'video_codec', 'audio_codec', 'container', 'resolution', 
         'additional_info', 'year', 'mediainfo', 'screenshots']
@@ -565,10 +574,9 @@ class MovieSubmission(VideoSubmission):
         return description
     
     def _render_payload(self):
-        payload = {
+        data = {
             'submit': 'true',
             'type': self['form_type'],
-            'file_input': open(self['torrentfile'], 'rb'),
             'title': self['form_title'],
             'source': self['source'],
             'videoformat': self['video_codec'],
@@ -583,13 +591,18 @@ class MovieSubmission(VideoSubmission):
             'image': self['cover'],
             }
         
+        torrentfile = open(self['torrentfile'], 'rb')
+        files = {'file_input': (os.path.basename(torrentfile.name), 
+                                torrentfile, 
+                                'application/octet-stream')}
+        
         for i, s in enumerate(self['screenshots'], start=1):
-            payload['screenshot'+str(i)] = s
+            data['screenshot'+str(i)] = s
         
         if self['scene']:
-            payload['scene'] = 'on'
+            data['scene'] = 'on'
             
-        return payload
+        return {'files': files, 'data': data}
     
     def _render_form_description(self):
         return self['description']

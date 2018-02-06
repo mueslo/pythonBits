@@ -41,7 +41,7 @@ class Config():
                     raise
             
             if reg_option['getpass']:
-                value = getpass.getpass(reg_option['query'])
+                value = getpass.getpass(reg_option['query'] + ": ")
             else:
                 value = raw_input(reg_option['query'] + ": ").strip()
             
