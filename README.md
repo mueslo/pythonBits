@@ -8,13 +8,14 @@
   * clone, `pip2 install -r requirements.txt` and run as `python -m pythonbits` instead of `pythonbits`
 
 2. Install mediainfo, ffmpeg and mktorrent such that they are accessible from $PATH
+  * you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
 
 ## Usage
 ```
-usage: pythonbits [-h] [-v] [-c {tv,movie}] [-i] [-t] [-s] [-d] [-b]
-                  [-f FIELD [FIELD ...]] [--num-cast NUM_CAST]
-                  [--num-screenshots NUM_SCREENSHOTS] [--dry-run]
-                  PATH [TITLE]
+usage: pythonbits  [-h] [-v] [-c {tv,movie}] [-u FIELD VALUE] [-i] [-t] [-s]
+                   [-d] [-b] [-f FIELD [FIELD ...]] [--num-cast NUM_CAST]
+                   [--num-screenshots NUM_SCREENSHOTS] [--dry-run]
+                   PATH [TITLE]
 ```
 Use `pythonbits --help` to get a more extensive usage overview
 

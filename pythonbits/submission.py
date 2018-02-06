@@ -37,8 +37,6 @@ bb_center = lambda x: "[align=center]{}[/align]".format(x)
 
 
 class Submission(object):
-    #todo remove required_fields?
-    required_fields = ['category', 'torrentfile', 'title', 'description']
     fields = {}
     options = {}
 
@@ -75,14 +73,10 @@ class Submission(object):
     def _render_category(self):
         return None
 
-    # todo: rename
-    def validate(self, required_fields=None):
-        if not required_fields:
-            required_fields = self.required_fields
-        
+    def cache_fields(self, fields):
         # check that all required values are non-zero
         missing_keys = []
-        for k in required_fields:
+        for k in fields:
             try:
                 v = self[k]
             except SubmissionAttributeError as e:
@@ -153,9 +147,9 @@ from collections import namedtuple
 TvSpecifier = namedtuple('TvSpecifier', ['title', 'season', 'episode'])
 
 class VideoSubmission(Submission):
-    required_fields = Submission.required_fields + ['tags', 'image']
     #todo: automated rules checking:
     #    -bitrate
+    default_fields = ("form_title", "tags", "cover")
     
     def _render_category(self):
         if self['tv_specifier']:
@@ -398,7 +392,8 @@ class VideoSubmission(Submission):
 
 
 class TvSubmission(VideoSubmission):
-    #required_fields = VideoSubmission.required_fields
+    default_fields = VideoSubmission.default_fields + ('form_description',)
+    
     def _render_category(self):
         return 'tv'
 
@@ -510,10 +505,9 @@ class TvSubmission(VideoSubmission):
         
 
 class MovieSubmission(VideoSubmission):
+    default_fields = (VideoSubmission.default_fields + 
+                      ("description", "mediainfo", "screenshots"))
     #todo cover
-    required_fields = VideoSubmission.required_fields + [
-        'source', 'video_codec', 'audio_codec', 'container', 'resolution', 
-        'additional_info', 'year', 'mediainfo', 'screenshots']
     
     def _render_category(self):
         return 'movie'

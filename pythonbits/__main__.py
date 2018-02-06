@@ -8,8 +8,7 @@ from argparse import ArgumentParser
 from . import __version__ as version
 from . import submission
 
-
-def main():
+def parse_args():
     parser = ArgumentParser(
         version=version, 
         description=("A Python pretty printer for generating attractive movie "
@@ -22,11 +21,18 @@ def main():
                               "(e.g. \"Lawrence of Arabia\" or \"The Walking "
                               "Dead S01\") (optional)"))
     
-    category = parser.add_argument("-c", "--category",choices=("tv","movie"))
+    parser.add_argument("-c", "--category",choices=("tv","movie"))
+    parser.add_argument("-u", "--set-field", nargs=2, action='append', 
+                        metavar=('FIELD', 'VALUE'), default=[],
+                        help="Use supplied values to use for fields, e.g. "
+                             "torrentfile /path/to/torrentfile")
     
     n_to_p = lambda x: "--"+x.replace('_','-')
-    default_fields = ["form_title", "tags", "cover"]
+    
+    #shorthand features
     feature_d = {
+        #todo: these default values can vary by Submission.default_fields and
+        #      wouldn't make sense for e.g. music
         'description': {'short_param': '-d', 'default': True,
                         'help': "Generate description of media"},
         'mediainfo':   {'short_param': '-i', 'default': True,
@@ -34,27 +40,29 @@ def main():
         'screenshots': {'short_param': '-s', 'default': True,
                         'help': "Generate screenshots and upload to imgur"},
         'torrentfile': {'short_param': '-t', 'default': False,
-                        'help': "Generate torrent file from PATH"},
+                        'help': "Create torrent file"},
         'submit':      {'short_param': '-b', 'default': False,
                         'help': "Submit generated description and torrent"},
         }
         
     
-    feature_toggle = parser.add_argument_group(title="Feature toggle", description="Enables only the selected features, while everything else will not be executed.")
+    feature_toggle = parser.add_argument_group(
+        title="Feature toggle", 
+        description="Enables only the selected features, "
+                    "while everything else will not be executed.")
 
     for name, vals in feature_d.items():
         short = vals.pop('short_param')
         default = vals.pop('default')
         vals['help'] += " (default "+str(default)+")"
-        if default:
-            default_fields.append(name)
         feature_toggle.add_argument(short, n_to_p(name), action='append_const',
-                                    const=name, dest='fields', **vals)
+                                    const=name, dest='fields', default=[], 
+                                    **vals)
     
     #explicit/extra features
-    feature_toggle.add_argument('-f', '--features', action='store',
+    feature_toggle.add_argument('-f', '--features', action='store', default=[],
                                 dest='fields_ex', nargs='+', metavar='FIELD',
-                                help="Enable custom fields")
+                                help="Output values of any field(s), e.g. tags")
     
     options_d = {
         'num_screenshots': {'type': int, 'default': 2,
@@ -73,38 +81,38 @@ def main():
         options.add_argument(n_to_p(name), **vals)
     
     args = parser.parse_args()
-    if args.fields_ex:
-        args.fields = args.fields or []
-        args.fields += args.fields_ex
     
     args.options = {}
     for o in options_d.keys():
         args.options[o] = getattr(args, o)
     
-    if args.fields is None:
-        args.fields = default_fields
+    set_field = dict(args.set_field)
+    
+    if args.category:
+        set_field['category'] = args.category
+    set_field['options'] = args.options
+    set_field['path'] = args.path
+    set_field['title_arg'] = args.title
+    get_field = args.fields + args.fields_ex
+    
+    return set_field, get_field
+    
+def main():
+    set_fields, get_fields = parse_args()
 
-    if args.category == 'tv':
-        sub = submission.TvSubmission(path=args.path, title_arg=args.title,
-                                      options=args.options)
-    elif args.category == 'movie':
-        sub = submission.MovieSubmission(path=args.path, title_arg=args.title,
-                                         options=args.options)
-    elif args.category is None:
-        sub = submission.VideoSubmission(path=args.path, title_arg=args.title,
-                                         options=args.options)
-        if sub['category'] == 'tv':
-            sub = submission.TvSubmission(**sub.fields)
-        elif sub['category'] == 'movie':
-            sub = submission.MovieSubmission(**sub.fields)
-        else:
-            raise Exception('Unknown category')
+    # only video submissions for now
+    sub = submission.VideoSubmission(**set_fields)
+    if sub['category'] == 'tv':
+        sub = submission.TvSubmission(**sub.fields)
+    elif sub['category'] == 'movie':
+        sub = submission.MovieSubmission(**sub.fields)
     else:
-        raise Exception('Unknown category')
+        raise Exception('Unknown category', sub['category'])
     
     consolewidth = 80
-    sub.validate(args.fields) #also caches values
-    for field in args.fields:
+    get_fields = get_fields or sub.default_fields
+    sub.cache_fields(get_fields)
+    for field in get_fields:
         v = sub[field]
         print ("  "+field+"  ").center(consolewidth, "=")
         print v
