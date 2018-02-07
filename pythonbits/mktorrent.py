@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-import sys
 import math
 import tempfile
 
@@ -45,16 +44,13 @@ def make_torrent(fname):
     tmp_dir = tempfile.mkdtemp()
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
     out_fname = os.path.join(tmp_dir, out_fname)
-    try:
-        mktorrent = subprocess.Popen([r"mktorrent", "--private",
-                                      "-l", str(psize_exp),
-                                      "-a", announce_url,
-                                      "-c", release,
-                                      "-o", out_fname,
-                                      fname], shell=False)
-    except OSError:
-        print >> sys.stderr, "Error: mktorrent not found"
-        exit(1)
+
+    mktorrent = subprocess.Popen([r"mktorrent", "--private",
+                                  "-l", str(psize_exp),
+                                  "-a", announce_url,
+                                  "-c", release,
+                                  "-o", out_fname,
+                                  fname], shell=False)
 
     print "Waiting for torrent creation to complete..."
     mktorrent.wait()

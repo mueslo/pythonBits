@@ -14,10 +14,10 @@ import guessit
 from . import _release as release
 from .mktorrent import make_torrent
 from .tracker import Tracker
-from . import TvdbParser
-from . import ImdbParser
-from .ImgurUploader import ImgurUploader
-from .Ffmpeg import FFMpeg
+from . import tvdb
+from . import imdb
+from .imgur import ImgurUploader
+from .ffmpeg import FFMpeg
 
 
 class SubmissionAttributeError(Exception):
@@ -38,13 +38,26 @@ def bb_img(x): return "[img=" + x + "]"
 def bb_b(x): return "[b]" + x + "[/b]"
 
 
-def bb_link(x, y=""): return "[url={}]{}[/url]".format(x, y)
+def bb_link(x, y): return "[url={}]{}[/url]".format(x, y)
 
 
 def bb_tiny(x): return "[size=1]{}[/size]".format(x)
 
 
 def bb_center(x): return "[align=center]{}[/align]".format(x)
+
+
+def bb_size(x, s): return "[size={s}]{}[/size]".format(x, s=s)
+
+
+def bb_h(x):
+    s = ""
+    for c in x:
+        if c.isupper():
+            s += bb_size(c, 3)
+        else:
+            s += c.upper()
+    return bb_center(bb_b(s))
 
 
 class Submission(object):
@@ -197,13 +210,12 @@ class VideoSubmission(Submission):
         def format_tag(tag):
             nfkd_form = unicodedata.normalize('NFKD', tag)
             tag = nfkd_form.encode('ASCII', 'ignore')
-            return tag.replace(' ', '.'
-                               ).replace('-', '.'
-                                         ).replace('\'', '.'
-                                                   ).lower()
+            return tag.replace(' ', '.').replace('-', '.').replace('\'', '.'
+                                                                   ).lower()
 
         n = self['options']['num_cast']
-        tags = self['summary']['genres'] + self['summary']['cast'][:n]
+        tags = list(self['summary']['genres'])
+        tags += [a.name for a in self['summary']['cast'][:n]]
         return ",".join(format_tag(tag) for tag in tags)
 
     def _render_mediainfo_path(self):
@@ -231,11 +243,11 @@ class VideoSubmission(Submission):
     def _render_screenshots(self):
         ns = self['options']['num_screenshots']
         ffmpeg = FFMpeg(self['mediainfo_path'])
-        images = ffmpeg.takeScreenshots(ns)
+        images = ffmpeg.take_screenshots(ns)
         if self['options']['dry_run']:
             print "Upload of screenshots skipped due to dry run"
             return images
-        return ImgurUploader(images).upload()
+        return ImgurUploader().upload(images)
 
     def _render_mediainfo(self):
         try:
@@ -400,7 +412,7 @@ class VideoSubmission(Submission):
         if self['options']['dry_run']:
             print 'Upload of cover image skipped due to dry run'
             return banner_url
-        return ImgurUploader([banner_url]).upload()[0]
+        return ImgurUploader().upload(banner_url)
 
 
 class TvSubmission(VideoSubmission):
@@ -431,17 +443,9 @@ class TvSubmission(VideoSubmission):
                 t=self['title'], s=self['tv_specifier'].season, m=markers)
 
     def _render_summary(self):
-        tvdb = TvdbParser.TVDB()
-        episode = self['tv_specifier'].episode
-        season = self['tv_specifier'].season
-        if episode:  # Episode
-            tvdb.search(self['search_title'],
-                        episode="S{:0d}E{:0d}".format(season, episode))
-        else:  # Season pack
-            tvdb.search(self['search_title'], season=season)
-
-        # todo offer choice of cover if multiple?
-        return tvdb.summary()
+        t = tvdb.TVDB()
+        result = t.search(self['tv_specifier'])
+        return result.summary()
 
     def _render_description(self):
         summary = self['summary']
@@ -539,39 +543,46 @@ class MovieSubmission(VideoSubmission):
         return guessit.guessit(self['path'])['year']
 
     def _render_summary(self):
-        imdb = ImdbParser.IMDB()
-        imdb.search(self['search_title'])
-        imdb.movieSelector()
-        return imdb.summary()
+        i = imdb.IMDB()
+        movie = i.search(self['search_title'])
+        return movie.summary()
 
     def _render_description(self):
-        # todo: templating, rottentomatoes
+        # todo: templating, rottentomatoes, ...
         summary = self['summary']
 
+        def imdb_link(r):
+            return bb_link("https://www.imdb.com"+r.id, r.name)
+
+        n = self['options']['num_cast']
+        links = [(summary['url'], "IMDb")]
+        # todo: synopsis/longer description
         description = dedent("""\
-        [b]Description[/b]
+        {h_description}
         [quote]{description}[/quote]
-        [b]Information:[/b]
-        [quote]IMDB Url: {url}
-        Title: {name}
+        {h_information}
+        [quote]Title: {name} ({links})
         Year: {year}
         MPAA: {mpaa}
-        Rating: {rating}
-        Votes: {votes}
+        Rating: {rating} ({votes} votes)
         Runtime: {runtime}
         Director(s): {directors}
         Writer(s): {writers}
+        Cast: {cast}
         [/quote]""").format(
+            h_description=bb_h("Description"),
+            h_information=bb_h("Information"),
             description=summary['description'],
-            url=summary['url'],
+            links=", ".join(bb_link(*l) for l in links),
             name=summary['name'],
             year=summary['year'],
             mpaa=summary['mpaa'],
             rating=summary['rating'],
             votes=summary['votes'],
             runtime=summary['runtime'],
-            directors=summary['directors'],
-            writers=summary['writers'],
+            directors=" | ".join(imdb_link(d) for d in summary['directors']),
+            writers=" | ".join(imdb_link(w) for w in summary['writers']),
+            cast=" | ".join(imdb_link(a) for a in summary['cast'][:n])
         )
 
         description += bb_center(bb_tiny("Generated by " + release))
