@@ -37,6 +37,15 @@ setup(
         "pymediainfo~=2.2",
         "guessit~=2.1"],
     python_requires="~=2.7",
+    classifiers=[
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2 :: Only",
+        "Programming Language :: Python :: 2.7",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Topic :: Internet",
+        "Topic :: Multimedia",
+        "Topic :: Utilities"],
     entry_points={
         'console_scripts': [
             'pythonbits = pythonbits.__main__:main'
