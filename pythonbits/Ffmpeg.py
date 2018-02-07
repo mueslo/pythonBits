@@ -15,7 +15,7 @@ from tempfile import mkdtemp
 from hashlib import md5
 
 
-#argh
+# argh
 class FFMpeg(object):
     def __init__(self, filepath):
         self.file = filepath
@@ -32,7 +32,8 @@ class FFMpeg(object):
                 "Error: Ffmpeg not installed, refer to http://www.ffmpeg.org/download.html for installation")
             exit(1)
         ffmpeg_out = self.ffmpeg.stdout.read()
-        ffmpeg_duration = re.findall(r'Duration:\D(\d{2}):(\d{2}):(\d{2})', ffmpeg_out)
+        ffmpeg_duration = re.findall(
+            r'Duration:\D(\d{2}):(\d{2}):(\d{2})', ffmpeg_out)
         if not ffmpeg_duration:
             # the odds of a filename collision on an md5 digest are very small
             out_fn = '%s.txt' % md5(ffmpeg_out).hexdigest()
@@ -64,4 +65,3 @@ class FFMpeg(object):
                 "Error: Ffmpeg not installed, refer to http://www.ffmpeg.org/download.html for installation")
             exit(1)
         return imgs
-

@@ -6,9 +6,11 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+
 def read(*parts):
     with codecs.open(path.join(here, *parts), 'r') as fp:
         return fp.read()
+
 
 def find_version(*file_paths):
     version_file = read(*file_paths)
@@ -18,13 +20,13 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
+
 setup(
     name='pythonbits',
     version=find_version("pythonbits", "__init__.py"),
     description="A pretty printer for media",
     license='GPLv3',
     url='https://github.com/mueslo/pythonBits',
-    #keywords='sample setuptools development',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=[
         "imdbpie~=5.2",
@@ -40,4 +42,4 @@ setup(
             'pythonbits = pythonbits.__main__:main'
         ]
     },
-) 
+)

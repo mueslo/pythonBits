@@ -10,7 +10,6 @@ imdb parsing.
 """
 
 import sys
-import json
 from attrdict import AttrDict
 
 import imdbpie
@@ -25,7 +24,7 @@ class IMDB(object):
     def search(self, title):
         try:
             results = self.imdb.search_for_title(title)
-        except imdbpie.ImdbAPIError, e:
+        except imdbpie.ImdbAPIError as e:
             print >> sys.stderr, "You probably don't have an internet connection. Complete error report:"
             print >> sys.stderr, e
             sys.exit(3)
@@ -33,20 +32,24 @@ class IMDB(object):
         self.results = results
 
     def movieSelector(self):
-        #todo: allow input of alternate search string
+        # todo: allow input of alternate search string
         try:
             print "Movies found:"
             for (counter, movie) in enumerate(self.results):
-                outp = u'%s: %s (%s)' % (counter, movie['title'], movie['year'])
+                outp = u'%s: %s (%s)' % (
+                    counter, movie['title'], movie['year'])
                 print outp
-            selection = int(raw_input('Select the correct movie [0-%s]: ' % (len(self.results) - 1)))
-            self.movie = AttrDict(self.imdb.get_title(self.results[selection]['imdb_id']))
+            selection = int(
+                raw_input('Select the correct movie [0-%s]: ' % (len(self.results) - 1)))
+            self.movie = AttrDict(self.imdb.get_title(
+                self.results[selection]['imdb_id']))
 
         except ValueError as e:
             try:
                 selection = int(
                     raw_input("This is not a correct movie-identifier, try again [0-%s]: " % (len(self.results) - 1)))
-                self.movie = AttrDict(self.imdb.get_title(self.results[selection]['imdb_id']))
+                self.movie = AttrDict(self.imdb.get_title(
+                    self.results[selection]['imdb_id']))
             except (ValueError, IndexError) as e:
                 print >> sys.stderr, "You failed"
                 print >> sys.stderr, e
@@ -55,7 +58,8 @@ class IMDB(object):
             try:
                 selection = int(
                     raw_input("Your chosen value does not match a movie, try again [0-%s]: " % (len(self.results) - 1)))
-                self.movie = AttrDict(self.imdb.get_title(self.results[selection]['imdb_id']))
+                self.movie = AttrDict(self.imdb.get_title(
+                    self.results[selection]['imdb_id']))
             except (ValueError, IndexError) as e:
                 print >> sys.stderr, "You failed"
                 print >> sys.stderr, e
@@ -63,17 +67,18 @@ class IMDB(object):
     def summary(self):
         if self.movie:
             movie_id = self.movie.base.id.split('/')[2]
-            self.movie.credits = self.imdb.get_title_credits(movie_id)['credits']
+            self.movie.credits = self.imdb.get_title_credits(movie_id)[
+                'credits']
             self.movie.genres = self.imdb.get_title_genres(movie_id)['genres']
-            
+
             return {
-                'title': self.movie.base.title, 
+                'title': self.movie.base.title,
                 'directors': u" | ".join(
                     [director.name for director in self.movie.credits.director]),
-                'runtime': str(self.movie.base.runningTimeInMinutes)+" min", 
-                'rating': str(self.movie.ratings.rating)+"/10",
-                'name': self.movie.base.title, 
-                'votes': self.movie.ratings.ratingCount, 
+                'runtime': str(self.movie.base.runningTimeInMinutes) + " min",
+                'rating': str(self.movie.ratings.rating) + "/10",
+                'name': self.movie.base.title,
+                'votes': self.movie.ratings.ratingCount,
                 'cover': self.movie.base.image.url,
                 'genres': list(self.movie.genres),
                 'cast': [actor.name for actor in self.movie.credits.cast],

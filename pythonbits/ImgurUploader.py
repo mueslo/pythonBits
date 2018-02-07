@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 import urllib2
 import urllib
-import ConfigParser
 import json
 import re
-import os
-import sys
 from textwrap import dedent
 
 from . import MultipartPostHandler
@@ -29,12 +26,13 @@ config.register('Imgur', 'client_id',
                 Client ID"""))
 config.register('Imgur', 'client_secret', "Client Secret")
 
+
 class ImgurAuth(object):
     def __init__(self):
         self.client_id = config.get('Imgur', 'client_id')
         self.client_secret = config.get('Imgur', 'client_secret')
         self.refresh_token = config.get('Imgur', 'refresh_token', None)
-        self.access_token =  None
+        self.access_token = None
 
     def prepare(self):
         if self.access_token:
@@ -42,8 +40,8 @@ class ImgurAuth(object):
             return
 
         while not (self.client_id and self.client_secret):
-            print("Client ID: %s or Client Secret: %s missing" % 
-                    (self.client_id, self.client_secret) )
+            print("Client ID: %s or Client Secret: %s missing" %
+                  (self.client_id, self.client_secret))
             self.request_client_details()
 
         if self.refresh_token:
@@ -53,13 +51,11 @@ class ImgurAuth(object):
             print("You are not currently logged in.")
             self.request_login()
 
-
     def request_client_details(self):
-        #todo properly query these
+        # todo properly query these
 
         self.client_id = raw_input("Client ID: ")
         self.client_secret = raw_input("Client Secret: ")
-      
 
     def request_login(self):
         user_url = USER_URL_TEMPLATE % self.client_id
@@ -75,12 +71,12 @@ class ImgurAuth(object):
         self.fetch_access_token('refresh_token', self.refresh_token)
 
     def fetch_access_token(self, grant_type, value):
-        #grant type: pin or refresh_token
+        # grant type: pin or refresh_token
         data = urllib.urlencode({
             'client_id': config.get('Imgur', 'client_id'),
             'client_secret': config.get('Imgur', 'client_secret'),
             'grant_type': grant_type,
-            grant_type : value
+            grant_type: value
         })
         req = urllib2.Request(API_URL + "/oauth2/token", data)
         res = urllib2.urlopen(req)
@@ -96,7 +92,7 @@ class ImgurAuth(object):
         print
 
     def get_auth_header(self):
-       return ("Authorization", "Bearer %s" % self.access_token)     
+        return ("Authorization", "Bearer %s" % self.access_token)
 
 
 class ImgurUploader(object):
@@ -108,7 +104,8 @@ class ImgurUploader(object):
 
     def upload(self):
         self.imgur_auth.prepare()
-        opener = urllib2.build_opener(MultipartPostHandler.MultipartPostHandler)
+        opener = urllib2.build_opener(
+            MultipartPostHandler.MultipartPostHandler)
         opener.addheaders = [self.imgur_auth.get_auth_header()]
         matcher = re.compile(r'http(s)*://')
         for image in self.images:
@@ -122,11 +119,14 @@ class ImgurUploader(object):
                 response = json.loads(res)
                 if response["success"] and response["data"]:
                     link = response["data"]["link"]
-                    extensions = [path.split(".")[-1] for path in (image, link)]
+                    extensions = [path.split(".")[-1]
+                                  for path in (image, link)]
                     if extensions[0] != extensions[1]:
                         placeholder = image.split("/")[-1]
-                        print("WARNING: Imgur converted %s to a %s." % (extensions[0], extensions[1]))
-                        print("Please upload elsewhere and replace the placeholder link.")
+                        print("WARNING: Imgur converted %s to a %s." %
+                              (extensions[0], extensions[1]))
+                        print(
+                            "Please upload elsewhere and replace the placeholder link.")
                         print("Imgur link: %s" % link)
                         print("Placeholder: %s" % placeholder)
                         print("File: %s" % image)
@@ -135,8 +135,9 @@ class ImgurUploader(object):
                     else:
                         self.imageurls.append(link)
                 else:
-                    print("Could not upload image: %s, skipping. Result: " % (image, res))
+                    print("Could not upload image: %s, skipping. Result: " %
+                          (image, res))
             except Exception as e:
-                    print("Exception uploading image: %s, skipping. Exception: " % (image, e))
+                print("Exception uploading image: %s, skipping. Exception: " %
+                      (image, e))
         return self.imageurls
-

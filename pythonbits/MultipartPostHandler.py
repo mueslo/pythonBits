@@ -30,11 +30,13 @@ import mimetools
 import mimetypes
 import os
 import stat
+import sys
 
 
 class Callable:
     def __init__(self, anycallable):
         self.__call__ = anycallable
+
 
 # Controls how sequences are uncoded. If true, elements may be given multiple values by
 # assigning a sequence.
@@ -46,12 +48,12 @@ class MultipartPostHandler(urllib2.BaseHandler):
 
     def http_request(self, request):
         data = request.get_data()
-        if data is not None and type(data) != str:
+        if data is not None and not isinstance(data, str):
             v_files = []
             v_vars = []
             try:
                 for (key, value) in data.items():
-                    if type(value) == file:
+                    if isinstance(value, file):
                         v_files.append((key, value))
                     else:
                         v_vars.append((key, value))
@@ -65,8 +67,9 @@ class MultipartPostHandler(urllib2.BaseHandler):
                 boundary, data = self.multipart_encode(v_vars, v_files)
                 contenttype = 'multipart/form-data; boundary=%s' % boundary
                 if (request.has_header('Content-Type')
-                    and request.get_header('Content-Type').find('multipart/form-data') != 0):
-                    print "Replacing %s with %s" % (request.get_header('content-type'), 'multipart/form-data')
+                        and request.get_header('Content-Type').find('multipart/form-data') != 0):
+                    print "Replacing %s with %s" % (request.get_header(
+                        'content-type'), 'multipart/form-data')
                 request.add_unredirected_header('Content-Type', contenttype)
 
             request.add_data(data)
@@ -82,11 +85,13 @@ class MultipartPostHandler(urllib2.BaseHandler):
             buffer += 'Content-Disposition: form-data; name="%s"' % key
             buffer += '\r\n\r\n' + value + '\r\n'
         for (key, fd) in files:
-            file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
+            os.fstat(fd.fileno())[stat.ST_SIZE]
             filename = os.path.basename(fd.name)
-            contenttype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            contenttype = mimetypes.guess_type(
+                filename)[0] or 'application/octet-stream'
             buffer += '--%s\r\n' % boundary
-            buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (key, filename)
+            buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (
+                key, filename)
             buffer += 'Content-Type: %s\r\n' % contenttype
             # buffer += 'Content-Length: %s\r\n' % file_size
             fd.seek(0)
