@@ -3,6 +3,8 @@
 __title__ = "pythonBits"
 __version__ = "3.0b2"
 __copyright__ = "Copyright 2018, The pythonBits Authors"
+__maintainer__ = "mueslo"
 __license__ = "GPLv3"
 
 _release = __title__ + " " + __version__
+_github = 'https://github.com/' + __maintainer__ + '/' + __title__
