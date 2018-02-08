@@ -198,7 +198,7 @@ class VideoSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
 
     def _render_guess(self):
-        return guessit.guessit(self['path'])
+        return {k: v for k, v in guessit.guessit(self['path']).items()}
 
     def _render_category(self):
         if self['tv_specifier']:
@@ -297,13 +297,13 @@ class VideoSubmission(Submission):
 
         for track in mi.tracks:
             if track.track_type == 'General':
-                general = track
+                general = track.to_data()
             elif track.track_type == 'Video':
-                video_tracks.append(track)
+                video_tracks.append(track.to_data())
             elif track.track_type == 'Audio':
-                audio_tracks.append(track)
+                audio_tracks.append(track.to_data())
             elif track.track_type == 'Text':
-                text_tracks.append(track)
+                text_tracks.append(track.to_data())
             else:
                 print "Unknown track", track
 
@@ -349,31 +349,31 @@ class VideoSubmission(Submission):
 
     def _render_container(self):
         general = self['tracks']['general']
-        if general.format == 'Matroska':
+        if general['format'] == 'Matroska':
             return 'MKV'
-        elif general.format == 'AVI':
+        elif general['format'] == 'AVI':
             return 'AVI'
-        elif general.format == 'MPEG-4':
+        elif general['format'] == 'MPEG-4':
             return 'MP4'
         else:
             raise Exception("Unknown or unsupported container", general.format)
 
     def _render_video_codec(self):
         video_track = self['tracks']['video']
-        video_track.bit_rate or video_track.nominal_bit_rate
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
-        if video_track.codec in ('V_MPEG4/ISO/AVC', 'AVC'):
-            if (video_track.writing_library and
-                    'x264' in video_track.writing_library):
+        if video_track['codec'] in ('V_MPEG4/ISO/AVC', 'AVC'):
+            if ('writing_libary' in video_track and
+                    'x264' in video_track['writing_library']):
                 return 'x264'
             else:
                 return 'H.264'
-        elif video_track.codec == 'XVID':
+        elif video_track['codec'] == 'XVID':
             return 'XVid'
         else:
             raise Exception("Unknown or unsupported video codec",
-                            video_track.codec, video_track.writing_library)
+                            video_track['codec'],
+                            video_track['writing_library'])
 
     def _render_audio_codec(self):
         audio_codecs = ('AC3', 'DTS', 'FLAC', 'AAC', 'MP3')
@@ -382,12 +382,12 @@ class VideoSubmission(Submission):
         audio_track = audio_tracks[0]  # main audio track
 
         for c in audio_codecs:
-            if audio_track.codec.startswith(c):
+            if audio_track['codec'].startswith(c):
                 c = c.replace('AC3', 'AC-3')
                 return c
 
         raise Exception("Unkown or unsupported audio codec",
-                        audio_track.codec)
+                        audio_track['codec'])
 
     def _render_resolution(self):
         resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
@@ -415,7 +415,7 @@ class VideoSubmission(Submission):
         text_tracks = self['tracks']['text']
 
         for track in audio_tracks[1:]:
-            if track.title and 'commentary' in track.title.lower():
+            if 'title' in track and 'commentary' in track['title'].lower():
                 additional.append('w. Commentary')
 
         if text_tracks:
@@ -428,8 +428,12 @@ class VideoSubmission(Submission):
         #         not self['tracks']['text']):
         #     raise BrokenRule("Missing subtitles")
 
+        edition = self['guess'].get('edition')
+        if edition:
+            additional.insert(0, edition)
+
         if self['guess'].get('proper_count') and self['scene']:
-                additional.insert(0, 'PROPER')
+            additional.insert(0, 'PROPER')
 
         return additional
 

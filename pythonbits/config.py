@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-from os import path, chmod
+from os import path, chmod, mkdir
 
 import ConfigParser
 import getpass
 import appdirs
 
-CONFIG_NAME = 'pythonbits.cfg'
-CONFIG_PATH = path.join(appdirs.user_config_dir("pythonbits"), CONFIG_NAME)
+from . import __title__ as appname
+
+CONFIG_NAME = appname.lower() + '.cfg'
+CONFIG_DIR = appdirs.user_config_dir(appname.lower())
+CONFIG_PATH = path.join(CONFIG_DIR, CONFIG_NAME)
+
+if not path.exists(CONFIG_DIR):
+    mkdir(CONFIG_DIR, 0700)
 
 
 class Config():
@@ -22,11 +28,14 @@ class Config():
 
         # todo: ask to remember choice if save is declined
 
-    def set(self, section, option, value):
-        self._config.set(section, option, value)
+    def _write(self):
         with open(self.config_path, 'wb') as configfile:
             self._config.write(configfile)
-        chmod(self.config_path, 384)  # 0o600
+        chmod(self.config_path, 0600)
+
+    def set(self, section, option, value):
+        self._config.set(section, option, value)
+        self._write()
 
     def get(self, section, option, default='dontguessthis'):
         self._config.read(self.config_path)
@@ -57,9 +66,7 @@ class Config():
                 self._config.add_section(section)
             self._config.set(section, option, value)
 
-            with open(self.config_path, 'wb') as configfile:
-                self._config.write(configfile)
-            chmod(self.config_path, 384)  # 0o600
+            self._write()
 
             return value
 

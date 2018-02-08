@@ -7,6 +7,13 @@ import tempfile
 from . import _release as release
 from .config import config
 
+config.register('Torrent', 'black_hole',
+                "Enter a directory where you would like to save the created "
+                "torrent file. Temporary directory will be used if left blank."
+                "\nDirectory",
+                ask=True)
+
+
 l2 = math.log(2)
 
 
@@ -35,15 +42,21 @@ class MkTorrentException(Exception):
 
 
 def make_torrent(fname):
-        # todo: multiprocessing
+    # todo: multiprocessing
     fsize = get_size(fname)
     psize_exp = piece_size_exp(fsize)
 
     announce_url = config.get('Tracker', 'announce_url')
 
-    tmp_dir = tempfile.mkdtemp()
+    out_dir = config.get('Torrent', 'black_hole')  # todo: relative to file
+
+    if not out_dir:
+        out_dir = tempfile.mkdtemp()
+    else:
+        assert os.path.exists(out_dir)
+
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
-    out_fname = os.path.join(tmp_dir, out_fname)
+    out_fname = os.path.join(out_dir, out_fname)
 
     mktorrent = subprocess.Popen([r"mktorrent", "--private",
                                   "-l", str(psize_exp),
