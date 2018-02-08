@@ -13,7 +13,7 @@ class ImdbResult(object):
             'title': self.movie.base.title,
             'directors': self.movie.credits.director,
             'runtime': str(self.movie.base.runningTimeInMinutes) + " min",
-            'rating': str(self.movie.ratings.rating) + "/10",
+            'rating': (self.movie.ratings.rating, 10),
             'name': self.movie.base.title,
             'votes': self.movie.ratings.ratingCount,
             'cover': self.movie.base.image.url,
@@ -31,6 +31,10 @@ class IMDB(object):
         self.imdb = imdbpie.Imdb()
         self.movie = None
 
+    def get_rating(self, imdb_id):
+        res = self.imdb.get_title_ratings(imdb_id)
+        return (res['rating'], 10), res['ratingCount']
+
     def search(self, title):
         results = self.imdb.search_for_title(title)
 
@@ -46,7 +50,9 @@ class IMDB(object):
             except IndexError:
                 pass
             except ValueError:
-                return self.search(choice)
+                if choice:
+                    return self.search(choice)
+                pass
             else:
                 imdb_id = result['imdb_id']
                 movie = AttrDict(self.imdb.get_title(result['imdb_id']))
