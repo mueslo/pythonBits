@@ -34,10 +34,11 @@ class MkTorrentException(Exception):
     pass
 
 
-def make_torrent(fname):
+def make_torrent(fname, psize_exp):
         # todo: multiprocessing
     fsize = get_size(fname)
-    psize_exp = piece_size_exp(fsize)
+    if psize_exp == 0:
+        psize_exp = piece_size_exp(fsize)
 
     announce_url = config.get('Tracker', 'announce_url')
 

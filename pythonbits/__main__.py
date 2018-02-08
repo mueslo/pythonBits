@@ -40,6 +40,8 @@ def parse_args():
                         'help': "Generate screenshots and upload to imgur"},
         'torrentfile': {'short_param': '-t', 'default': False,
                         'help': "Create torrent file"},
+        'piecesize': {'short_param': '-p', 'default': False,
+                        'help': "Override piece size exponential"},
         'submit': {'short_param': '-b', 'default': False,
                    'help': "Generate complete submission and post it"},
     }
@@ -67,6 +69,8 @@ def parse_args():
     options_d = {
         'num_screenshots': {'type': int, 'default': 2,
                             'help': "Number of screenshots"},
+        'piece_size_exp': {'type': int, 'default': 0,
+                            'help': "Override piece size exponential"},
         'num_cast': {'type': int, 'default': 5,
                      'help': "Number of actors to use in tags"},
         'dry_run': {'default': False, 'action': 'store_true',

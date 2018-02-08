@@ -71,7 +71,9 @@ class Submission(object):
             ["{k}\n{v}".format(k=k, v=v) for k, v in self.fields.items()])
 
     def _render_torrentfile(self):
-        return make_torrent(self['path'])
+        psize_exp = self['options']['piece_size_exp']
+
+        return make_torrent(self['path'], psize_exp)
 
     def _render_category(self):
         return None
