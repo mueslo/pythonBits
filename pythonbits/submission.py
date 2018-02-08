@@ -171,6 +171,9 @@ TvSpecifier = namedtuple('TvSpecifier', ['title', 'season', 'episode'])
 class VideoSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
 
+    def _render_guess(self):
+        return guessit.guessit(self['path'])
+
     def _render_category(self):
         if self['tv_specifier']:
             return 'tv'
@@ -190,7 +193,7 @@ class VideoSubmission(Submission):
 
             # todo: test tv show name from title_arg, but episode from filename
 
-        guess = guessit.guessit(self['path'])
+        guess = self['guess']
         if guess['type'] == 'episode':
             if self['title_arg']:
                 title = self['title_arg']
@@ -399,6 +402,9 @@ class VideoSubmission(Submission):
             additional.append('w. Subtitles')
         # print [(track.title, track.language) for track in text_tracks]
 
+        if self['guess'].get('proper_count'):
+            additional.insert(0, 'PROPER')
+
         return additional
 
     def _render_form_release_info(self):
@@ -547,7 +553,7 @@ class MovieSubmission(VideoSubmission):
         if self['title_arg']:
             return self['title_arg']
 
-        return guessit.guessit(self['path'])['title']
+        return self['guess']['title']
 
     def _render_title(self):
         return self['summary']['title']
@@ -556,7 +562,8 @@ class MovieSubmission(VideoSubmission):
         return self['title']
 
     def _render_year(self):
-        return guessit.guessit(self['path'])['year']
+        # todo: if path does not have year we need to get it from db
+        return self['guess']['year']
 
     def _render_summary(self):
         i = imdb.IMDB()

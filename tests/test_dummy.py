@@ -31,3 +31,18 @@ tv_names = [(None, 'some.series.s02e11.avi', ('some series', 2, 11)),
 def test_tv_specifier(title, path, specifier):
     s = submission.VideoSubmission(path=path, title_arg=title)
     assert s['tv_specifier'] == specifier
+
+
+def test_proper():
+    tracks = {'general': "",
+              'video': "",
+              'audio': "",
+              'text': ["sub", "title"]}
+
+    s = submission.VideoSubmission(
+        path=("Some.Awesome.Show.S26E12.REPACK."
+              "With.A.Show.Title.720p.WEB-DL.AAC2.0.H.264-pontifex.mkv"),
+        title_arg=None,
+        tracks=tracks)
+
+    assert s['additional'][0] == 'PROPER'
