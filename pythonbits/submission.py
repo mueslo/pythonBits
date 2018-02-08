@@ -5,12 +5,12 @@ import sys
 import re
 import subprocess
 from textwrap import dedent
-import unicodedata
 from collections import namedtuple
 from math import floor
 
 import pymediainfo
 import guessit
+from unidecode import unidecode
 
 from .mktorrent import make_torrent
 from .tracker import Tracker
@@ -21,13 +21,13 @@ from .ffmpeg import FFMpeg
 from . import templating as bb
 
 
-def format_rating(rating, max, limit=10):
+def format_rating(rating, max, limit=10, s=None, fill=None, empty=None):
     if rating is None:
         return "No rating"
 
-    s = u'★'
-    fill = [0x44, 0x44, 0x44]
-    empty = [0xff, 0xff, 0xff]
+    s = s or u'★'
+    fill = fill or [0xff, 0xff, 0x00]
+    empty = empty or [0xa0, 0xa0, 0xa0]
 
     limit = min(max, limit)
     num_stars = rating * limit / max
@@ -40,9 +40,14 @@ def format_rating(rating, max, limit=10):
     partial_color = bb.fmt_col(map(lambda x, y: int(x+y), pf, pe))
 
     stars = (bb.color(s * black_stars, bb.fmt_col(fill)) +
-             bb.color(s, partial_color) +
+             bb.color(s,               partial_color) +
              bb.color(s * white_stars, bb.fmt_col(empty)))
     return str(rating) + '/' + str(max) + ' ' + stars
+
+
+def format_tag(tag):
+    tag = unidecode(tag)
+    return tag.replace(' ', '.').replace('-', '.').replace('\'', '.').lower()
 
 
 class SubmissionAttributeError(Exception):
@@ -228,11 +233,6 @@ class VideoSubmission(Submission):
         # todo: offer option to edit tags before submitting
         # todo: tag map, so that either science.fiction or sci.fi will be used,
         #       rules prefer the former (no abbreviations)
-        def format_tag(tag):
-            nfkd_form = unicodedata.normalize('NFKD', tag)
-            tag = nfkd_form.encode('ASCII', 'ignore')
-            return tag.replace(' ', '.').replace('-', '.').replace('\'', '.'
-                                                                   ).lower()
 
         n = self['options']['num_cast']
         tags = list(self['summary']['genres'])

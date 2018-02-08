@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pythonbits.submission as submission
 import pytest
 
@@ -47,3 +48,17 @@ def test_proper():
         tracks=tracks)
 
     assert s['additional'][0] == 'PROPER'
+
+
+normalise_pairs = [
+    (u"Basic Feature", "basic.feature"),
+    (u"Name O'Comment-Doublename", "name.o.comment.doublename"),
+    (u"François and Влади́мир like Ümläutß",
+     "francois.and.vladimir.like.umlautss"),
+    (u"Blarb Børgen Ålpotef", "blarb.borgen.alpotef"),
+]
+
+
+@pytest.mark.parametrize("input, correct", normalise_pairs)
+def test_normalise_tags(input, correct):
+    assert submission.format_tag(input) == correct
