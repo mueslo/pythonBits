@@ -82,8 +82,9 @@ class Submission(object):
             return rv
 
     def __repr__(self):
-        return "\n\n\n".join(
-            ["{k}\n{v}".format(k=k, v=v) for k, v in self.fields.items()])
+        return "\n".join(
+            ["Field {k}:\n\t{v}\n".format(k=k, v=v)
+             for k, v in self.fields.items()])
 
     def _render_torrentfile(self):
         return make_torrent(self['path'])
@@ -143,7 +144,7 @@ class Submission(object):
         print self['payload_preview']
 
         if self['options']['dry_run']:
-            return 'Skipping submission due to dry run'
+            print "Note: Dry run. Nothing will be submitted."
 
         while True:
             print ("Reminder: YOU are responsible for following the "
@@ -153,8 +154,28 @@ class Submission(object):
             if not choice:
                 pass
             elif choice.lower() == 'n':
-                break
+                amend = raw_input("Amend a field? [N/<field name>] ")
+                if not amend.lower() or amend.lower() == 'n':
+                    return "Cancelled by user"
+
+                try:
+                    val = self['payload']['data'][amend]
+                except KeyError:
+                    print "No field named", amend
+                    print "Choices are:", self['payload']['data'].keys()
+                else:
+                    print "Current value:", val
+                    new_value = raw_input("New value (empty to cancel): ")
+
+                    if new_value:
+                        self['payload']['data'][amend] = new_value
+                        del self.fields['payload_preview']
+                        print self['payload_preview']
+
             elif choice.lower() == 'y':
+                if self['options']['dry_run']:
+                    return "Skipping submission due to dry run"
+
                 t = Tracker()
                 return t.upload(**payload)
 
@@ -355,19 +376,18 @@ class VideoSubmission(Submission):
                             video_track.codec, video_track.writing_library)
 
     def _render_audio_codec(self):
+        audio_codecs = ('AC3', 'DTS', 'FLAC', 'AAC', 'MP3')
+
         audio_tracks = self['tracks']['audio']
         audio_track = audio_tracks[0]  # main audio track
-        if audio_track.codec in ('AC3', 'AC3+'):
-            return 'AC-3'
-        elif audio_track.codec in ('DTS', 'FLAC', 'AAC'):
-            return audio_track.codec
-        elif audio_track.codec == 'AAC LC':
-            return 'AAC'
-        elif audio_track.codec == 'DTS-HD':
-            return 'DTS'
-        else:
-            raise Exception("Unkown or unsupported audio codec",
-                            audio_track.codec)
+
+        for c in audio_codecs:
+            if audio_track.codec.startswith(c):
+                c = c.replace('AC3', 'AC-3')
+                return c
+
+        raise Exception("Unkown or unsupported audio codec",
+                        audio_track.codec)
 
     def _render_resolution(self):
         resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
@@ -402,8 +422,14 @@ class VideoSubmission(Submission):
             additional.append('w. Subtitles')
         # print [(track.title, track.language) for track in text_tracks]
 
-        if self['guess'].get('proper_count'):
-            additional.insert(0, 'PROPER')
+        # todo: rule checking, e.g.
+        # main_audio = audio_tracks[0]
+        # if (main_audio.language and main_audio.language != 'en' and
+        #         not self['tracks']['text']):
+        #     raise BrokenRule("Missing subtitles")
+
+        if self['guess'].get('proper_count') and self['scene']:
+                additional.insert(0, 'PROPER')
 
         return additional
 
@@ -463,18 +489,28 @@ class TvSubmission(VideoSubmission):
             return bb.link(r.name, "https://www.imdb.com"+r.id)
 
         s = self['summary']
-        links = [('TVDB', s['url']),
-                 ('IMDb', "https://www.imdb.com/title/" + s['imdb_id'])]
+        links = [('TVDB', s['url'])]
 
+        if s['imdb_id']:
+            links.append(('IMDb',
+                          "https://www.imdb.com/title/" + s['imdb_id']))
+        # todo unify rating_bb and episode_fmt
         # get ratings from imdb
         i = imdb.IMDB()
         if self['tv_specifier'].episode:
-            rating, votes = i.get_rating(s['imdb_id'])
+            if s['imdb_id']:
+                rating, votes = i.get_rating(s['imdb_id'])
+
+                rating_bb = (format_rating(rating[0], max=rating[1]) + " " +
+                             bb.s1("({votes} votes)".format(
+                                 votes=votes)))
+            else:
+                rating_bb = ""
 
             description = dedent(u"""\
             [b]Episode title[/b]: {title} ({links})
             [b]Aired[/b]: {air_date} on {network}
-            [b]IMDb Rating[/b]: {rating} [size=1]({votes} votes)[/size]
+            [b]IMDb Rating[/b]: {rating}
             [b]Director[/b]: {director}
             [b]Writer(s)[/b]: {writers}
             [b]Content rating[/b]: {contentrating}""").format(
@@ -482,9 +518,7 @@ class TvSubmission(VideoSubmission):
                 links=", ".join(bb.link(*l) for l in links),
                 air_date=s['air_date'],
                 network=s['network'],
-                rating=format_rating(rating[0],
-                                     max=rating[1]),
-                votes=votes,
+                rating=rating_bb,
                 director=s['director'],
                 writers=u' | '.join(s['writers']),
                 contentrating=s['contentrating']
@@ -498,6 +532,9 @@ class TvSubmission(VideoSubmission):
             )
 
             def episode_fmt(e):
+                if not e['imdb_id']:
+                    return bb.link(e['title'], e['url']) + "\n"
+
                 rating, votes = i.get_rating(e['imdb_id'])
                 return (bb.link(e['title'], e['url']) + "\n" +
                         bb.s1(format_rating(*rating)))

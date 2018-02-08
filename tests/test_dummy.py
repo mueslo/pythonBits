@@ -43,6 +43,7 @@ def test_proper():
         path=("Some.Awesome.Show.S26E12.REPACK."
               "With.A.Show.Title.720p.WEB-DL.AAC2.0.H.264-pontifex.mkv"),
         title_arg=None,
+        scene=True,
         tracks=tracks)
 
     assert s['additional'][0] == 'PROPER'
