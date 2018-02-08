@@ -363,7 +363,7 @@ class VideoSubmission(Submission):
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
         if video_track['codec'] in ('V_MPEG4/ISO/AVC', 'AVC'):
-            if ('writing_libary' in video_track and
+            if ('writing_library' in video_track and
                     'x264' in video_track['writing_library']):
                 return 'x264'
             else:
