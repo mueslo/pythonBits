@@ -40,8 +40,6 @@ def parse_args():
                         'help': "Generate screenshots and upload to imgur"},
         'torrentfile': {'short_param': '-t', 'default': False,
                         'help': "Create torrent file"},
-        'piecesize': {'short_param': '-p', 'default': False,
-                        'help': "Override piece size exponential"},
         'submit': {'short_param': '-b', 'default': False,
                    'help': "Generate complete submission and post it"},
     }
