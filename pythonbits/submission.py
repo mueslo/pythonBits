@@ -274,13 +274,14 @@ class VideoSubmission(Submission):
         try:
             path = self['mediainfo_path']
             if os.name == "nt":
-                return subprocess.Popen([r"mediainfo", path], shell=True,
-                                        stdout=subprocess.PIPE
-                                        ).communicate()[0]
+                out = subprocess.Popen([r"mediainfo", path], shell=True,
+                                       stdout=subprocess.PIPE
+                                       ).communicate()[0]
             else:
-                return subprocess.Popen([r"mediainfo", path],
-                                        stdout=subprocess.PIPE
-                                        ).communicate()[0]
+                out = subprocess.Popen([r"mediainfo", path],
+                                       stdout=subprocess.PIPE
+                                       ).communicate()[0]
+            return out.decode('utf-8')
         except OSError:
             sys.stderr.write(
                 "Error: Media Info not installed, refer to "
