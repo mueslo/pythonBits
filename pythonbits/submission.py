@@ -2,8 +2,10 @@
 
 import os
 import sys
+import shutil
 import re
 import subprocess
+import copy
 from textwrap import dedent
 from collections import namedtuple
 from math import floor
@@ -12,6 +14,7 @@ import pymediainfo
 import guessit
 from unidecode import unidecode
 
+from .config import config
 from .mktorrent import make_torrent
 from .tracker import Tracker
 from . import tvdb
@@ -62,11 +65,75 @@ class FieldRenderException(Exception):
     pass
 
 
+class RegisteringType(type):
+    def __init__(cls, name, bases, attrs):
+        cls.registry = copy.deepcopy(getattr(cls, 'registry', {'mappers': {}, 'types': {}}))
+
+        # get parent form_field mappers, should be covered by above
+        #for base in bases:
+        #    parent_registry = getattr(base, 'registry', {'mappers': {},
+        #                                                 'types': {}})
+        #    cls.registry.update(**copy.deepcopy(parent_registry))
+
+        def add_mapper(f, ff, fft):
+            print cls.__name__, 'adding mapper', f, 'for', ff, '({})'.format(fft)
+            if field in cls.registry:
+                print "Warning, overwriting", field, "for class", name, 'with', form_field, 'previous value', cls.registry['mappers'][field]
+            cls.registry['mappers'][field] = form_field
+            cls.registry['types'][form_field] = form_field_type
+
+        # get form_field mappers from dunder string
+        form_field_mappers = getattr(cls, '__form_fields__', {})
+        for field, (form_field, form_field_type) in form_field_mappers.items():
+            add_mapper(field, form_field, form_field_type)
+
+
+        for key, val in attrs.iteritems():
+            try:
+                form_field, form_field_type = getattr(val, 'form_field')
+            except AttributeError as e:
+                pass  # most attributes are not a form_field mapper
+            else:
+                field, n = re.subn('^_render_', '', key)
+                assert n == 1  # only then is it a field renderer
+                add_mapper(field, form_field, form_field_type)
+
+        # get fields that may change
+        for key, val in attrs.iteritems():
+            if getattr(val, 'needs_finalization', False):
+                field, n = re.subn('^_render_', '', key)
+                assert n == 1  # only then is it a field renderer
+                cls._to_finalize = getattr(cls, '_to_finalize', []) + [field]
+
+
+
+form_field_types = {'text', 'checkbox', 'file'}  # todo select
+def form_field(field, type='text'):
+    def decorator(f):
+        f.form_field = (field, type)
+        return f
+    return decorator
+
+
+def finalize(f):
+    f.needs_finalization = True
+    return f
+
+import inspect
+
 class Submission(object):
+    __metaclass__ = RegisteringType
+
     def __init__(self, **kwargs):
         self.fields = kwargs
+        self.depends_on = {}
 
     def __getitem__(self, field):
+        caller, n = re.subn('^_render_', '', inspect.stack()[1][3])
+        if n:  # called by another cached field
+            print 'caller name:', caller, 'tried to get', field, type(self).__name__
+            self.depends_on[field] = self.depends_on.setdefault(field, []) + [caller]
+
         try:
             return self.fields[field]
         except KeyError:
@@ -91,13 +158,10 @@ class Submission(object):
             ["Field {k}:\n\t{v}\n".format(k=k, v=v)
              for k, v in self.fields.items()])
 
-    def _render_torrentfile(self):
-        return make_torrent(self['path'])
-
     def _render_category(self):
         return None
 
-    def cache_fields(self, fields):
+    def get_fields(self, fields):
         # check that all required values are non-zero
         missing_keys = []
         for k in fields:
@@ -115,41 +179,17 @@ class Submission(object):
             raise InvalidSubmission("Missing field(s) (" +
                                     ", ".join(missing_keys) + ")")
 
-    def _render_scene(self):
-        while True:
-            choice = raw_input('Is this a scene release? [y/N] ')
-
-            if not choice or choice.lower() == 'n':
-                return False
-            elif choice.lower() == 'y':
-                return True
-
-    def _render_payload_preview(self):
-        preview = ""
+    @finalize
+    def _render_submit(self):
+        payload = self['payload']
 
         # todo dict map field names
         # todo truncate mediainfo in preview
         consolewidth = 80
-        for t, fields in self['payload'].items():
-            for name, value in fields.items():
-                preview += ("  " + name +
-                            "  ").center(consolewidth, "=") + "\n"
-                preview += unicode(value) + "\n"
-
-        return preview
-
-    def _render_form_type(self):
-        catmap = {'tv': 'TV', 'movie': 'Movies'}
-
-        return catmap[self['category']]
-
-    def _render_submit(self):
-        payload = self['payload']
-
-        print self['payload_preview']
-
-        if self['options']['dry_run']:
-            print "Note: Dry run. Nothing will be submitted."
+        for name, value in self['payload'].items():
+            print ("  " + name +
+                        "  ").center(consolewidth, "=")
+            print unicode(value)
 
         while True:
             print ("Reminder: YOU are responsible for following the "
@@ -159,6 +199,7 @@ class Submission(object):
             if not choice:
                 pass
             elif choice.lower() == 'n':
+                """
                 amend = raw_input("Amend a field? [N/<field name>] ")
                 if not amend.lower() or amend.lower() == 'n':
                     return "Cancelled by user"
@@ -176,14 +217,120 @@ class Submission(object):
                         self['payload']['data'][amend] = new_value
                         del self.fields['payload_preview']
                         print self['payload_preview']
-
+                """
+                return False
             elif choice.lower() == 'y':
-                if self['options']['dry_run']:
-                    return "Skipping submission due to dry run"
+                return True
 
-                t = Tracker()
-                return t.upload(**payload)
+    def _finalize_submit(self):
+        # submit
+        #t = Tracker()
+        #url = t.upload(**payload)
+        url = 'url'
+        print 'would upload now'
+        return url
 
+    def needs_finalization(self):
+        return set(self._to_finalize) & set(self.fields.keys())
+
+    def finalize(self):
+        needs_finalization = self.needs_finalization()
+
+        for f in needs_finalization:
+            self.invalidate_field(f)
+
+        for f in needs_finalization:
+            self.fields[f] = getattr(self, '_finalize_' + f)()
+
+        # finalize:
+        #  upload and invalidate any images _finalize_<image>
+        #  submit torrentfile _finalize_<submit>
+        #  finalize torrentfile
+
+
+    def invalidate_field(self, field):
+        try:
+            dependent_fields = self.depends_on[field]
+        except KeyError:
+            print 'delete1', field
+            self.fields.pop(field, None)
+        else:
+            for f in dependent_fields:
+                self.invalidate_field(f)
+            print 'delete', field
+            self.fields.pop(field, None)
+
+    def _render_payload(self):
+        # must be rendered directly from editable fields
+        def pair_fields_and_values(fd_val, form_field):
+            # it's either a form field id
+            if isinstance(form_field, basestring):
+                yield form_field, fd_val
+
+            # or a rule to generate form field ids
+            elif callable(form_field):
+                    for i, val in enumerate(fd_val):
+                        for pair in pair_fields_and_values(
+                                val, form_field(i, val)):
+                            yield pair  # yield from
+
+            else:
+                raise AssertionError(form_field, fd_val)
+
+
+        payload = {}
+        print type(self).__name__
+        print self.registry['mappers'].items()
+        for fd_name, form_field in self.registry['mappers'].items():
+            fd_val = self[fd_name]
+            payload.update(pair_fields_and_values(fd_val, form_field))
+
+
+        return payload
+
+
+
+class BbSubmission(Submission):
+    @form_field('scene', 'checkbox')
+    def _render_scene(self):
+        while True:
+            choice = raw_input('Is this a scene release? [y/N] ')
+
+            if not choice or choice.lower() == 'n':
+                return False
+            elif choice.lower() == 'y':
+                return True
+
+    @form_field('submit')
+    def _render_form_submit(self):
+        return 'true'
+
+    def _render_torrentfile(self):
+        return make_torrent(self['path'])
+
+    @finalize
+    @form_field('file_input', 'file')
+    def _render_form_torrentfile(self):
+        return self['torrentfile']
+
+    def _finalize_form_torrentfile(self):
+        # move to bh
+        out_dir = config.get('Torrent', 'black_hole')  # todo: relative to file
+        if out_dir:
+            dest = os.path.join(out_dir, self['torrentfile'])
+            assert os.path.exists(out_dir)
+            assert not os.path.isfile(dest)
+            shutil.copy(self['torrentfile'], dest)
+            print "Torrent file copied to black hole"
+            return dest
+        else:
+            return self['torrentfile']
+
+    @form_field('type')
+    def _render_form_type(self):
+        catmap = {'tv': 'TV', 'movie': 'Movies'}
+
+        return catmap[self['category']]
 
 title_tv_re = (
     r"^(?P<title>.+)(?<!season) "
@@ -194,7 +341,7 @@ title_tv_re = (
 TvSpecifier = namedtuple('TvSpecifier', ['title', 'season', 'episode'])
 
 
-class VideoSubmission(Submission):
+class VideoSubmission(BbSubmission):
     default_fields = ("form_title", "tags", "cover")
 
     def _render_guess(self):
@@ -228,6 +375,7 @@ class VideoSubmission(Submission):
             return TvSpecifier(title, guess['season'],
                                guess.get('episode', None))
 
+    @form_field('tags')
     def _render_tags(self):
         # todo: get episode-specific actors (from imdb?)
         # todo: offer option to edit tags before submitting
@@ -261,14 +409,16 @@ class VideoSubmission(Submission):
             except (ValueError, IndexError):
                 pass
 
+    @finalize  # i.e. everything that is dependent on this function needs to be recalced
     def _render_screenshots(self):
         ns = self['options']['num_screenshots']
         ffmpeg = FFMpeg(self['mediainfo_path'])
-        images = ffmpeg.take_screenshots(ns)
-        if self['options']['dry_run']:
-            print "Upload of screenshots skipped due to dry run"
-            return images
-        return ImgurUploader().upload(images)
+        return ffmpeg.take_screenshots(ns)
+
+    def _finalize_screenshots(self):
+        print 'rehosting screenshots'
+        return 'rehost'
+        return ImgurUploader().upload(self['screenshots'])
 
     def _render_mediainfo(self):
         try:
@@ -440,16 +590,23 @@ class VideoSubmission(Submission):
     def _render_form_release_info(self):
         return " / ".join(self['additional'])
 
+    @finalize
+    @form_field('image')
     def _render_cover(self):
-        banner_url = self['summary']['cover']
-        if self['options']['dry_run']:
-            print 'Upload of cover image skipped due to dry run'
-            return banner_url
-        return ImgurUploader().upload(banner_url)
+        return self['summary']['cover']
+
+    def _finalize_cover(self):
+        print "rehosting cover"
+        return 'rehost'
+        return ImgurUploader().upload(self['cover'])
 
 
 class TvSubmission(VideoSubmission):
     default_fields = VideoSubmission.default_fields + ('form_description',)
+    __form_fields__ = {
+        'form_title': ('title', 'text'),
+        'form_description': ('desc', 'text'),
+        }
 
     def _render_category(self):
         return 'tv'
@@ -460,6 +617,7 @@ class TvSubmission(VideoSubmission):
     def _render_title(self):
         return self['summary']['title']
 
+    @form_field('title')
     def _render_form_title(self):
         markers_list = [self['source'], self['video_codec'],
                         self['audio_codec'], self['container'],
@@ -556,36 +714,28 @@ class TvSubmission(VideoSubmission):
         description += bb.release
         return description
 
+    @form_field('desc')
     def _render_form_description(self):
         ss = "".join(map(bb.img, self['screenshots']))
         return (self['description'] + "\n" +
                 bb.section("Screenshots", bb.center(ss)) +
                 bb.mi(self['mediainfo']))
 
-    def _render_payload(self):
-        data = {
-            'submit': 'true',
-            'type': self['form_type'],
-            'title': self['form_title'],
-            'tags': self['tags'],
-            'desc': self['form_description'],
-            'image': self['cover']
-        }
-
-        torrentfile = open(self['torrentfile'], 'rb')
-        files = {'file_input': (os.path.basename(torrentfile.name),
-                                torrentfile,
-                                'application/octet-stream')}
-
-        if self['scene']:
-            data['scene'] = 'on'
-
-        return {'files': files, 'data': data}
-
 
 class MovieSubmission(VideoSubmission):
     default_fields = (VideoSubmission.default_fields +
                       ("description", "mediainfo", "screenshots"))
+    __form_fields__ = {
+        # field -> form field, type
+        'source': ('source', 'text'),
+        'video_codec': ('videoformat', 'text'),
+        'audio_codec': ('audioformat', 'text'),
+        'container': ('container', 'text'),
+        'resolution': ('resolution', 'text'),
+        'form_release_info': ('remaster_title', 'text'),
+        'mediainfo': ('release_desc', 'text'),
+        'screenshots': (lambda i, v: 'screenshot' + str(i + 1), 'text'),
+        }
 
     def _render_category(self):
         return 'movie'
@@ -599,9 +749,11 @@ class MovieSubmission(VideoSubmission):
     def _render_title(self):
         return self['summary']['title']
 
+    @form_field('title')
     def _render_form_title(self):
         return self['title']
 
+    @form_field('year')
     def _render_year(self):
         # todo: if path does not have year we need to get it from db
         return self['guess']['year']
@@ -655,36 +807,7 @@ class MovieSubmission(VideoSubmission):
 
         return description
 
-    def _render_payload(self):
-        data = {
-            'submit': 'true',
-            'type': self['form_type'],
-            'title': self['form_title'],
-            'source': self['source'],
-            'videoformat': self['video_codec'],
-            'audioformat': self['audio_codec'],
-            'container': self['container'],
-            'resolution': self['resolution'],
-            'remaster_title': self['form_release_info'],
-            'year': self['year'],
-            'tags': self['tags'],
-            'desc': self['form_description'],
-            'release_desc': self['mediainfo'],
-            'image': self['cover'],
-        }
 
-        torrentfile = open(self['torrentfile'], 'rb')
-        files = {'file_input': (os.path.basename(torrentfile.name),
-                                torrentfile,
-                                'application/octet-stream')}
-
-        for i, s in enumerate(self['screenshots'], start=1):
-            data['screenshot' + str(i)] = s
-
-        if self['scene']:
-            data['scene'] = 'on'
-
-        return {'files': files, 'data': data}
-
+    @form_field('desc')
     def _render_form_description(self):
         return self['description']

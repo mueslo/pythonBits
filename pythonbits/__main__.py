@@ -112,12 +112,18 @@ def main():
 
     consolewidth = 80
     get_fields = get_fields or sub.default_fields
-    sub.cache_fields(get_fields)
+    sub.get_fields(get_fields)
     for field in get_fields:
         v = sub[field]
         print ("  " + field + "  ").center(consolewidth, "=")
         print v
 
+    if sub.needs_finalization():
+        sub.finalize() #will upload/submit/bh
+        for field in get_fields:
+            v = sub[field]
+            print ("  " + field + "  ").center(consolewidth, "=")
+            print v
 
 if __name__ == '__main__':
     main()
