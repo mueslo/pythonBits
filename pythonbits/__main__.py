@@ -4,7 +4,7 @@
 from argparse import ArgumentParser
 
 from . import __version__ as version
-from . import submission
+from . import bb
 
 
 def parse_args():
@@ -102,11 +102,11 @@ def main():
     set_fields, get_fields = parse_args()
 
     # only video submissions for now
-    sub = submission.VideoSubmission(**set_fields)
+    sub = bb.VideoSubmission(**set_fields)
     if sub['category'] == 'tv':
-        sub = submission.TvSubmission(**sub.fields)
+        sub = bb.TvSubmission(**sub.fields)
     elif sub['category'] == 'movie':
-        sub = submission.MovieSubmission(**sub.fields)
+        sub = bb.MovieSubmission(**sub.fields)
     else:
         raise Exception('Unknown category', sub['category'])
 

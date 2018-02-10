@@ -107,7 +107,7 @@ class TVDB(object):
     def search(self, tv_specifier):
         show = self.tvdb[tv_specifier.title]
         season = show[tv_specifier.season]
-        if tv_specifier.episode:
+        if tv_specifier.episode is not None:
             episode = season[tv_specifier.episode]
             return TvdbEpisode(show, season, episode)
         return TvdbSeason(show, season)
