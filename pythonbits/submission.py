@@ -72,11 +72,11 @@ def finalize(f):
     f.needs_finalization = True
     return f
 
+# todo: better way to track dependencies. explicit @invalidates decorator?
 import inspect
 
-class Submission(object):
-    __metaclass__ = RegisteringType
 
+class CachedRenderer(object):
     def __init__(self, **kwargs):
         self.fields = kwargs
         self.depends_on = {}
@@ -106,13 +106,20 @@ class Submission(object):
             self.fields[field] = rv
             return rv
 
-    def __repr__(self):
-        return "\n".join(
-            ["Field {k}:\n\t{v}\n".format(k=k, v=v)
-             for k, v in self.fields.items()])
+    def __setitem__(self, key, value):
+        raise Exception('not yet implemented')
 
-    def _render_category(self):
-        return None
+    def invalidate_field_cache(self, field):
+        try:
+            dependent_fields = self.depends_on[field]
+        except KeyError:
+            if self.fields.pop(field, None):
+                print 'delete invalidation leaf', field
+        else:
+            for f in dependent_fields:
+                self.invalidate_field_cache(f)
+            if self.fields.pop(field, None):
+                print 'delete', field
 
     def get_fields(self, fields):
         # check that all required values are non-zero
@@ -131,6 +138,17 @@ class Submission(object):
         if missing_keys:
             raise InvalidSubmission("Missing field(s) (" +
                                     ", ".join(missing_keys) + ")")
+
+class Submission(CachedRenderer):
+    __metaclass__ = RegisteringType
+
+    def __repr__(self):
+        return "\n".join(
+            ["Field {k}:\n\t{v}\n".format(k=k, v=v)
+             for k, v in self.fields.items()])
+
+    def _render_category(self):
+        return None
 
     @finalize
     def _render_submit(self):
@@ -188,10 +206,13 @@ class Submission(object):
         return set(self._to_finalize) & set(self.fields.keys())
 
     def finalize(self):
+        # deletes field caches of fields dependent on those that require
+        # finalization
+
         needs_finalization = self.needs_finalization()
 
         for f in needs_finalization:
-            self.invalidate_field(f)
+            self.invalidate_field_cache(f)
 
         for f in needs_finalization:
             self.fields[f] = getattr(self, '_finalize_' + f)()
@@ -200,19 +221,6 @@ class Submission(object):
         #  upload and invalidate any images _finalize_<image>
         #  submit torrentfile _finalize_<submit>
         #  finalize torrentfile
-
-
-    def invalidate_field(self, field):
-        try:
-            dependent_fields = self.depends_on[field]
-        except KeyError:
-            print 'delete1', field
-            self.fields.pop(field, None)
-        else:
-            for f in dependent_fields:
-                self.invalidate_field(f)
-            print 'delete', field
-            self.fields.pop(field, None)
 
     def _render_payload(self):
         # must be rendered directly from editable fields
@@ -237,6 +245,8 @@ class Submission(object):
         print self.registry['mappers'].items()
         for fd_name, form_field in self.registry['mappers'].items():
             fd_val = self[fd_name]
+            print self.registry['types'][form_field], form_field
+            # todo: handle input types
             payload.update(pair_fields_and_values(fd_val, form_field))
 
 

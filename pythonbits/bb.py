@@ -155,7 +155,7 @@ class VideoSubmission(BbSubmission):
 
     def _finalize_screenshots(self):
         print 'rehosting screenshots'
-        return 'rehost'
+        return ['rehosted1', 'rehosted2']
         return ImgurUploader().upload(self['screenshots'])
 
     def _render_mediainfo(self):
