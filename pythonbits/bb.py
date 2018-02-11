@@ -29,6 +29,22 @@ def format_tag(tag):
 
 
 class BbSubmission(Submission):
+    def categorise(self):
+        subcls = self.subcategory()
+
+        if type(self) == subcls:
+            return self
+        else:
+            print 'Narrowing category from', type(
+                self).__name__, "to", subcls.__name__
+            sub = subcls(**self.fields)
+            sub.depends_on = self.depends_on
+            return sub.categorise()
+
+    def subcategory(self):
+        # only video for now
+        return VideoSubmission
+
     @form_field('scene', 'checkbox')
     def _render_scene(self):
         while True:
@@ -39,19 +55,12 @@ class BbSubmission(Submission):
             elif choice.lower() == 'y':
                 return True
 
-    @form_field('submit')
-    def _render_form_submit(self):
-        return 'true'
-
+    @finalize
+    @form_field('file_input', 'file')
     def _render_torrentfile(self):
         return make_torrent(self['path'])
 
-    @finalize
-    @form_field('file_input', 'file')
-    def _render_form_torrentfile(self):
-        return self['torrentfile']
-
-    def _finalize_form_torrentfile(self):
+    def _finalize_torrentfile(self):
         # move to bh
         out_dir = config.get('Torrent', 'black_hole')  # todo: relative to file
         if out_dir:
@@ -66,9 +75,11 @@ class BbSubmission(Submission):
 
     @form_field('type')
     def _render_form_type(self):
-        catmap = {'tv': 'TV', 'movie': 'Movies'}
+        return self._form_type
 
-        return catmap[self['category']]
+    @form_field('submit')
+    def _render_form_submit(self):
+        return 'true'
 
 title_tv_re = (
     r"^(?P<title>.+)(?<!season) "
@@ -85,11 +96,13 @@ class VideoSubmission(BbSubmission):
     def _render_guess(self):
         return {k: v for k, v in guessit.guessit(self['path']).items()}
 
-    def _render_category(self):
-        if self['tv_specifier']:
-            return 'tv'
-        else:
-            return 'movie'
+    def subcategory(self):
+        if type(self) == VideoSubmission:
+            if self['tv_specifier']:
+                return TvSubmission
+            else:
+                return MovieSubmission
+        return type(self)
 
     def _render_tv_specifier(self):
         # if title is specified, look if season/episode are set
@@ -154,7 +167,7 @@ class VideoSubmission(BbSubmission):
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        print 'rehosting screenshots'
+        print 'rehosting screenshots', self['screenshots']
         return ['rehosted1', 'rehosted2']
         return ImgurUploader().upload(self['screenshots'])
 
@@ -334,20 +347,18 @@ class VideoSubmission(BbSubmission):
         return self['summary']['cover']
 
     def _finalize_cover(self):
-        print "rehosting cover"
+        print "rehosting cover", self['cover']
         return 'rehost'
         return ImgurUploader().upload(self['cover'])
 
 
 class TvSubmission(VideoSubmission):
     default_fields = VideoSubmission.default_fields + ('form_description',)
+    _form_type = 'TV'
     __form_fields__ = {
         'form_title': ('title', 'text'),
         'form_description': ('desc', 'text'),
         }
-
-    def _render_category(self):
-        return 'tv'
 
     def _render_search_title(self):
         return self['tv_specifier'].title
@@ -463,6 +474,7 @@ class TvSubmission(VideoSubmission):
 class MovieSubmission(VideoSubmission):
     default_fields = (VideoSubmission.default_fields +
                       ("description", "mediainfo", "screenshots"))
+    _form_type = 'Movies'
     __form_fields__ = {
         # field -> form field, type
         'source': ('source', 'text'),
@@ -474,9 +486,6 @@ class MovieSubmission(VideoSubmission):
         'mediainfo': ('release_desc', 'text'),
         'screenshots': (lambda i, v: 'screenshot' + str(i + 1), 'text'),
         }
-
-    def _render_category(self):
-        return 'movie'
 
     def _render_search_title(self):
         if self['title_arg']:

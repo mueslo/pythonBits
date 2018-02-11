@@ -2,8 +2,21 @@
 
 import re
 import copy
+import inspect
+try:
+    import readline
+except ImportError:
+    import pyreadline as readline
 
 from .tracker import Tracker
+
+
+def rlinput(prompt, prefill=''):
+    readline.set_startup_hook(lambda: readline.insert_text(prefill))
+    try:
+        return raw_input(prompt)
+    finally:
+        readline.set_startup_hook()
 
 
 class SubmissionAttributeError(Exception):
@@ -18,28 +31,27 @@ class FieldRenderException(Exception):
     pass
 
 
+re_frender = re.compile("^_render_(?=[a-z_]*$)")
+
+
 class RegisteringType(type):
     def __init__(cls, name, bases, attrs):
         cls.registry = copy.deepcopy(getattr(cls, 'registry', {'mappers': {}, 'types': {}}))
 
-        # get parent form_field mappers, should be covered by above
-        #for base in bases:
-        #    parent_registry = getattr(base, 'registry', {'mappers': {},
-        #                                                 'types': {}})
-        #    cls.registry.update(**copy.deepcopy(parent_registry))
-
         def add_mapper(f, ff, fft):
-            print cls.__name__, 'adding mapper', f, 'for', ff, '({})'.format(fft)
-            if field in cls.registry:
-                print "Warning, overwriting", field, "for class", name, 'with', form_field, 'previous value', cls.registry['mappers'][field]
-            cls.registry['mappers'][field] = form_field
-            cls.registry['types'][form_field] = form_field_type
+            # log debug
+            # print cls.__name__, 'adding mapper', f, 'for', ff, '({})'.format(fft)
+            if f in cls.registry:
+                print("Warning, overwriting", f, "for class", name, 'with',
+                      ff, 'previous value',
+                      cls.registry['mappers'][f])
+            cls.registry['mappers'][f] = ff
+            cls.registry['types'][ff] = fft
 
         # get form_field mappers from dunder string
         form_field_mappers = getattr(cls, '__form_fields__', {})
         for field, (form_field, form_field_type) in form_field_mappers.items():
             add_mapper(field, form_field, form_field_type)
-
 
         for key, val in attrs.iteritems():
             try:
@@ -47,17 +59,15 @@ class RegisteringType(type):
             except AttributeError as e:
                 pass  # most attributes are not a form_field mapper
             else:
-                field, n = re.subn('^_render_', '', key)
+                field, n = re.subn(re_frender, '', key)
                 assert n == 1  # only then is it a field renderer
                 add_mapper(field, form_field, form_field_type)
 
-        # get fields that may change
-        for key, val in attrs.iteritems():
+            # get fields that need finalization
             if getattr(val, 'needs_finalization', False):
-                field, n = re.subn('^_render_', '', key)
+                field, n = re.subn(re_frender, '', key)
                 assert n == 1  # only then is it a field renderer
                 cls._to_finalize = getattr(cls, '_to_finalize', []) + [field]
-
 
 
 form_field_types = {'text', 'checkbox', 'file'}  # todo select
@@ -72,9 +82,6 @@ def finalize(f):
     f.needs_finalization = True
     return f
 
-# todo: better way to track dependencies. explicit @invalidates decorator?
-import inspect
-
 
 class CachedRenderer(object):
     def __init__(self, **kwargs):
@@ -82,10 +89,18 @@ class CachedRenderer(object):
         self.depends_on = {}
 
     def __getitem__(self, field):
-        caller, n = re.subn('^_render_', '', inspect.stack()[1][3])
-        if n:  # called by another cached field
-            print 'caller name:', caller, 'tried to get', field, type(self).__name__
-            self.depends_on[field] = self.depends_on.setdefault(field, []) + [caller]
+        # todo: better way to track dependencies. explicit @requires decorator?
+        try:
+            # get first calling field
+            caller = next(level[3] for level in inspect.stack()
+                          if level[3].startswith('_render_'))
+        except StopIteration:
+            pass
+        else:
+            caller, n = re.subn(re_frender, '', caller, count=1)
+            if n:  # called by another cached field
+                self.depends_on[field] = self.depends_on.setdefault(
+                    field, set()) | {caller}
 
         try:
             return self.fields[field]
@@ -107,37 +122,70 @@ class CachedRenderer(object):
             return rv
 
     def __setitem__(self, key, value):
-        raise Exception('not yet implemented')
+        self.invalidate_field_cache(key)
+        self.fields[key] = value
 
     def invalidate_field_cache(self, field):
         try:
-            dependent_fields = self.depends_on[field]
+            dependent_fields = self.depends_on.pop(field)
         except KeyError:
-            if self.fields.pop(field, None):
+            if self.fields.pop(field, None) is not None:
                 print 'delete invalidation leaf', field
         else:
             for f in dependent_fields:
                 self.invalidate_field_cache(f)
-            if self.fields.pop(field, None):
+            if self.fields.pop(field, None) is not None:
                 print 'delete', field
 
-    def get_fields(self, fields):
-        # check that all required values are non-zero
-        missing_keys = []
-        for k in fields:
-            try:
-                v = self[k]
-            except SubmissionAttributeError as e:
-                print e
-                missing_keys.append(k)
-            else:
-                if not v:
-                    raise InvalidSubmission(
-                        "Value of key {key} is {value}".format(key=k, value=v))
 
-        if missing_keys:
-            raise InvalidSubmission("Missing field(s) (" +
-                                    ", ".join(missing_keys) + ")")
+def build_payload(fd_val, form_field, fft):
+    # it's either a form field id
+    if isinstance(form_field, basestring):
+        if fft == 'text':
+            yield 'data', form_field, fd_val
+        elif fft == 'checkbox' and fd_val:
+            yield 'data', form_field, 'on'
+        elif fft == 'file':
+            yield 'files', form_field, fd_val
+
+    # or a rule to generate form field ids
+    elif callable(form_field):
+            for i, val in enumerate(fd_val):
+                for pair in build_payload(
+                        val, form_field(i, val), fft):
+                    yield pair  # yield from
+
+    else:
+        raise AssertionError(form_field, fd_val)
+
+
+def toposort(depends_on):
+    depends_on = copy.deepcopy(depends_on)
+    sorted_funcs = []
+
+    depends = (set(f for v in depends_on.values() for f in v) -
+               set(depends_on.keys()))
+    for d in depends:
+        depends_on[d] = set()
+
+    ready_funcs = set(func for func, deps in depends_on.items() if not deps)
+    while ready_funcs:
+        executed = ready_funcs.pop()
+        depends_on.pop(executed)
+        sorted_funcs.append(executed)
+        from_selection = [func for func, deps in depends_on.items()
+                          if executed in deps]
+        for func in from_selection:
+            depends_on[func].remove(executed)
+            if not depends_on[func]:
+                ready_funcs.add(func)
+
+    if depends_on:
+        raise Exception("Cyclic dependencies present: {}".format(
+            depends_on))
+    else:
+        return sorted_funcs
+
 
 class Submission(CachedRenderer):
     __metaclass__ = RegisteringType
@@ -147,107 +195,95 @@ class Submission(CachedRenderer):
             ["Field {k}:\n\t{v}\n".format(k=k, v=v)
              for k, v in self.fields.items()])
 
-    def _render_category(self):
-        return None
-
     @finalize
     def _render_submit(self):
-        payload = self['payload']
-
         # todo dict map field names
         # todo truncate mediainfo in preview
-        consolewidth = 80
-        for name, value in self['payload'].items():
-            print ("  " + name +
-                        "  ").center(consolewidth, "=")
-            print unicode(value)
 
-        while True:
-            print ("Reminder: YOU are responsible for following the "
-                   "submission rules!")
-            choice = raw_input('Submit these values? [y/n] ')
-
-            if not choice:
-                pass
-            elif choice.lower() == 'n':
-                """
-                amend = raw_input("Amend a field? [N/<field name>] ")
-                if not amend.lower() or amend.lower() == 'n':
-                    return "Cancelled by user"
-
-                try:
-                    val = self['payload']['data'][amend]
-                except KeyError:
-                    print "No field named", amend
-                    print "Choices are:", self['payload']['data'].keys()
-                else:
-                    print "Current value:", val
-                    new_value = raw_input("New value (empty to cancel): ")
-
-                    if new_value:
-                        self['payload']['data'][amend] = new_value
-                        del self.fields['payload_preview']
-                        print self['payload_preview']
-                """
-                return False
-            elif choice.lower() == 'y':
-                return True
+        # todo: this doesn't properly record dependency!
+        return self.show_fields(self.registry['mappers'].keys())
 
     def _finalize_submit(self):
         # submit
+        payload = self['payload']
         #t = Tracker()
         #url = t.upload(**payload)
         url = 'url'
-        print 'would upload now'
-        print self['payload']
+        print 'would upload now', payload
         return url
 
     def needs_finalization(self):
         return set(self._to_finalize) & set(self.fields.keys())
 
     def finalize(self):
-        # deletes field caches of fields dependent on those that require
-        # finalization
-
         needs_finalization = self.needs_finalization()
-
+        order = toposort(self.depends_on)
+        needs_finalization = sorted(needs_finalization,
+                                    key=lambda x: order.index(x),
+                                    reverse=True)
         for f in needs_finalization:
-            self.invalidate_field_cache(f)
+            self[f] = getattr(self, '_finalize_' + f)()
 
-        for f in needs_finalization:
-            self.fields[f] = getattr(self, '_finalize_' + f)()
+    def show_fields(self, fields):
+        consolewidth = 80
+        s = ""
+        for field in fields:
+            val = self[field]
+            field_str = field
+            if field in self._to_finalize:
+                field_str += " (will be finalized)"
+            s += ("  " + field_str + "  ").center(consolewidth, "=") + "\n"
+            s += unicode(val) + "\n"
+        s += "="*consolewidth + "\n"
+        return s
 
-        # finalize:
-        #  upload and invalidate any images _finalize_<image>
-        #  submit torrentfile _finalize_<submit>
-        #  finalize torrentfile
+    def confirm_finalization(self, fields):
+        while True:
+            print self.show_fields(fields)
+            print ("Reminder: YOU are responsible for following the "
+                   "submission rules!")
+            choice = raw_input('Finalize these values? This will upload or '
+                               'submit all necessary data. [y/n] ')
+
+            if not choice:
+                pass
+            elif choice.lower() == 'n':
+                amend = raw_input("Amend a field? [N/<field name>] ")
+                if not amend.lower() or amend.lower() == 'n':
+                    return False
+    
+                try:
+                    val = self[amend]
+                except KeyError:
+                    print "No field named", amend
+                    print "Choices are:", self.fields.keys()
+                else:
+                    if not (isinstance(val, basestring) or isinstance(val, bool)):
+                        print "Can't amend value of type", type(val)
+
+                    new_value = rlinput("New (empty to cancel): ", val)
+
+                    if new_value:
+                        if isinstance(val, bool):
+                            string_true = {'true', 'True', 'y', 'yes'}
+                            string_false = {'false', 'False', 'n', 'no'}
+                            assert new_value in string_true | string_false
+                            new_value = (new_value not in string_false)
+                        self[amend] = new_value
+
+            elif choice.lower() == 'y':
+                return True
 
     def _render_payload(self):
         # must be rendered directly from editable fields
-        def pair_fields_and_values(fd_val, form_field):
-            # it's either a form field id
-            if isinstance(form_field, basestring):
-                yield form_field, fd_val
 
-            # or a rule to generate form field ids
-            elif callable(form_field):
-                    for i, val in enumerate(fd_val):
-                        for pair in pair_fields_and_values(
-                                val, form_field(i, val)):
-                            yield pair  # yield from
-
-            else:
-                raise AssertionError(form_field, fd_val)
-
-
-        payload = {}
-        print type(self).__name__
+        payload = {'files': {}, 'data': {}}
         print self.registry['mappers'].items()
         for fd_name, form_field in self.registry['mappers'].items():
             fd_val = self[fd_name]
-            print self.registry['types'][form_field], form_field
+            fft = self.registry['types'][form_field]
             # todo: handle input types
-            payload.update(pair_fields_and_values(fd_val, form_field))
-
+            for req_type, ff, val in build_payload(fd_val, form_field, fft):
+                payload[req_type][ff] = val
 
         return payload

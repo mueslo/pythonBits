@@ -37,6 +37,7 @@ setup(
         "pymediainfo~=2.2",
         "guessit~=2.1",
         "unidecode~=1.0",
+        "pyreadline~=2.1",
     ],
     python_requires="~=2.7",
     tests_require=['pytest'],
