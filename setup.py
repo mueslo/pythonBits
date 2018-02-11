@@ -35,8 +35,11 @@ setup(
         "attrdict~=2.0",
         "appdirs~=1.4",
         "pymediainfo~=2.2",
-        "guessit~=2.1"],
+        "guessit~=2.1",
+        "unidecode~=1.0",
+    ],
     python_requires="~=2.7",
+    tests_require=['pytest'],
     classifiers=[
         "Operating System :: OS Independent",
         "Programming Language :: Python",
@@ -48,7 +51,7 @@ setup(
         "Topic :: Utilities"],
     entry_points={
         'console_scripts': [
-            'pythonbits = pythonbits.__main__:main'
+            'pythonbits = pythonbits.__main__:main',
         ]
     },
 )

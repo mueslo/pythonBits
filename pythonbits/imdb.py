@@ -33,7 +33,7 @@ class IMDB(object):
 
     def get_rating(self, imdb_id):
         res = self.imdb.get_title_ratings(imdb_id)
-        return (res['rating'], 10), res['ratingCount']
+        return (res.get('rating'), 10), res.get('ratingCount', 0)
 
     def search(self, title):
         results = self.imdb.search_for_title(title)

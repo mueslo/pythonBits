@@ -10,20 +10,23 @@ class TvdbResult(object):
 
     def banner(self, season_number=-1):
         # todo offer choice of cover if multiple?
-        # use highest rated season banner
-        season_banners = self.show['_banners']['season']['season']
+        # todo cache banner upload per season?
+        # get best banner, preferably for season
 
         def best_banner(banners): return sorted(
             banners, key=lambda b: float(b.get('rating', 0)))[-1]
 
-        season_banners = [
-            banner for banner in season_banners.values()
-            if banner['season'] == str(season_number)]
-
         try:
+            season_banners = self.show['_banners']['season']['season']
+
+            season_banners = [
+                banner for banner in season_banners.values()
+                if banner['season'] == str(season_number)]
+
             return best_banner(season_banners)['_bannerpath']
-        except IndexError:
-            # failing that, use show banner
+        except (IndexError, KeyError):
+            # failing that, use show banner. if there's no banner at all we
+            # just error out for now
             series_banners = [v for r in self.show['_banners']
                               ['poster'].values() for k, v in r.items()]
             return best_banner(series_banners)['_bannerpath']

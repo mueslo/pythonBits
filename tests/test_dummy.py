@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pythonbits.submission as submission
 import pytest
 
@@ -31,3 +32,33 @@ tv_names = [(None, 'some.series.s02e11.avi', ('some series', 2, 11)),
 def test_tv_specifier(title, path, specifier):
     s = submission.VideoSubmission(path=path, title_arg=title)
     assert s['tv_specifier'] == specifier
+
+
+def test_proper():
+    tracks = {'general': "",
+              'video': "",
+              'audio': "",
+              'text': ["sub", "title"]}
+
+    s = submission.VideoSubmission(
+        path=("Some.Awesome.Show.S26E12.REPACK."
+              "With.A.Show.Title.720p.WEB-DL.AAC2.0.H.264-pontifex.mkv"),
+        title_arg=None,
+        scene=True,
+        tracks=tracks)
+
+    assert s['additional'][0] == 'PROPER'
+
+
+normalise_pairs = [
+    (u"Basic Feature", "basic.feature"),
+    (u"Name O'Comment-Doublename", "name.o.comment.doublename"),
+    (u"François and Влади́мир like Ümläutß",
+     "francois.and.vladimir.like.umlautss"),
+    (u"Blarb Børgen Ålpotef", "blarb.borgen.alpotef"),
+]
+
+
+@pytest.mark.parametrize("input, correct", normalise_pairs)
+def test_normalise_tags(input, correct):
+    assert submission.format_tag(input) == correct
