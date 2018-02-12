@@ -85,4 +85,3 @@ def format_rating(rating, max, limit=10, s=None, fill=None, empty=None):
              color(s,               partial_color) +
              color(s * white_stars, fmt_col(empty)))
     return str(rating) + '/' + str(max) + ' ' + stars
-

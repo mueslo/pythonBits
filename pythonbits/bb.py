@@ -21,6 +21,7 @@ from .imgur import ImgurUploader
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import Submission, form_field, finalize
+from .tracker import Tracker
 
 
 def format_tag(tag):
@@ -45,6 +46,11 @@ class BbSubmission(Submission):
         # only video for now
         return VideoSubmission
 
+    @staticmethod
+    def submit(payload):
+        t = Tracker()
+        return t.upload(**payload)
+
     @form_field('scene', 'checkbox')
     def _render_scene(self):
         while True:
@@ -61,17 +67,22 @@ class BbSubmission(Submission):
         return make_torrent(self['path'])
 
     def _finalize_torrentfile(self):
-        # move to bh
-        out_dir = config.get('Torrent', 'black_hole')  # todo: relative to file
+        # black hole
+        out_dir = config.get('Torrent', 'black_hole')
         if out_dir:
-            dest = os.path.join(out_dir, self['torrentfile'])
-            assert os.path.exists(out_dir)
-            assert not os.path.isfile(dest)
-            shutil.copy(self['torrentfile'], dest)
-            print "Torrent file copied to black hole"
-            return dest
-        else:
-            return self['torrentfile']
+            fname = os.path.basename(self['torrentfile'])
+            dest = os.path.join(out_dir, fname)
+
+            try:
+                assert os.path.exists(out_dir)
+                assert not os.path.isfile(dest)
+            except AssertionError as e:
+                print e
+            else:
+                shutil.copy(self['torrentfile'], dest)
+                print "Torrent file copied to", dest
+
+        return self['torrentfile']
 
     @form_field('type')
     def _render_form_type(self):
@@ -80,6 +91,7 @@ class BbSubmission(Submission):
     @form_field('submit')
     def _render_form_submit(self):
         return 'true'
+
 
 title_tv_re = (
     r"^(?P<title>.+)(?<!season) "
@@ -129,9 +141,6 @@ class VideoSubmission(BbSubmission):
     @form_field('tags')
     def _render_tags(self):
         # todo: get episode-specific actors (from imdb?)
-        # todo: offer option to edit tags before submitting
-        # todo: tag map, so that either science.fiction or sci.fi will be used,
-        #       rules prefer the former (no abbreviations)
 
         n = self['options']['num_cast']
         tags = list(self['summary']['genres'])
@@ -139,6 +148,7 @@ class VideoSubmission(BbSubmission):
         return ",".join(format_tag(tag) for tag in tags)
 
     def _render_mediainfo_path(self):
+        assert os.path.exists(self['path'])
         if os.path.isfile(self['path']):
             return self['path']
 
@@ -160,15 +170,13 @@ class VideoSubmission(BbSubmission):
             except (ValueError, IndexError):
                 pass
 
-    @finalize  # i.e. everything that is dependent on this function needs to be recalced
+    @finalize
     def _render_screenshots(self):
         ns = self['options']['num_screenshots']
         ffmpeg = FFMpeg(self['mediainfo_path'])
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        print 'rehosting screenshots', self['screenshots']
-        return ['rehosted1', 'rehosted2']
         return ImgurUploader().upload(self['screenshots'])
 
     def _render_mediainfo(self):
@@ -347,8 +355,6 @@ class VideoSubmission(BbSubmission):
         return self['summary']['cover']
 
     def _finalize_cover(self):
-        print "rehosting cover", self['cover']
-        return 'rehost'
         return ImgurUploader().upload(self['cover'])
 
 
@@ -553,7 +559,6 @@ class MovieSubmission(VideoSubmission):
         description += bb.release
 
         return description
-
 
     @form_field('desc')
     def _render_form_description(self):

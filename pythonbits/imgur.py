@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 import json
-import re
+from urlparse import urlparse
 from textwrap import dedent
 
 from .config import config
@@ -106,12 +106,12 @@ class ImgurUploader(object):
         self.imgur_auth.prepare()
         params = {'headers': self.imgur_auth.get_auth_headers()}
 
-        matcher = re.compile(r'^https?://')
-
-        if matcher.match(image):
+        if urlparse(image).scheme in ('http', 'https'):
             params['data'] = {'image': image}
+        elif urlparse(image).scheme == ('file' or ''):
+            params['files'] = {'image': open(urlparse(image).path, "rb")}
         else:
-            params['files'] = {'image': open(image, "rb")}
+            raise Exception('Unknown image URI scheme', urlparse(image).scheme)
         res = requests.post(API_URL + "3/image", **params)
         res.raise_for_status()  # raises if invalid api request
         response = json.loads(res.text)

@@ -43,7 +43,7 @@ class FFMpeg(object):
         stops = range(20, 81, 60 / (num_screenshots - 1))
         imgs = []
         for stop in stops:
-            imgs.append(self.tempdir + "screen%s.png" % stop)
+            imgs.append(os.path.join(self.tempdir, "screen%s.png" % stop))
             subprocess.Popen(
                 [r"ffmpeg",
                  "-ss", str((duration * stop) / 100),

@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+from os import path
 from argparse import ArgumentParser
 
 from . import __version__ as version
@@ -93,7 +94,7 @@ def parse_args():
     Category = cat_map.get(args.category, bb.BbSubmission)
 
     set_field['options'] = args.options
-    set_field['path'] = args.path
+    set_field['path'] = path.abspath(args.path)
     set_field['title_arg'] = args.title
     get_field = args.fields + args.fields_ex
 
@@ -103,15 +104,20 @@ def parse_args():
 def main():
     Category, set_fields, get_fields = parse_args()
 
+    # todo: first try show_fields, if it raises attributeerror, categorise
     sub = Category(**set_fields)
     sub = sub.categorise()
 
     get_fields = get_fields or sub.default_fields
-    print sub.show_fields(get_fields)
+    sub.show_fields(get_fields)
 
-    if sub.needs_finalization() and sub.confirm_finalization(get_fields):
-        sub.finalize()
-        print sub.show_fields(get_fields)
+    if sub.needs_finalization():
+        if sub.confirm_finalization(get_fields):
+            sub.finalize()
+        else:
+            return
+
+    print sub.show_fields(get_fields)
 
 
 if __name__ == '__main__':
