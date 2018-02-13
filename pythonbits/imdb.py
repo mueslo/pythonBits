@@ -8,20 +8,34 @@ class ImdbResult(object):
     def __init__(self, movie):
         self.movie = movie
 
+    def description(self):
+        outline = self.movie.plot.get('outline')
+        summaries = self.movie.plot.get('summaries')
+        description = None
+        if outline:
+            description = outline['text']
+        elif summaries:
+            description = summaries[0]['text']
+        return description
+
+    def runtime(self):
+        runtime = self.movie.base.get('runningTimeInMinutes')
+        return runtime and str(runtime) + " min"
+
     def summary(self):
         return {
             'title': self.movie.base.title,
-            'directors': self.movie.credits.director,
-            'runtime': str(self.movie.base.runningTimeInMinutes) + " min",
+            'directors': self.movie.credits.get('director', []),
+            'runtime': self.runtime(),
             'rating': (self.movie.ratings.rating, 10),
             'name': self.movie.base.title,
             'votes': self.movie.ratings.ratingCount,
             'cover': self.movie.base.image.url,
-            'genres': self.movie.genres,
-            'cast': self.movie.credits.cast,
-            'writers': self.movie.credits.writer,
+            'genres': self.movie.get('genres', []),
+            'cast': self.movie.credits.get('cast', []),
+            'writers': self.movie.credits.get('writer', []),
             'mpaa': u"",
-            'description': self.movie.plot.outline.text,
+            'description': self.description(),
             'url': u"http://www.imdb.com" + self.movie.base.id,
             'year': self.movie.base.year}
 
@@ -55,7 +69,7 @@ class IMDB(object):
                 pass
             else:
                 imdb_id = result['imdb_id']
-                movie = AttrDict(self.imdb.get_title(result['imdb_id']))
+                movie = AttrDict(self.imdb.get_title(imdb_id))
                 movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
                 movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
                 return ImdbResult(movie)

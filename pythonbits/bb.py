@@ -298,7 +298,7 @@ class VideoSubmission(BbSubmission):
         if audio_track['codec'] == 'MPA1L3':
             return 'MP3'
 
-        raise Exception("Unkown or unsupported audio codec",
+        raise Exception("Unknown or unsupported audio codec",
                         audio_track['codec'])
 
     def _render_resolution(self):
@@ -521,7 +521,7 @@ class MovieSubmission(VideoSubmission):
 
     def _render_section_information(self):
         def imdb_link(r):
-            return bb.link(r.name, "https://www.imdb.com"+r.id)
+            return bb.link(r['name'], "https://www.imdb.com"+r['id'])
 
         # todo: synopsis/longer description
         n = self['options']['num_cast']
