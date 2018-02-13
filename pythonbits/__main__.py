@@ -1,10 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+from os import path
 from argparse import ArgumentParser
 
 from . import __version__ as version
-from . import submission
+from . import bb
 
 
 def parse_args():
@@ -20,7 +21,9 @@ def parse_args():
                               "(e.g. \"Lawrence of Arabia\" or \"The Walking "
                               "Dead S01\") (optional)"))
 
-    parser.add_argument("-c", "--category", choices=("tv", "movie"))
+    cat_map = {'movie': bb.MovieSubmission,
+               'tv': bb.TvSubmission}
+    parser.add_argument("-c", "--category", choices=cat_map.keys())
     parser.add_argument("-u", "--set-field", nargs=2, action='append',
                         metavar=('FIELD', 'VALUE'), default=[],
                         help="Use supplied values to use for fields, e.g. "
@@ -69,8 +72,6 @@ def parse_args():
                             'help': "Number of screenshots"},
         'num_cast': {'type': int, 'default': 5,
                      'help': "Number of actors to use in tags"},
-        'dry_run': {'default': False, 'action': 'store_true',
-                    'help': "Do not upload anything"},
     }
 
     options = parser.add_argument_group(
@@ -88,35 +89,33 @@ def parse_args():
 
     set_field = dict(args.set_field)
 
-    if args.category:
-        set_field['category'] = args.category
+    Category = cat_map.get(args.category, bb.BbSubmission)
+
     set_field['options'] = args.options
-    set_field['path'] = args.path
+    set_field['path'] = path.abspath(args.path)
     set_field['title_arg'] = args.title
     get_field = args.fields + args.fields_ex
 
-    return set_field, get_field
+    return Category, set_field, get_field
 
 
 def main():
-    set_fields, get_fields = parse_args()
+    Category, set_fields, get_fields = parse_args()
 
-    # only video submissions for now
-    sub = submission.VideoSubmission(**set_fields)
-    if sub['category'] == 'tv':
-        sub = submission.TvSubmission(**sub.fields)
-    elif sub['category'] == 'movie':
-        sub = submission.MovieSubmission(**sub.fields)
-    else:
-        raise Exception('Unknown category', sub['category'])
+    # todo: first try show_fields, if it raises attributeerror, categorise
+    sub = Category(**set_fields)
+    sub = sub.categorise()
 
-    consolewidth = 80
     get_fields = get_fields or sub.default_fields
-    sub.cache_fields(get_fields)
-    for field in get_fields:
-        v = sub[field]
-        print ("  " + field + "  ").center(consolewidth, "=")
-        print v
+    sub.show_fields(get_fields)
+
+    if sub.needs_finalization():
+        if sub.confirm_finalization(get_fields):
+            sub.finalize()
+        else:
+            return
+
+    print sub.show_fields(get_fields)
 
 
 if __name__ == '__main__':
