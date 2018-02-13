@@ -9,6 +9,8 @@ try:
 except ImportError:
     import pyreadline as readline
 
+from .logging import log
+
 
 def rlinput(prompt, prefill=''):
     readline.set_startup_hook(lambda: readline.insert_text(prefill))
@@ -39,13 +41,12 @@ class RegisteringType(type):
                                              {'mappers': {}, 'types': {}}))
 
         def add_mapper(f, ff, fft):
-            # log debug
-            # print cls.__name__, 'adding mapper',
-            #       f, 'for', ff, '({})'.format(fft)
+            log.debug("{} adding mapper {} for {} ({})",
+                      cls.__name__, f, ff, fft)
             if f in cls.registry:
-                print("Warning, overwriting", f, "for class", name, 'with',
-                      ff, 'previous value',
-                      cls.registry['mappers'][f])
+                log.warning("Overwriting {} for class {} with {} "
+                            "(previous value: {})", f, name, ff,
+                            cls.registry['mappers'][f])
             cls.registry['mappers'][f] = ff
             cls.registry['types'][ff] = fft
 
@@ -88,6 +89,7 @@ def finalize(f):
 
 class CachedRenderer(object):
     def __init__(self, **kwargs):
+        log.debug("Creating cached renderer {}", kwargs)
         self.fields = kwargs
         self.depends_on = {}
 
@@ -133,15 +135,13 @@ class CachedRenderer(object):
             dependent_fields = self.depends_on.pop(field)
         except KeyError:
             pass
-            self.fields.pop(field, None)
-            # log debug:
-            # print 'delete inval leaf', field
+            self.fields.pop(field, None) and log.debug(
+                'del inval leaf {}', field)
         else:
             for f in dependent_fields:
                 self.invalidate_field_cache(f)
-            self.fields.pop(field, None)
-            # log debug:
-            # print 'delete inval node', field
+            self.fields.pop(field, None) and log.debug(
+                'del inval node {}', field)
 
 
 def build_payload(fd_val, form_field, fft):
@@ -239,7 +239,7 @@ class Submission(CachedRenderer):
                 s = "\n".join(format_val(v) for v in val)
             else:
                 s = val
-                # log debug: ("No rule for formatting", type(val), val)
+                log.debug("No rule for formatting {} {}", type(val), val)
             return unicode(s)
 
         consolewidth = 80
@@ -275,13 +275,14 @@ class Submission(CachedRenderer):
 
                 try:
                     val = self[amend]
-                except KeyError:
+                except SubmissionAttributeError:
                     print "No field named", amend
                     print "Choices are:", self.fields.keys()
                 else:
                     if not (isinstance(val, basestring) or
                             isinstance(val, bool)):
                         print "Can't amend value of type", type(val)
+                        continue
 
                     new_value = rlinput("New (empty to cancel): ", val)
 

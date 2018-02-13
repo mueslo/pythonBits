@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 
 from . import __version__ as version
 from . import bb
+from . import logging
 
 
 def parse_args():
@@ -119,4 +120,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    with logging.log.catch_exceptions(
+            "An exception occured.\nFull log stored at file://{}",
+            logging.LOG_FILE):
+        main()

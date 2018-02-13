@@ -14,6 +14,7 @@ import guessit
 from unidecode import unidecode
 
 from .config import config
+from .logging import log
 from .mktorrent import make_torrent
 from . import tvdb
 from . import imdb
@@ -36,8 +37,8 @@ class BbSubmission(Submission):
         if type(self) == subcls:
             return self
         else:
-            print 'Narrowing category from', type(
-                self).__name__, "to", subcls.__name__
+            log.info("Narrowing category from {} to {}",
+                     type(self).__name__, subcls.__name__)
             sub = subcls(**self.fields)
             sub.depends_on = self.depends_on
             return sub.categorise()
@@ -77,7 +78,7 @@ class BbSubmission(Submission):
                 assert os.path.exists(out_dir)
                 assert not os.path.isfile(dest)
             except AssertionError as e:
-                print e
+                log.error(e)
             else:
                 shutil.copy(self['torrentfile'], dest)
                 print "Torrent file copied to", dest
@@ -214,7 +215,7 @@ class VideoSubmission(BbSubmission):
             elif track.track_type == 'Text':
                 text_tracks.append(track.to_data())
             else:
-                print "Unknown track", track
+                log.debug("Unknown track {}", track)
 
         assert general is not None
         assert len(video_tracks) == 1

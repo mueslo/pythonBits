@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from attrdict import AttrDict
-
 import imdbpie
+
+from .logging import log
 
 
 class ImdbResult(object):
     def __init__(self, movie):
+        log.debug("ImdbResult {}", movie)
         self.movie = movie
 
     def description(self):
@@ -50,6 +52,7 @@ class IMDB(object):
         return (res.get('rating'), 10), res.get('ratingCount', 0)
 
     def search(self, title):
+        log.debug("Searching IMDb for '{}'", title)
         results = self.imdb.search_for_title(title)
 
         print "Results:"
@@ -57,18 +60,23 @@ class IMDB(object):
             print "%s: %s (%s)" % (i, movie['title'], movie['year'])
 
         while True:
-            choice = raw_input('Select the correct movie or enter an alternate'
-                               ' search term: [0-%s] ' % (len(results) - 1))
+            choice = raw_input('Select number or enter an alternate'
+                               ' search term: [0-%s, 0 default] ' %
+                               (len(results) - 1))
             try:
-                result = results[int(choice)]
-            except IndexError:
-                pass
+                choice = int(choice)
             except ValueError:
                 if choice:
                     return self.search(choice)
+                choice = 0
+
+            try:
+                result = results[choice]
+            except IndexError:
                 pass
             else:
                 imdb_id = result['imdb_id']
+                log.debug("Found IMDb item {}", imdb_id)
                 movie = AttrDict(self.imdb.get_title(imdb_id))
                 movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
                 movie.genres = self.imdb.get_title_genres(imdb_id)['genres']

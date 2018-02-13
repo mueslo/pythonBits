@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from os import path, chmod, mkdir
+from os import path, chmod, makedirs
 
 import ConfigParser
 import getpass
@@ -12,7 +12,7 @@ CONFIG_DIR = appdirs.user_config_dir(appname.lower())
 CONFIG_PATH = path.join(CONFIG_DIR, CONFIG_NAME)
 
 if not path.exists(CONFIG_DIR):
-    mkdir(CONFIG_DIR, 0700)
+    makedirs(CONFIG_DIR, 0700)
 
 
 class Config():
