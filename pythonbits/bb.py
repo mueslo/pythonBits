@@ -229,11 +229,11 @@ class VideoSubmission(BbSubmission):
 
     def _render_source(self):
         sources = ('BluRay', 'BluRay 3D', 'WEB-DL',
-                   'WebRip', 'HDTV', 'DVDSCR', 'CAM')
-        # ignored: R5, DVDRip, TeleSync, PDTV, SDTV, BluRay RC, HDRip, VODRip,
+                   'WebRip', 'HDTV', 'DVDRip', 'DVDSCR', 'CAM')
+        # ignored: R5, TeleSync, PDTV, SDTV, BluRay RC, HDRip, VODRip,
         #          TC, SDTV, DVD5, DVD9, HD-DVD
 
-        # todo: replace with guessit
+        # todo: replace with guess from self['guess']
         if 'bluray' in self['path'].lower():
             return 'BluRay'
             # todo: 3d
@@ -294,6 +294,9 @@ class VideoSubmission(BbSubmission):
             if audio_track['codec'].startswith(c):
                 c = c.replace('AC3', 'AC-3')
                 return c
+
+        if audio_track['codec'] == 'MPA1L3':
+            return 'MP3'
 
         raise Exception("Unkown or unsupported audio codec",
                         audio_track['codec'])
