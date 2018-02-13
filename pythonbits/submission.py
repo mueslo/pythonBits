@@ -235,13 +235,11 @@ class Submission(CachedRenderer):
         def format_val(val):
             if isinstance(val, basestring) and os.path.exists(val):
                 s = 'file://' + unicode(val)
-            elif isinstance(val, basestring) or isinstance(val, bool):
-                s = unicode(val)
             elif isinstance(val, list) or isinstance(val, tuple):
                 s = "\n".join(format_val(v) for v in val)
             else:
-                raise Exception("No rule for formatting", type(val))
-
+                s = val
+                # log debug: ("No rule for formatting", type(val), val)
             return unicode(s)
 
         consolewidth = 80
