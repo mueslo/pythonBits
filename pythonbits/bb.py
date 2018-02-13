@@ -511,8 +511,21 @@ class MovieSubmission(VideoSubmission):
 
     @form_field('year')
     def _render_year(self):
-        # todo: if path does not have year we need to get it from db
-        return self['guess']['year']
+        if 'summary' in self.fields:
+            return self['summary']['year']
+
+        elif 'year' in self['guess']:
+            return self['guess']['year']
+
+        else:
+            while True:
+                year = raw_input('Please enter year: ')
+                try:
+                    year = int(year)
+                except ValueError:
+                    pass
+                else:
+                    return year
 
     def _render_summary(self):
         i = imdb.IMDB()
