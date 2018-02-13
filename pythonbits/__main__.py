@@ -72,8 +72,6 @@ def parse_args():
                             'help': "Number of screenshots"},
         'num_cast': {'type': int, 'default': 5,
                      'help': "Number of actors to use in tags"},
-        'dry_run': {'default': False, 'action': 'store_true',
-                    'help': "Do not upload anything"},
     }
 
     options = parser.add_argument_group(
