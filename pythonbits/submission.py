@@ -133,15 +133,15 @@ class CachedRenderer(object):
             dependent_fields = self.depends_on.pop(field)
         except KeyError:
             pass
+            self.fields.pop(field, None)
             # log debug:
-            # if self.fields.pop(field, None) is not None:
-            #     print 'delete inval leaf', field
+            # print 'delete inval leaf', field
         else:
             for f in dependent_fields:
                 self.invalidate_field_cache(f)
+            self.fields.pop(field, None)
             # log debug:
-            # if self.fields.pop(field, None) is not None:
-            #     print 'delete inval node', field
+            # print 'delete inval node', field
 
 
 def build_payload(fd_val, form_field, fft):
