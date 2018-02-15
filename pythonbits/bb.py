@@ -10,6 +10,7 @@ from collections import namedtuple, abc
 from concurrent.futures.thread import ThreadPoolExecutor
 
 import pymediainfo
+import mutagen
 import guessit
 from unidecode import unidecode
 from requests.exceptions import HTTPError
@@ -19,6 +20,7 @@ from .logging import log
 from .torrent import make_torrent
 from . import tvdb
 from . import imdb
+from . import musicbrainz as mb
 from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
@@ -841,3 +843,202 @@ class MovieSubmission(VideoSubmission):
     @form_field('desc')
     def _render_form_description(self):
         return self['description']
+
+
+class AudioSubmission(BbSubmission):
+    default_fields = ("description", "form_tags", "year", "image", "artist",
+                      "title", "format", "bitrate", "media")
+
+    def subcategory(self):
+        return MusicSubmission
+
+
+class MusicSubmission(AudioSubmission):
+    default_fields = (AudioSubmission.default_fields + (
+        'remaster', 'remaster_year', 'remaster_title'))
+    _form_type = 'Music'
+    ## submit
+    ## type
+    ## artist
+    ## title
+    # remaster_true (checkbox, special edition info) (!?!?!)
+    #  -> remaster_year
+    #  -> remaster_title (optional)
+    ## year
+    ## scene (checkbox)
+    ## format (select, options: MP3, FLAC, Ogg, AAC, DTS 5.1 Audio, 24bit FLAC)
+    ## bitrate (select, options: 192, V2 (VBR), 256, V0 (VBR), 320, Lossless, Other)
+    ## media (select, options: CD, DVD, Vinyl, Soundboard, DAT, Web)
+    ## image
+    # album_desc (!!!)
+    ## release_desc (optional)
+
+    @form_field('remaster_true', 'checkbox')
+    def _render_remaster(self):
+        # todo user input function/module to reduce boilerplating
+        return bool(
+            input('Is this a special/remastered edition?').lower() != 'n')
+
+    @form_field('remaster_year')
+    def _render_remaster_year(self):
+        pass
+
+    @form_field('remaster_title')
+    def _render_remaster_title(self):
+        pass
+
+    @form_field('format')
+    def _render_format(self):
+        # MP3, FLAC, Ogg, AAC, DTS 5.1 Audio, 24bit FLAC
+        choices = ('MP3', 'FLAC', 'Ogg', 'AAC', '24bit FLAC')
+
+        tl_format = {
+            'MP3': 'MP3',
+            'EasyMP3': 'MP3',
+            'OggVorbis': 'Ogg',
+            'OggOpus': 'Ogg',
+            'FLAC': 'FLAC',
+            'AAC': 'AAC',
+            }
+
+        tags = self['tags']
+        format = tl_format[tags['format']]
+        if format == 'FLAC' and tags['bits_per_sample'] >= 24:
+            format = '24bit FLAC'
+
+        return format
+
+    @form_field('bitrate')
+    def _render_bitrate(self):
+        # 192, V2(VBR), 256, V0(VBR), 320, Lossless, Other)
+        format = self['format']
+        tags = self['tags']
+        if format == 'MP3':
+            if tags['encoder_settings'] == '-V 0':
+                return 'V0(VBR)'
+            elif tags['encoder_settings'] == '-V 2':
+                return 'V2(VBR)'
+            elif tags['bitrate'] == 192000:
+                return '192'
+            elif tags['bitrate'] == 256000:
+                return '256'
+            elif tags['bitrate'] == 320000:
+                return '320'
+
+        elif 'FLAC' in format:
+            return 'Lossless'
+
+        raise Exception('Unrecognized format/bitrate')
+
+    @form_field('media')
+    def _render_media(self):
+        media = self['summary']['media']
+
+        if len(media) == 1:
+            return media[0]
+
+        raise Exception('Handle this')
+
+    def _render_mediainfo_path(self):
+        assert os.path.isdir(self['path'])
+
+        for dp, dns, fns in os.walk(self['path']):
+            for fn in fns:
+                full_path = os.path.join(dp, fn)
+                if os.path.getsize(full_path) > 1 * 2**20:
+                    return full_path
+        raise Exception('No media file found')
+
+    def _render_songlist(self):
+        return None
+
+    def _render_tags(self):
+        tags = mutagen.File(self['mediainfo_path'], easy=True)
+        # if type(tags) == mutagen.mp3.MP3:
+        #     tags = mutagen.mp3.MP3(self['mediainfo_path'], ID3=EasyID3)
+
+        print(dir(tags.info))
+        try:
+            print(tags.info.encoder_settings)
+        except:
+            pass
+        log.debug(type(tags))
+        log.debug(tags.pprint())
+
+        return {'artist': tags.get('albumartist', tags['artist'])[0],
+                'title': tags['album'][0],
+                'rid': tags.get('musicbrainz_albumid', [None])[0],
+                'format': type(tags).__name__,
+                'bitrate': tags.info.bitrate,
+                'bits_per_sample': getattr(tags.info, 'bits_per_sample',
+                                           None),
+                'encoder_settings': getattr(tags.info, 'encoder_settings',
+                                            None),
+                }
+
+    def _render_summary(self):
+        # identify self:
+        #  - num tracks todo
+        #  - scan for mb tags
+        tags = self['tags']
+        print(tags)
+        if tags['rid']:
+            log.info('Found MusicBrainz release in tags')
+            release = mb.musicbrainzngs.get_release_by_id(
+                tags['rid'],
+                includes=['release-groups', 'media'])['release']
+            rg = mb.musicbrainzngs.get_release_group_by_id(
+                release['release-group']['id'],
+                includes=['tags', 'artist-credits'])['release-group']
+
+        else:
+            if self['title_arg']:
+                query_artist = None
+                query = self['title_arg']
+            else:
+                query_artist = tags['artist']
+                query =  tags['title']
+            rg, release = mb.find_release(query, artist=query_artist)
+
+        print('rg', rg)
+        print('r', release)
+
+        print(rg.keys())
+        return {
+            'artist': rg['artist-credit-phrase'],
+            'title': rg['title'],
+            'year': release['release-event-list'][0]['date'][:4],
+            'tags': [t['name'] for t in
+                     sorted(rg.get('tag-list', []),
+                            key=lambda t: int(t['count']))][-5:],
+            'media': [m['format'] for m in release['medium-list']],
+            'cover': mb.get_artwork(rg['id']),
+            }
+
+    @finalize
+    @form_field('image')
+    def _render_image(self):
+        return self['summary']['cover']
+
+    def _finalize_image(self):
+        return ImgurUploader().upload(self['image'])
+
+    @form_field('year')
+    def _render_year(self):
+        return self['summary']['year']
+
+    @form_field('tags')
+    def _render_form_tags(self):
+        return self['summary']['tags']
+
+    @form_field('album_desc')
+    def _render_description(self):
+        return 'album description'
+
+    @form_field('artist')
+    def _render_artist(self):
+        return self['summary']['artist']
+
+    @form_field('title')
+    def _render_title(self):
+        return self['summary']['title']

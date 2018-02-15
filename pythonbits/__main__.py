@@ -23,7 +23,8 @@ def parse_args():
                               "Dead S01\") (optional)"))
 
     cat_map = {'movie': bb.MovieSubmission,
-               'tv': bb.TvSubmission}
+               'tv': bb.TvSubmission,
+               'music': bb.MusicSubmission}
     parser.add_argument("-c", "--category", choices=list(cat_map.keys()))
     parser.add_argument("-u", "--set-field", nargs=2, action='append',
                         metavar=('FIELD', 'VALUE'), default=[],
