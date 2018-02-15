@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
+import musicbrainzngs
+import terminaltables
+# from textwrap import wrap
+
+from . import __title__ as appname, __version__ as version, _github as github
+
+
+musicbrainzngs.set_useragent(appname, version, github)
+
+
+def get_artwork(release_group_id):
+    data = musicbrainzngs.get_release_group_image_list(release_group_id)
+    for image in data["images"]:
+        if "Front" in image["types"] and image["approved"]:
+            return image["thumbnails"]["large"]
+
+
+def find_release_group(release_title, artist=None):
+    results = musicbrainzngs.search_release_groups(
+        release_title, artist=artist, limit=10)['release-group-list']
+    table_data = [('Index', 'Artist', 'Title', 'Type')]
+    #max_width = table.column_max_width(2)
+    for i, r in enumerate(results):
+        #title = '\n'.join(wrap(r['title'], max_width))
+        table_data.append((i, r['artist-credit-phrase'],
+                           r['title'], r.get('type', '?')))
+
+    print(terminaltables.SingleTable(table_data).table)
+    while True:
+        choice = raw_input(
+            "Select the release group (or enter a different query): ")
+        try:
+            choice = int(choice)
+        except ValueError:
+            if choice != '':
+                return find_release_group(choice)
+            continue
+
+        try:
+            choice = results[choice]
+        except IndexError:
+            pass
+        else:
+            return choice
+
+
+def find_release(release_title, artist=None):
+    release_group = find_release_group(release_title, artist=artist)
+
+    results = musicbrainzngs.search_releases(
+        'rgid:'+release_group['id'])['release-list']
+
+    table_data = [
+        ('Index', 'Title', '# Tracks', 'Date', 'CC', 'Label', 'Status', 'Format'),
+        ]
+
+    for i, r in enumerate(results):
+        try:
+            label = r['label-info-list'][0]['label']['name']
+        except KeyError:
+            label = '?'
+        table_data.append((i, r['title'], r['medium-list'][0]['track-count'],
+                           r.get('date', '?'), r.get('country', '?'),
+                           label, r.get('status', '?'),
+                           r['medium-list'][0]['format']))
+
+    print(terminaltables.SingleTable(table_data).table)
+    while True:
+        choice = raw_input(
+            "Select the exact release, if known: ")
+        try:
+            choice = results[int(choice)]
+        except (IndexError, ValueError):
+            if choice == '':
+                return release_group, None
+        else:
+            return release_group, choice
+
