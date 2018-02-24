@@ -8,6 +8,7 @@ import subprocess
 from textwrap import dedent
 from collections import namedtuple, abc
 from concurrent.futures.thread import ThreadPoolExecutor
+from datetime import timedelta
 
 import pymediainfo
 import mutagen
@@ -857,21 +858,23 @@ class MusicSubmission(AudioSubmission):
     default_fields = (AudioSubmission.default_fields + (
         'remaster', 'remaster_year', 'remaster_title'))
     _form_type = 'Music'
-    ## submit
-    ## type
-    ## artist
-    ## title
-    # remaster_true (checkbox, special edition info) (!?!?!)
-    #  -> remaster_year
-    #  -> remaster_title (optional)
-    ## year
-    ## scene (checkbox)
-    ## format (select, options: MP3, FLAC, Ogg, AAC, DTS 5.1 Audio, 24bit FLAC)
-    ## bitrate (select, options: 192, V2 (VBR), 256, V0 (VBR), 320, Lossless, Other)
-    ## media (select, options: CD, DVD, Vinyl, Soundboard, DAT, Web)
-    ## image
-    # album_desc (!!!)
-    ## release_desc (optional)
+    # # submit
+    # # type
+    # # artist
+    # # title
+    #  remaster_true (checkbox, special edition info) (!?!?!)
+    #   -> remaster_year
+    #   -> remaster_title (optional)
+    # # year
+    # # scene (checkbox)
+    # # format (select, options: MP3, FLAC, Ogg, AAC, DTS 5.1 Audio,
+    #                            24bit FLAC)
+    # # bitrate (select, options: 192, V2 (VBR), 256, V0 (VBR), 320, Lossless,
+    #                             Other)
+    # # media (select, options: CD, DVD, Vinyl, Soundboard, DAT, Web)
+    # # image
+    #  album_desc (!!!)
+    # # release_desc (optional)
 
     @form_field('remaster_true', 'checkbox')
     def _render_remaster(self):
@@ -890,7 +893,7 @@ class MusicSubmission(AudioSubmission):
     @form_field('format')
     def _render_format(self):
         # MP3, FLAC, Ogg, AAC, DTS 5.1 Audio, 24bit FLAC
-        choices = ('MP3', 'FLAC', 'Ogg', 'AAC', '24bit FLAC')
+        # choices = ('MP3', 'FLAC', 'Ogg', 'AAC', '24bit FLAC')
 
         tl_format = {
             'MP3': 'MP3',
@@ -942,6 +945,7 @@ class MusicSubmission(AudioSubmission):
     def _render_mediainfo_path(self):
         assert os.path.isdir(self['path'])
 
+        # get first file over 1 MiB
         for dp, dns, fns in os.walk(self['path']):
             for fn in fns:
                 full_path = os.path.join(dp, fn)
@@ -950,6 +954,8 @@ class MusicSubmission(AudioSubmission):
         raise Exception('No media file found')
 
     def _render_songlist(self):
+        # from musicbrainz release
+
         return None
 
     def _render_tags(self):
@@ -960,7 +966,7 @@ class MusicSubmission(AudioSubmission):
         print(dir(tags.info))
         try:
             print(tags.info.encoder_settings)
-        except:
+        except AttributeError:
             pass
         log.debug(type(tags))
         log.debug(tags.pprint())
@@ -986,7 +992,7 @@ class MusicSubmission(AudioSubmission):
             log.info('Found MusicBrainz release in tags')
             release = mb.musicbrainzngs.get_release_by_id(
                 tags['rid'],
-                includes=['release-groups', 'media'])['release']
+                includes=['release-groups', 'media', 'recordings'])['release']
             rg = mb.musicbrainzngs.get_release_group_by_id(
                 release['release-group']['id'],
                 includes=['tags', 'artist-credits'])['release-group']
@@ -997,11 +1003,18 @@ class MusicSubmission(AudioSubmission):
                 query = self['title_arg']
             else:
                 query_artist = tags['artist']
-                query =  tags['title']
+                query = tags['title']
             rg, release = mb.find_release(query, artist=query_artist)
 
         print('rg', rg)
         print('r', release)
+
+        for medium in release['medium-list']:
+            for track in medium['track-list']:
+                print(track['number'],
+                      track['recording']['title'],
+                      timedelta(milliseconds=int(
+                          track['recording']['length'])))
 
         print(rg.keys())
         return {

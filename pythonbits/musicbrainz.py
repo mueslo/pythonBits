@@ -24,15 +24,15 @@ def find_release_group(release_title, artist=None):
     results = musicbrainzngs.search_release_groups(
         release_title, artist=artist, limit=10)['release-group-list']
     table_data = [('Index', 'Artist', 'Title', 'Type')]
-    #max_width = table.column_max_width(2)
+    # max_width = table.column_max_width(2)
     for i, r in enumerate(results):
-        #title = '\n'.join(wrap(r['title'], max_width))
+        # title = '\n'.join(wrap(r['title'], max_width))
         table_data.append((i, r['artist-credit-phrase'],
                            r['title'], r.get('type', '?')))
 
     print(terminaltables.SingleTable(table_data).table)
     while True:
-        choice = raw_input(
+        choice = input(
             "Select the release group (or enter a different query): ")
         try:
             choice = int(choice)
@@ -56,8 +56,8 @@ def find_release(release_title, artist=None):
         'rgid:'+release_group['id'])['release-list']
 
     table_data = [
-        ('Index', 'Title', '# Tracks', 'Date', 'CC', 'Label', 'Status', 'Format'),
-        ]
+        ('Index', 'Title', '# Tracks', 'Date', 'CC', 'Label', 'Status',
+         'Format'), ]
 
     for i, r in enumerate(results):
         try:
@@ -71,7 +71,7 @@ def find_release(release_title, artist=None):
 
     print(terminaltables.SingleTable(table_data).table)
     while True:
-        choice = raw_input(
+        choice = input(
             "Select the exact release, if known: ")
         try:
             choice = results[int(choice)]
@@ -79,5 +79,6 @@ def find_release(release_title, artist=None):
             if choice == '':
                 return release_group, None
         else:
-            return release_group, choice
-
+            release = musicbrainzngs.get_release_by_id(
+                choice['id'], includes=['media', 'recordings'])['release']
+            return release_group, release
