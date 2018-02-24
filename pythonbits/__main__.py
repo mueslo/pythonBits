@@ -100,7 +100,7 @@ def parse_args():
     return Category, set_field, get_field
 
 
-def main(Category, set_fields, get_fields):
+def _main(Category, set_fields, get_fields):
     # todo: first try show_fields, if it raises attributeerror, categorise
     sub = Category(**set_fields)
     sub = sub.categorise()
@@ -117,9 +117,13 @@ def main(Category, set_fields, get_fields):
     print sub.show_fields(get_fields)
 
 
-if __name__ == '__main__':
+def main():
     Category, set_fields, get_fields = parse_args()
     with logging.log.catch_exceptions(
             "An exception occured.\nFull log stored at file://{}",
             logging.LOG_FILE):
-        main(Category, set_fields, get_fields)
+        _main(Category, set_fields, get_fields)
+
+
+if __name__ == '__main__':
+    main()
