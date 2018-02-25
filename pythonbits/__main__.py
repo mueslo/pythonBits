@@ -7,14 +7,16 @@ from argparse import ArgumentParser
 from . import __version__ as version
 from . import bb
 from . import logging
+from .submission import SubmissionAttributeError
 
 
 def parse_args():
     parser = ArgumentParser(
-        version=version,
         description=("A Python pretty printer for generating attractive movie "
                      "descriptions with screenshots."))
-
+    parser.add_argument('--version', action='version', version=version)
+    parser.add_argument("-v", action="count", default=0,
+                        help="increase output verbosity")
     parser.add_argument("path", metavar='PATH',
                         help="File or directory of media")
     parser.add_argument("title", metavar='TITLE', nargs='?',
@@ -83,6 +85,8 @@ def parse_args():
         options.add_argument(n_to_p(name), **vals)
 
     args = parser.parse_args()
+    logging.sh.level -= args.v
+    logging.log.debug("Arguments: {}", args)
 
     args.options = {}
     for o in options_d.keys():
@@ -101,12 +105,18 @@ def parse_args():
 
 
 def _main(Category, set_fields, get_fields):
-    # todo: first try show_fields, if it raises attributeerror, categorise
     sub = Category(**set_fields)
-    sub = sub.categorise()
 
-    get_fields = get_fields or sub.default_fields
-    sub.show_fields(get_fields)
+    while True:
+        try:
+            sub.show_fields(get_fields or sub.default_fields)
+        except SubmissionAttributeError:
+            _sub = sub.subcategorise()
+            if type(_sub) == type(sub):
+                raise
+            sub = _sub
+        else:
+            break
 
     if sub.needs_finalization():
         if sub.confirm_finalization(get_fields):

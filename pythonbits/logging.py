@@ -25,8 +25,9 @@ LOG_FILE = os.path.join(LOG_DIR, appname.lower() + '.log')
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR, 0700)
 
-StreamHandler(sys.stdout, level='NOTICE',
-              bubble=True).push_application()
+sh = StreamHandler(sys.stdout, level='NOTICE',
+                   bubble=True)
+sh.push_application()
 issue_logging().push_application()
 
 log = logbook.Logger(appname)

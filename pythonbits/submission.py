@@ -106,6 +106,8 @@ class CachedRenderer(object):
             if n:  # called by another cached field
                 self.depends_on[field] = self.depends_on.setdefault(
                     field, set()) | {caller}
+                log.debug('Adding {} dependency {} -> {}',
+                          type(self).__name__, caller, field)
 
         try:
             return self.fields[field]

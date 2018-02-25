@@ -31,21 +31,22 @@ def format_tag(tag):
 
 
 class BbSubmission(Submission):
-    def categorise(self):
-        subcls = self.subcategory()
-
-        if type(self) == subcls:
-            return self
-        else:
-            log.info("Narrowing category from {} to {}",
-                     type(self).__name__, subcls.__name__)
-            sub = subcls(**self.fields)
-            sub.depends_on = self.depends_on
-            return sub.categorise()
+    default_fields = ("form_title", "tags", "cover")
 
     def subcategory(self):
         # only video for now
         return VideoSubmission
+
+    def subcategorise(self):
+        SubCategory = self.subcategory()
+        if type(self) == SubCategory:
+            return self
+
+        log.info("Narrowing category from {} to {}",
+                 type(self).__name__, SubCategory.__name__)
+        sub = SubCategory(**self.fields)
+        sub.depends_on = self.depends_on
+        return sub
 
     @staticmethod
     def submit(payload):
@@ -81,7 +82,7 @@ class BbSubmission(Submission):
                 log.error(e)
             else:
                 shutil.copy(self['torrentfile'], dest)
-                print "Torrent file copied to", dest
+                log.notice("Torrent file copied to {}", dest)
 
         return self['torrentfile']
 
@@ -104,7 +105,7 @@ TvSpecifier = namedtuple('TvSpecifier', ['title', 'season', 'episode'])
 
 
 class VideoSubmission(BbSubmission):
-    default_fields = ("form_title", "tags", "cover")
+    default_fields = BbSubmission.default_fields
 
     def _render_guess(self):
         return {k: v for k, v in guessit.guessit(self['path']).items()}

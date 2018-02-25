@@ -17,9 +17,9 @@
 
 ## Usage
 ```
-usage: pythonbits [-h] [-v] [-c {tv,movie}] [-u FIELD VALUE] [-i] [-t] [-s]
-                  [-d] [-b] [-f FIELD [FIELD ...]] [--num-cast NUM_CAST]
-                  [--num-screenshots NUM_SCREENSHOTS]
+usage: pythonbits [-h] [--version] [-v] [-c {tv,movie}] [-u FIELD VALUE] [-i]
+                  [-t] [-s] [-d] [-b] [-f FIELD [FIELD ...]]
+                  [--num-cast NUM_CAST] [--num-screenshots NUM_SCREENSHOTS]
                   PATH [TITLE]
 ```
 Use `pythonbits --help` to get a more extensive usage overview
