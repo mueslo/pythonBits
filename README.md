@@ -7,13 +7,17 @@
 #### A Python description generator for movies and TV shows
 
 ## Install
-1. Install pythonBits in one of the following ways
-  * install via `pip2 install pythonbits`
-  * clone and `pip2 install .`
-  * (dev) clone, install requirements from setup.py and run as `python -m pythonbits` instead of `pythonbits`
+1. (Optional, highly recommended) Set up a virtualenv to avoid polluting your system with dependencies.
+  - with virtualenvwrapper: `mkvirtualenv pythonbits -p $(which python2)`
+    - activate the virtualenv with `workon pythonbits`
+2. Install pythonBits in one of the following ways
+  - install via `pip install pythonbits`
+  - clone and `pip install .`
+  - (dev) clone, install requirements from setup.py and run as `python -m pythonbits` instead of `pythonbits`
+3. Install mediainfo, ffmpeg and mktorrent such that they are accessible for pythonBits
+  - you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
 
-2. Install mediainfo, ffmpeg and mktorrent such that they are accessible from $PATH
-  * you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
+If you don't want to use a virtualenv but keep system pollution with PyPI packages to a minimum, install via `pip install --user`. For more information, visit [this site](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
 
 ## Usage
 ```
@@ -37,5 +41,7 @@ In most cases it is enough to just run `pythonbits <path>` to generate a media d
 * Generate complete submission, use supplied torrent file and tags: `pythonbits -b -u torrentfile <torrentfile> -u tags "whatever,tags.you.like" <path>`
 
 In case the media title and type cannot be guessed from the path alone, you can explicitly specify them, e.g. `pythonbits <path> "Doctor Who (2005) S06"`or `pythonbits <path> -c movie`.
+
+You can increase the verbosity of log messages printed to the screen by appending `-v`. This would print `INFO` messages. To print `DEBUG` messages, append twice, i.e. `-vv`.
 
 You can also import pythonbits to use in your own Python projects. For reference on how to best use it, take a look at `__main__.py`. Once you have created an appropriate `Submission` instance `s`, you can access any desired feature, for example `s['title']`, `s['tags']` or `s['cover']`.
