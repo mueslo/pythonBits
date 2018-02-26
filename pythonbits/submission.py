@@ -24,14 +24,6 @@ class SubmissionAttributeError(Exception):
     pass
 
 
-class InvalidSubmission(SubmissionAttributeError):
-    pass
-
-
-class FieldRenderException(Exception):
-    pass
-
-
 re_frender = re.compile("^_render_(?=[a-z_]*$)")
 
 
@@ -119,12 +111,8 @@ class CachedRenderer(object):
                     self.__class__.__name__ + " does not contain or "
                     "has no rules to generate field '" + field + "'")
 
-            try:
-                rv = field_renderer()
-            except SubmissionAttributeError as e:
-                raise FieldRenderException(
-                    'Could not render field ' + field + ':\n' + e.message)
-
+            log.debug('Rendering field {}[\'{}\']', type(self).__name__, field)
+            rv = field_renderer()
             self.fields[field] = rv
             return rv
 

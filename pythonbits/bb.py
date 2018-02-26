@@ -21,7 +21,8 @@ from . import imdb
 from .imgur import ImgurUploader
 from .ffmpeg import FFMpeg
 from . import templating as bb
-from .submission import Submission, form_field, finalize
+from .submission import (Submission, form_field, finalize,
+                         SubmissionAttributeError)
 from .tracker import Tracker
 
 
@@ -38,6 +39,7 @@ class BbSubmission(Submission):
         return VideoSubmission
 
     def subcategorise(self):
+        log.debug('Attempting to narrow category')
         SubCategory = self.subcategory()
         if type(self) == SubCategory:
             return self
@@ -88,7 +90,11 @@ class BbSubmission(Submission):
 
     @form_field('type')
     def _render_form_type(self):
-        return self._form_type
+        try:
+            return self._form_type
+        except AttributeError:
+            raise SubmissionAttributeError(type(self).__name__ +
+                                           ' has no _form_type attribute')
 
     @form_field('submit')
     def _render_form_submit(self):
