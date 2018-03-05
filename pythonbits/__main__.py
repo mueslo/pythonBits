@@ -109,7 +109,7 @@ def _main(Category, set_fields, get_fields):
 
     while True:
         try:
-            sub.show_fields(get_fields or sub.default_fields)
+            sub.show_fields(get_fields)
         except SubmissionAttributeError as e:
             logging.log.debug(type(e).__name__ + ': ' + str(e))
             _sub = sub.subcategorise()

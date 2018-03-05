@@ -34,6 +34,14 @@ def format_tag(tag):
 class BbSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
 
+    def show_fields(self, fields):
+        return super(BbSubmission, self).show_fields(
+            fields or self.default_fields)
+
+    def confirm_finalization(self, fields):
+        return super(BbSubmission, self).confirm_finalization(
+            fields or self.default_fields)
+
     def subcategory(self):
         # only video for now
         return VideoSubmission
