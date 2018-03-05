@@ -6,6 +6,7 @@ import re
 
 from . import __version__ as version, __title__ as title
 from .config import config
+from .logging import log
 
 config.register('Tracker', 'announce_url',
                 "Please enter your personal announce URL")
@@ -29,7 +30,7 @@ class Tracker():
         if ("logout.php" in resp.text):
             return True
 
-        print resp.text
+        log.error(resp.text)
         raise TrackerException('Unknown response format')
 
     @contextlib.contextmanager
@@ -48,7 +49,7 @@ class Tracker():
         with requests.Session() as s:
             s.headers.update(self.headers)
 
-            print "Logging in", username, "to", domain
+            log.notice("Logging in {} to {}", username, domain)
             resp = s.post(login_url, data=payload)
             resp.raise_for_status()
 
@@ -65,21 +66,22 @@ class Tracker():
             resp = s.get(logout_url)
             if self.logged_in(resp):
                 raise TrackerException("Log-out failed!")
-            print "Logged out", username
+            log.notice("Logged out {}", username)
 
     def upload(self, **kwargs):
         url = "https://{}/upload.php".format(config.get('Tracker', 'domain'))
         with self.login() as session:
-            print "Posting submission"
+            log.notice("Posting submission")
             resp = session.post(url, **kwargs)
             resp.raise_for_status()
 
-            print resp.history
+            log.debug(resp.history)
             if resp.history:
                 # todo: check if url is good, might have been logged out
                 # (unlikely)
                 return resp.url
             else:
-                print 'resp', resp
-                print 'search', ("No torrent file uploaded" in resp.text)
+                log.error('resp {}', resp)
+                log.error('search {}',
+                          ("No torrent file uploaded" in resp.text))
                 raise TrackerException('Failed to upload submission')
