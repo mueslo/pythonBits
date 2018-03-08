@@ -6,6 +6,7 @@ import tempfile
 
 from . import _release as release
 from .config import config
+from .logging import log
 
 config.register('Torrent', 'black_hole',
                 "Enter a directory where you would like to save the created "
@@ -49,13 +50,7 @@ def make_torrent(fname, psize_exp):
 
     announce_url = config.get('Tracker', 'announce_url')
 
-    out_dir = config.get('Torrent', 'black_hole')  # todo: relative to file
-
-    if not out_dir:
-        out_dir = tempfile.mkdtemp()
-    else:
-        assert os.path.exists(out_dir)
-
+    out_dir = tempfile.mkdtemp()
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
     out_fname = os.path.join(out_dir, out_fname)
 
@@ -66,9 +61,9 @@ def make_torrent(fname, psize_exp):
                                   "-o", out_fname,
                                   fname], shell=False)
 
-    print "Waiting for torrent creation to complete..."
+    log.info("Waiting for torrent creation to complete...")
     mktorrent.wait()
     if mktorrent.returncode:
-        raise MkTorrentException(mktorrent.stdout.read())
+        raise MkTorrentException()
 
     return out_fname

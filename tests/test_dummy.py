@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pythonbits.submission as submission
+import pythonbits.bb as bb
 import pytest
 
 
@@ -30,7 +31,7 @@ tv_names = [(None, 'some.series.s02e11.avi', ('some series', 2, 11)),
 
 @pytest.mark.parametrize("title,path,specifier", tv_names)
 def test_tv_specifier(title, path, specifier):
-    s = submission.VideoSubmission(path=path, title_arg=title)
+    s = bb.VideoSubmission(path=path, title_arg=title)
     assert s['tv_specifier'] == specifier
 
 
@@ -40,7 +41,7 @@ def test_proper():
               'audio': "",
               'text': ["sub", "title"]}
 
-    s = submission.VideoSubmission(
+    s = bb.VideoSubmission(
         path=("Some.Awesome.Show.S26E12.REPACK."
               "With.A.Show.Title.720p.WEB-DL.AAC2.0.H.264-pontifex.mkv"),
         title_arg=None,
@@ -61,4 +62,4 @@ normalise_pairs = [
 
 @pytest.mark.parametrize("input, correct", normalise_pairs)
 def test_normalise_tags(input, correct):
-    assert submission.format_tag(input) == correct
+    assert bb.format_tag(input) == correct

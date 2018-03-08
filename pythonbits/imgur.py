@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import requests
 import json
-import re
+from urlparse import urlparse
 from textwrap import dedent
 
 from .config import config
+from .logging import log
 
 API_URL = 'https://api.imgur.com/'
 USER_URL_TEMPLATE = ("https://api.imgur.com/oauth2/"
@@ -49,7 +50,7 @@ class ImgurAuth(object):
             self.refresh_access_token()
 
         while not self.access_token:
-            print("You are not currently logged in.")
+            log.notice("You are not currently logged in.")
             self.request_login()
 
     def request_client_details(self):
@@ -89,7 +90,7 @@ class ImgurAuth(object):
             self.refresh_token = response["refresh_token"]
             config.set('Imgur', 'refresh_token', self.refresh_token)
 
-        print("Logged in to Imgur as %s" % response["account_username"])
+        log.notice("Logged in to Imgur as {}", response["account_username"])
 
     def get_auth_headers(self):
         return {"Authorization": "Bearer %s" % self.access_token}
@@ -106,12 +107,12 @@ class ImgurUploader(object):
         self.imgur_auth.prepare()
         params = {'headers': self.imgur_auth.get_auth_headers()}
 
-        matcher = re.compile(r'^https?://')
-
-        if matcher.match(image):
+        if urlparse(image).scheme in ('http', 'https'):
             params['data'] = {'image': image}
+        elif urlparse(image).scheme in ('file', ''):
+            params['files'] = {'image': open(urlparse(image).path, "rb")}
         else:
-            params['files'] = {'image': open(image, "rb")}
+            raise Exception('Unknown image URI scheme', urlparse(image).scheme)
         res = requests.post(API_URL + "3/image", **params)
         res.raise_for_status()  # raises if invalid api request
         response = json.loads(res.text)
@@ -120,15 +121,7 @@ class ImgurUploader(object):
         extensions = [path.split(".")[-1]
                       for path in (image, link)]
         if extensions[0] != extensions[1]:
-            placeholder = image.split("/")[-1]
-            print("WARNING: Imgur converted %s to a %s." %
-                  (extensions[0], extensions[1]))
-            print("Please upload elsewhere and "
-                  "replace the placeholder link.")
-            print("Imgur link: %s" % link)
-            print("Placeholder: %s" % placeholder)
-            print("File: %s" % image)
-            print
-            return placeholder
-        else:
-            return link
+            log.warn("Imgur converted {} to a {}.",
+                     extensions[0], extensions[1])
+
+        return link
