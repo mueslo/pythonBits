@@ -73,6 +73,8 @@ def parse_args():
     options_d = {
         'num_screenshots': {'type': int, 'default': 2,
                             'help': "Number of screenshots"},
+        'piece_size_exp': {'type': int, 'default': 0,
+                            'help': "Override piece size exponential"},
         'num_cast': {'type': int, 'default': 5,
                      'help': "Number of actors to use in tags"},
     }

@@ -76,7 +76,8 @@ class BbSubmission(Submission):
     @finalize
     @form_field('file_input', 'file')
     def _render_torrentfile(self):
-        return make_torrent(self['path'])
+        psize_exp = self['options']['piece_size_exp']
+        return make_torrent(self['path'], psize_exp)
 
     def _finalize_torrentfile(self):
         # black hole
