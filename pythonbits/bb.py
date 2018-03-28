@@ -201,11 +201,11 @@ class VideoSubmission(BbSubmission):
             if os.name == "nt":
                 return subprocess.Popen([r"mediainfo", path], shell=True,
                                         stdout=subprocess.PIPE
-                                        ).communicate()[0]
+                                        ).communicate()[0].decode('utf8')
             else:
                 return subprocess.Popen([r"mediainfo", path],
                                         stdout=subprocess.PIPE
-                                        ).communicate()[0]
+                                        ).communicate()[0].decode('utf8')
         except OSError:
             sys.stderr.write(
                 "Error: Media Info not installed, refer to "
