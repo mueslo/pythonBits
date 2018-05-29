@@ -29,7 +29,7 @@ setup(
     url='https://github.com/mueslo/pythonBits',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=[
-        "imdbpie~=5.2",
+        "imdbpie~=5.5",
         "requests~=2.18",
         "tvdb-api~=1.9",
         "attrdict~=2.0",
