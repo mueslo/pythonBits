@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 import tvdb_api
 
 
@@ -47,7 +51,7 @@ class TvdbResult(object):
 class TvdbSeason(TvdbResult):
     def summary(self):
         s = super(TvdbSeason, self).summary()
-        some_episode = self.season.itervalues().next()
+        some_episode = next(iter(self.season.values()))
         season_number = some_episode['seasonnumber']
         series_id = some_episode['seriesid']
         season_id = some_episode['seasonid']

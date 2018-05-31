@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import pythonbits.submission as submission
 import pythonbits.bb as bb
 import pytest
@@ -52,14 +56,19 @@ def test_proper():
 
 
 normalise_pairs = [
-    (u"Basic Feature", "basic.feature"),
-    (u"Name O'Comment-Doublename", "name.o.comment.doublename"),
-    (u"François and Влади́мир like Ümläutß",
+    ("Basic Feature", "basic.feature"),
+    ("Name O'Comment-Doublename", "name.o.comment.doublename"),
+    ("François and Влади́мир like Ümläutß",
      "francois.and.vladimir.like.umlautss"),
-    (u"Blarb Børgen Ålpotef", "blarb.borgen.alpotef"),
+    ("Blarb Børgen Ålpotef", "blarb.borgen.alpotef"),
 ]
 
 
 @pytest.mark.parametrize("input, correct", normalise_pairs)
 def test_normalise_tags(input, correct):
     assert bb.format_tag(input) == correct
+
+
+def test_unicode():
+    s = submission.Submission(somefield="卧虎藏龙")
+    s.show_fields(('somefield',))

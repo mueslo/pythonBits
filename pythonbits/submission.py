@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+from future.utils import with_metaclass
 
 import os
+import sys
 import re
 import copy
 import inspect
@@ -9,13 +14,14 @@ try:
 except ImportError:
     import pyreadline as readline
 
+
 from .logging import log
 
 
 def rlinput(prompt, prefill=''):
     readline.set_startup_hook(lambda: readline.insert_text(prefill))
     try:
-        return raw_input(prompt)
+        return input(prompt)
     finally:
         readline.set_startup_hook()
 
@@ -47,7 +53,7 @@ class RegisteringType(type):
         for field, (form_field, form_field_type) in form_field_mappers.items():
             add_mapper(field, form_field, form_field_type)
 
-        for key, val in attrs.iteritems():
+        for key, val in attrs.items():
             try:
                 form_field, form_field_type = getattr(val, 'form_field')
             except AttributeError:
@@ -136,7 +142,7 @@ class CachedRenderer(object):
 
 def build_payload(fd_val, form_field, fft):
     # it's either a form field id
-    if isinstance(form_field, basestring):
+    if isinstance(form_field, str):
         if fft == 'text':
             yield 'data', form_field, fd_val
         elif fft == 'checkbox' and fd_val:
@@ -185,20 +191,18 @@ def toposort(depends_on):
         return sorted_funcs
 
 
-class Submission(CachedRenderer):
-    __metaclass__ = RegisteringType
-
+class Submission(with_metaclass(RegisteringType, CachedRenderer)):
     def __repr__(self):
         return "\n".join(
             ["Field {k}:\n\t{v}\n".format(k=k, v=v)
-             for k, v in self.fields.items()])
+             for k, v in list(self.fields.items())])
 
     @finalize
     def _render_submit(self):
         # todo dict map field names
         # todo truncate long fields in preview
 
-        return self.show_fields(self.registry['mappers'].keys())
+        return self.show_fields(list(self.registry['mappers'].keys()))
 
     def _finalize_submit(self):
         return self.submit(self['payload'])
@@ -223,14 +227,14 @@ class Submission(CachedRenderer):
 
     def show_fields(self, fields):
         def format_val(val):
-            if isinstance(val, basestring) and os.path.exists(val):
-                s = 'file://' + unicode(val)
+            if isinstance(val, str) and os.path.exists(val):
+                s = 'file://' + str(val)
             elif isinstance(val, list) or isinstance(val, tuple):
                 s = "\n".join(format_val(v) for v in val)
             else:
                 s = val
                 log.debug("No rule for formatting {} {}", type(val), val)
-            return unicode(s)
+            return str(s)
 
         consolewidth = 80
         s = ""
@@ -249,32 +253,35 @@ class Submission(CachedRenderer):
         # todo: disable editing on certain fields, e.g. those dependent on
         #       fields that require finalization
 
-        print self.show_fields(fields)
+        print(self.show_fields(fields))
         while True:
-            print ("Reminder: YOU are responsible for following the "
-                   "submission rules!")
-            choice = raw_input('Finalize these values? This will upload or '
-                               'submit all necessary data. [y/n] ')
+            print("Reminder: YOU are responsible for following the "
+                  "submission rules!")
+            choice = input('Finalize these values? This will upload or '
+                           'submit all necessary data. [y/n] ')
 
             if not choice:
                 pass
             elif choice.lower() == 'n':
-                amend = raw_input("Amend a field? [N/<field name>] ")
+                amend = input("Amend a field? [N/<field name>] ")
                 if not amend.lower() or amend.lower() == 'n':
                     return False
 
                 try:
                     val = self[amend]
                 except SubmissionAttributeError:
-                    print "No field named", amend
-                    print "Choices are:", self.fields.keys()
+                    print("No field named", amend)
+                    print("Choices are:", list(self.fields.keys()))
                 else:
-                    if not (isinstance(val, basestring) or
+                    if not (isinstance(val, str) or
                             isinstance(val, bool)):
-                        print "Can't amend value of type", type(val)
+                        print("Can't amend value of type", type(val))
                         continue
 
                     new_value = rlinput("New (empty to cancel): ", val)
+
+                    if sys.version_info[0] == 2:  # PY2 compatibility
+                        new_value = new_value.decode('utf8')
 
                     if new_value:
                         if isinstance(val, bool):
@@ -283,7 +290,7 @@ class Submission(CachedRenderer):
                             assert new_value in string_true | string_false
                             new_value = (new_value not in string_false)
                         self[amend] = new_value
-                        print self.show_fields(fields)
+                        print(self.show_fields(fields))
 
             elif choice.lower() == 'y':
                 return True
@@ -292,7 +299,7 @@ class Submission(CachedRenderer):
         # must be rendered directly from editable fields
 
         payload = {'files': {}, 'data': {}}
-        for fd_name, form_field in self.registry['mappers'].items():
+        for fd_name, form_field in list(self.registry['mappers'].items()):
             fd_val = self[fd_name]
             fft = self.registry['types'][form_field]
             # todo: handle input types

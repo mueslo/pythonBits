@@ -5,6 +5,10 @@ ffmpeg.py
 Created by Ichabond on 2012-07-01.
 Copyright (c) 2012 Baconseed. All rights reserved.
 """
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 
 import os
 import subprocess
@@ -27,7 +31,7 @@ class FFMpeg(object):
         self.ffmpeg = subprocess.Popen([r"ffmpeg", "-i", self.file],
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT)
-        ffmpeg_out = self.ffmpeg.stdout.read()
+        ffmpeg_out = self.ffmpeg.stdout.read().decode('utf8')
         ffmpeg_duration = re.findall(
             r'Duration:\D(\d{2}):(\d{2}):(\d{2})', ffmpeg_out)
         if not ffmpeg_duration:
@@ -40,7 +44,7 @@ class FFMpeg(object):
 
     def take_screenshots(self, num_screenshots):
         duration = self.duration()
-        stops = range(20, 81, 60 / (num_screenshots - 1))
+        stops = range(20, 81, 60 // (num_screenshots - 1))
         imgs = []
         for stop in stops:
             imgs.append(os.path.join(self.tempdir, "screen%s.png" % stop))

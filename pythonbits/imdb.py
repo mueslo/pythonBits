@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 from attrdict import AttrDict
 import imdbpie
 
@@ -36,9 +40,9 @@ class ImdbResult(object):
             'genres': self.movie.get('genres', []),
             'cast': self.movie.credits.get('cast', []),
             'writers': self.movie.credits.get('writer', []),
-            'mpaa': u"",
+            'mpaa': "",
             'description': self.description(),
-            'url': u"http://www.imdb.com" + self.movie.base.id,
+            'url': "http://www.imdb.com" + self.movie.base.id,
             'year': self.movie.base.year}
 
 
@@ -55,14 +59,14 @@ class IMDB(object):
         log.debug("Searching IMDb for '{}'", title)
         results = self.imdb.search_for_title(title)
 
-        print "Results:"
+        print("Results:")
         for i, movie in enumerate(results):
-            print "%s: %s (%s)" % (i, movie['title'], movie['year'])
+            print("%s: %s (%s)" % (i, movie['title'], movie['year']))
 
         while True:
-            choice = raw_input('Select number or enter an alternate'
-                               ' search term: [0-%s, 0 default] ' %
-                               (len(results) - 1))
+            choice = input('Select number or enter an alternate'
+                           ' search term: [0-%s, 0 default] ' %
+                           (len(results) - 1))
             try:
                 choice = int(choice)
             except ValueError:

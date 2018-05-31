@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 import os
 import sys
 
@@ -23,7 +28,7 @@ def issue_logging():
 LOG_DIR = appdirs.user_log_dir(appname.lower())
 LOG_FILE = os.path.join(LOG_DIR, appname.lower() + '.log')
 if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR, 0700)
+    os.makedirs(LOG_DIR, 0o700)
 
 sh = StreamHandler(sys.stdout, level='NOTICE', bubble=True)
 sh.push_application()

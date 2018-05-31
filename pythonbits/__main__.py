@@ -1,5 +1,7 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
 
 from os import path
 from argparse import ArgumentParser
@@ -26,7 +28,7 @@ def parse_args():
 
     cat_map = {'movie': bb.MovieSubmission,
                'tv': bb.TvSubmission}
-    parser.add_argument("-c", "--category", choices=cat_map.keys())
+    parser.add_argument("-c", "--category", choices=list(cat_map.keys()))
     parser.add_argument("-u", "--set-field", nargs=2, action='append',
                         metavar=('FIELD', 'VALUE'), default=[],
                         help="Use supplied values to use for fields, e.g. "
@@ -125,7 +127,7 @@ def _main(Category, set_fields, get_fields):
         else:
             return
 
-    print sub.show_fields(get_fields)
+    print(sub.show_fields(get_fields))
 
 
 def main():

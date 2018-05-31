@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 from functools import partial
 from math import floor
 
 from . import _release, _github
 
 
+# tag like [name=value]
 def tag(tag_name):
     def func(value=None):
         if value:
-            return "[" + tag_name + "=" + unicode(value) + "]"
+            return "[" + tag_name + "=" + str(value) + "]"
         return "[" + tag_name + "]"
     return func
 
 
+# tag like [name=tv]ev[/name]
 def tag_enc(tag_name):
-    return lambda ev, tv=None: (tag(tag_name)(tv) + unicode(ev) +
+    return lambda ev, tv=None: (tag(tag_name)(tv) + str(ev) +
                                 tag('/' + tag_name)())
 
 
@@ -41,6 +47,7 @@ def list(x, style=None):
     return _list(v, style)
 
 
+# formats color tuple (255, 235, 85) to hexadecimal string "#ffeb55"
 def fmt_col(c):
     return "#" + "{:02x}{:02x}{:02x}".format(*c)
 
@@ -67,7 +74,7 @@ def format_rating(rating, max, limit=10, s=None, fill=None, empty=None):
     if rating is None:
         return "No rating"
 
-    s = s or u'★'
+    s = s or '★'
     fill = fill or [0xff, 0xff, 0x00]
     empty = empty or [0xa0, 0xa0, 0xa0]
 
@@ -79,7 +86,7 @@ def format_rating(rating, max, limit=10, s=None, fill=None, empty=None):
 
     pf = [comp * partial_star for comp in fill]
     pe = [comp * (1 - partial_star) for comp in empty]
-    partial_color = fmt_col(map(lambda x, y: int(x+y), pf, pe))
+    partial_color = fmt_col(tuple(map(lambda x, y: int(x+y), pf, pe)))
 
     stars = (color(s * black_stars, fmt_col(fill)) +
              color(s,               partial_color) +

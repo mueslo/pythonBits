@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
+
 import requests
 import json
-from urlparse import urlparse
+from future.moves.urllib.parse import urlparse
 from textwrap import dedent
 
 from .config import config
@@ -42,8 +46,8 @@ class ImgurAuth(object):
             return
 
         while not (self.client_id and self.client_secret):
-            print("Client ID: %s or Client Secret: %s missing" %
-                  (self.client_id, self.client_secret))
+            print(("Client ID: %s or Client Secret: %s missing" %
+                  (self.client_id, self.client_secret)))
             self.request_client_details()
 
         if self.refresh_token:
@@ -56,17 +60,17 @@ class ImgurAuth(object):
     def request_client_details(self):
         # todo properly query these
 
-        self.client_id = raw_input("Client ID: ")
-        self.client_secret = raw_input("Client Secret: ")
+        self.client_id = input("Client ID: ")
+        self.client_secret = input("Client Secret: ")
 
     def request_login(self):
         user_url = USER_URL_TEMPLATE % self.client_id
         print("pythonBits needs access to your account.")
         print("To authorize:")
-        print("   1. In your browser, open: " + user_url)
+        print(("   1. In your browser, open: " + user_url))
         print("   2. Log in to Imgur and authorize the application")
         print("   3. Enter the displayed PIN number below")
-        pin = raw_input("PIN: ")
+        pin = input("PIN: ")
         self.fetch_access_token('pin', pin)
 
     def refresh_access_token(self):
@@ -102,7 +106,7 @@ class ImgurUploader(object):
         self.imgur_auth = ImgurAuth()
 
     def upload(self, image):
-        if not isinstance(image, basestring):
+        if not isinstance(image, str):
                 return [self.upload(p) for p in image]
         self.imgur_auth.prepare()
         params = {'headers': self.imgur_auth.get_auth_headers()}

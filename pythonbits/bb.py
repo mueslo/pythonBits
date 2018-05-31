@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *  # noqa: F401, F403
 
 import os
 import sys
@@ -66,7 +69,7 @@ class BbSubmission(Submission):
     @form_field('scene', 'checkbox')
     def _render_scene(self):
         while True:
-            choice = raw_input('Is this a scene release? [y/N] ')
+            choice = input('Is this a scene release? [y/N] ')
 
             if not choice or choice.lower() == 'n':
                 return False
@@ -174,13 +177,13 @@ class VideoSubmission(BbSubmission):
                 os.path.join(dp, fn) for fn in fns
                 if os.path.getsize(os.path.join(dp, fn)) > 10 * 2**20]
 
-        print "\nWhich file would you like to run mediainfo on? Choices are"
+        print("\nWhich file would you like to run mediainfo on? Choices are")
         contained_files.sort()
         for k, v in enumerate(contained_files):
-            print "{}: {}".format(k, os.path.relpath(v, self['path']))
+            print("{}: {}".format(k, os.path.relpath(v, self['path'])))
         while True:
             try:
-                choice = raw_input(
+                choice = input(
                     "Enter [0-{}]: ".format(len(contained_files) - 1))
                 return contained_files[int(choice)]
             except (ValueError, IndexError):
@@ -263,14 +266,14 @@ class VideoSubmission(BbSubmission):
         # elif 'dvdscr' in self['path'].lower():
         #    markers['source'] = 'DVDSCR'
         else:
-            print "File:", self['path']
-            print "Choices:", dict(enumerate(sources))
+            print("File:", self['path'])
+            print("Choices:", dict(enumerate(sources)))
             while True:
-                choice = raw_input("Please specify source: ")
+                choice = input("Please specify source: ")
                 try:
                     return sources[int(choice)]
                 except (ValueError, IndexError):
-                    print "Please enter a valid choice"
+                    print("Please enter a valid choice")
 
     def _render_container(self):
         general = self['tracks']['general']
@@ -327,14 +330,14 @@ class VideoSubmission(BbSubmission):
                 # warning: 'sd' might match any ol' title, but it's last anyway
                 return res
         else:
-            print "File:", self['path']
-            print "Choices:", dict(enumerate(resolutions))
+            print("File:", self['path'])
+            print("Choices:", dict(enumerate(resolutions)))
             while True:
-                choice = raw_input("Please specify resolution: ")
+                choice = input("Please specify resolution: ")
                 try:
                     return resolutions[int(choice)]
                 except (ValueError, IndexError):
-                    print "Please enter a valid choice"
+                    print("Please enter a valid choice")
         # from mediainfo and filename
 
     def _render_additional(self):
@@ -443,7 +446,7 @@ class TvSubmission(VideoSubmission):
             else:
                 rating_bb = ""
 
-            description = dedent(u"""\
+            description = dedent("""\
             [b]Episode title[/b]: {title} ({links})
             [b]Aired[/b]: {air_date} on {network}
             [b]IMDb Rating[/b]: {rating}
@@ -456,11 +459,11 @@ class TvSubmission(VideoSubmission):
                 network=s['network'],
                 rating=rating_bb,
                 director=s['director'],
-                writers=u' | '.join(s['writers']),
+                writers=' | '.join(s['writers']),
                 contentrating=s['contentrating']
             )
         else:
-            description = dedent(u"""\
+            description = dedent("""\
             [b]Network[/b]: {network}
             [b]Content rating[/b]: {contentrating}\n""").format(
                 contentrating=s['contentrating'],
@@ -535,7 +538,7 @@ class MovieSubmission(VideoSubmission):
 
         else:
             while True:
-                year = raw_input('Please enter year: ')
+                year = input('Please enter year: ')
                 try:
                     year = int(year)
                 except ValueError:
@@ -557,7 +560,7 @@ class MovieSubmission(VideoSubmission):
         summary = self['summary']
         links = [("IMDb", summary['url'])]
 
-        return dedent(u"""\
+        return dedent("""\
         [b]Title[/b]: {name} ({links})
         [b]MPAA[/b]: {mpaa}
         [b]Rating[/b]: {rating} [size=1]({votes} votes)[/size]
@@ -565,16 +568,16 @@ class MovieSubmission(VideoSubmission):
         [b]Director(s)[/b]: {directors}
         [b]Writer(s)[/b]: {writers}
         [b]Cast[/b]: {cast}""").format(
-            links=u", ".join(bb.link(*l) for l in links),
+            links=", ".join(bb.link(*l) for l in links),
             name=summary['name'],
             mpaa=summary['mpaa'],
             rating=bb.format_rating(summary['rating'][0],
                                     max=summary['rating'][1]),
             votes=summary['votes'],
             runtime=summary['runtime'],
-            directors=u" | ".join(imdb_link(d) for d in summary['directors']),
-            writers=u" | ".join(imdb_link(w) for w in summary['writers']),
-            cast=u" | ".join(imdb_link(a) for a in summary['cast'][:n])
+            directors=" | ".join(imdb_link(d) for d in summary['directors']),
+            writers=" | ".join(imdb_link(w) for w in summary['writers']),
+            cast=" | ".join(imdb_link(a) for a in summary['cast'][:n])
         )
 
     def _render_section_description(self):
