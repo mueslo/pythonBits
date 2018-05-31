@@ -274,7 +274,8 @@ class Submission(with_metaclass(RegisteringType, CachedRenderer)):
                     print("Choices are:", list(self.fields.keys()))
                 else:
                     if not (isinstance(val, str) or
-                            isinstance(val, bool)):
+                            isinstance(val, bool) or
+                            isinstance(val, int)):
                         print("Can't amend value of type", type(val))
                         continue
 
@@ -289,7 +290,11 @@ class Submission(with_metaclass(RegisteringType, CachedRenderer)):
                             string_false = {'false', 'False', 'n', 'no'}
                             assert new_value in string_true | string_false
                             new_value = (new_value not in string_false)
+                        elif isinstance(val, int):
+                            new_value = int(new_value)
+
                         self[amend] = new_value
+
                         print(self.show_fields(fields))
 
             elif choice.lower() == 'y':
