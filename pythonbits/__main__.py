@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *  # noqa: F401, F403
 
+import sys
 from os import path
 from argparse import ArgumentParser
 
@@ -100,7 +101,10 @@ def parse_args():
 
     set_field['options'] = args.options
     set_field['path'] = path.abspath(args.path)
-    set_field['title_arg'] = args.title
+    if args.title and sys.version_info[0] == 2:  # PY2 compatibility
+        set_field['title_arg'] = args.title.decode('utf8')
+    else:
+        set_field['title_arg'] = args.title
     get_field = args.fields + args.fields_ex
 
     return Category, set_field, get_field
