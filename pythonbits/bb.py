@@ -15,6 +15,7 @@ from collections import namedtuple
 import pymediainfo
 import guessit
 from unidecode import unidecode
+from requests.exceptions import HTTPError
 
 from .config import config
 from .logging import log
@@ -27,6 +28,7 @@ from . import templating as bb
 from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
 from .tracker import Tracker
+from .scene import is_scene_crc, query_scene_fname
 
 
 def format_tag(tag):
@@ -68,6 +70,16 @@ class BbSubmission(Submission):
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
+        # todo: if path is directory, choose file for crc
+        path = os.path.normpath(self['path'])  # removes trailing slash
+        try:
+            if os.path.exists(path) and not os.path.isdir(path):
+                return is_scene_crc(path)
+
+            query_scene_fname(path)
+        except HTTPError as e:
+            log.notice(e)
+
         while True:
             choice = input('Is this a scene release? [y/N] ')
 
