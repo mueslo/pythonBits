@@ -7,6 +7,7 @@ import os
 import subprocess
 import math
 import tempfile
+from future.moves.urllib.parse import urlparse
 
 from . import _release as release
 from .config import config
@@ -19,11 +20,8 @@ config.register('Torrent', 'black_hole',
                 ask=True)
 
 
-l2 = math.log(2)
-
-
 def log2(x):
-    return math.log(x) / l2
+    return math.log(x) / math.log(2)
 
 
 def get_size(fname):
@@ -47,11 +45,12 @@ class MkTorrentException(Exception):
 
 
 def make_torrent(fname):
-    # todo: multiprocessing
     fsize = get_size(fname)
     psize_exp = piece_size_exp(fsize)
 
     announce_url = config.get('Tracker', 'announce_url')
+    tracker = urlparse(announce_url).hostname
+    comment = "Created by {} for {}".format(release, tracker)
 
     out_dir = tempfile.mkdtemp()
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
@@ -60,7 +59,8 @@ def make_torrent(fname):
     mktorrent = subprocess.Popen([r"mktorrent", "--private",
                                   "-l", str(psize_exp),
                                   "-a", announce_url,
-                                  "-c", release,
+                                  "-c", comment,
+                                  "-s", tracker,
                                   "-o", out_fname,
                                   fname], shell=False)
 
