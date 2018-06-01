@@ -9,41 +9,61 @@ import imdbpie
 from .logging import log
 
 
+def get(o, *attrs, **kwargs):
+    rv = o
+    used = []
+    for a in attrs:
+        used.append(a)
+        try:
+            rv = rv[a]
+        except KeyError:
+            log.warning('Cannot get {}: {} missing from IMDb API response',
+                        ".".join(attrs), ".".join(used))
+            return kwargs.get('default')
+    return rv
+
+
 class ImdbResult(object):
     def __init__(self, movie):
         log.debug("ImdbResult {}", movie)
         self.movie = movie
 
+    @property
     def description(self):
-        outline = self.movie.plot.get('outline')
-        summaries = self.movie.plot.get('summaries')
-        description = None
+        outline = get(self.movie, 'plot', 'outline')
         if outline:
-            description = outline['text']
-        elif summaries:
-            description = summaries[0]['text']
-        return description
+            return outline['text']
+        summaries = get(self.movie, 'plot', 'summaries')
+        if summaries:
+            return summaries[0]['text']
 
+    @property
     def runtime(self):
-        runtime = self.movie.base.get('runningTimeInMinutes')
+        runtime = get(self.movie, 'base', 'runningTimeInMinutes')
         return runtime and str(runtime) + " min"
+
+    @property
+    def url(self):
+        movie_id = get(self.movie, 'base', 'id')
+        if movie_id:
+            return "http://www.imdb.com" + movie_id
 
     def summary(self):
         return {
-            'title': self.movie.base.title,
-            'directors': self.movie.credits.get('director', []),
-            'runtime': self.runtime(),
-            'rating': (self.movie.ratings.rating, 10),
-            'name': self.movie.base.title,
-            'votes': self.movie.ratings.ratingCount,
-            'cover': self.movie.base.image.url,
-            'genres': self.movie.get('genres', []),
-            'cast': self.movie.credits.get('cast', []),
-            'writers': self.movie.credits.get('writer', []),
+            'title': get(self.movie, 'base', 'title'),
+            'directors': get(self.movie, 'credits', 'director', default=[]),
+            'runtime': self.runtime,
+            'rating': (get(self.movie, 'ratings', 'rating'), 10),
+            'name': get(self.movie, 'base', 'title'),
+            'votes': get(self.movie, 'ratings', 'ratingCount', default=0),
+            'cover': get(self.movie, 'base', 'image', 'url'),
+            'genres': get(self.movie, 'genres', default=[]),
+            'cast': get(self.movie, 'credits', 'cast', default=[]),
+            'writers': get(self.movie, 'credits', 'writer', default=[]),
             'mpaa': "",
-            'description': self.description(),
-            'url': "http://www.imdb.com" + self.movie.base.id,
-            'year': self.movie.base.year}
+            'description': self.description,
+            'url': self.url,
+            'year': get(self.movie, 'base', 'year')}
 
 
 class IMDB(object):
