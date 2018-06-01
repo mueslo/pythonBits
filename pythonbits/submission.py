@@ -304,7 +304,7 @@ class Submission(with_metaclass(RegisteringType, CachedRenderer)):
         # must be rendered directly from editable fields
 
         payload = {'files': {}, 'data': {}}
-        for fd_name, form_field in list(self.registry['mappers'].items()):
+        for fd_name, form_field in self.registry['mappers'].items():
             fd_val = self[fd_name]
             fft = self.registry['types'][form_field]
             # todo: handle input types

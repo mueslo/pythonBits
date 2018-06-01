@@ -4,25 +4,14 @@ from __future__ import (absolute_import, division,
 from builtins import *  # noqa: F401, F403
 
 import os
-import sys
 import requests
+import progressbar
 from base64 import b64decode
 from zlib import crc32
 
 from .logging import log
 
-srrdb = b64decode('aHR0cHM6Ly9zcnJkYi5jb20v')
-
-
-def progress(count, total, status=''):
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-    sys.stdout.flush()
+srrdb = b64decode('aHR0cHM6Ly9zcnJkYi5jb20v').decode('utf8')
 
 
 def check_scene_rename(fname, release):
@@ -42,16 +31,16 @@ def crc(path):
     i = 0
     chunk_size = 4 * 2**20
     with open(path, 'rb') as f:
-        while True:
-            i += 1
-            data = f.read(chunk_size)
-            if not data:
-                sys.stdout.write('\n')
-                return checksum & 0xFFFFFFFF
+        with progressbar.DataTransferBar(max_value=fsize,
+                                         max_error=False) as bar:
+            while True:
+                i += 1
+                data = f.read(chunk_size)
+                if not data:
+                    return checksum & 0xFFFFFFFF
 
-            progress(i, fsize/chunk_size + 1,
-                     status='Calculating CRC32 (CTRL-C to skip)')
-            checksum = crc32(data, checksum)
+                bar.update(i*chunk_size)
+                checksum = crc32(data, checksum)
 
 
 def is_scene_crc(path):

@@ -77,7 +77,7 @@ class BbSubmission(Submission):
                 if os.path.exists(path) and not os.path.isdir(path):
                     return is_scene_crc(path)
             except KeyboardInterrupt:
-                sys.stdout.write('\n...skipped\n')
+                sys.stdout.write('...skipped\n')
 
             query_scene_fname(path)
         except HTTPError as e:

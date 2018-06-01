@@ -41,6 +41,7 @@ setup(
         "unidecode~=1.0",
         "logbook~=1.2",
         "pyreadline~=2.1",
+        "progressbar2~=3.38",
     ],
     python_requires=">=2.7,!=3.0,!=3.1,!=3.2,!=3.3,!=3.4",
     tests_require=['tox', 'pytest', 'flake8'],
