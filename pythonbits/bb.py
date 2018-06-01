@@ -73,8 +73,11 @@ class BbSubmission(Submission):
         # todo: if path is directory, choose file for crc
         path = os.path.normpath(self['path'])  # removes trailing slash
         try:
-            if os.path.exists(path) and not os.path.isdir(path):
-                return is_scene_crc(path)
+            try:
+                if os.path.exists(path) and not os.path.isdir(path):
+                    return is_scene_crc(path)
+            except KeyboardInterrupt:
+                sys.stdout.write('\n...skipped\n')
 
             query_scene_fname(path)
         except HTTPError as e:
