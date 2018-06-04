@@ -56,7 +56,7 @@ def make_torrent(fname):
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
     out_fname = os.path.join(out_dir, out_fname)
 
-    mktorrent = subprocess.Popen([r"mktorrent", "--private",
+    mktorrent = subprocess.Popen([r"mktorrent", "-p",
                                   "-l", str(psize_exp),
                                   "-a", announce_url,
                                   "-c", comment,
