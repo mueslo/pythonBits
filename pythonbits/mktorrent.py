@@ -55,7 +55,7 @@ def get_version():
         out = mktorrent.communicate()[0].decode('utf8')
         return tuple(map(int, re.search(
             r"(?<=^mktorrent )[\d.]+", out).group(0).split('.')))
-    except FileNotFoundError:
+    except OSError:
         raise MkTorrentException(
             "Could not find mktorrent, please ensure it is installed.")
 
