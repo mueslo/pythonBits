@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division,
 from builtins import *  # noqa: F401, F403
 
 import os
+import re
 import subprocess
 import math
 import tempfile
@@ -18,6 +19,9 @@ config.register('Torrent', 'black_hole',
                 "torrent file. Temporary directory will be used if left blank."
                 "\nDirectory",
                 ask=True)
+
+
+COMMAND = "mktorrent"
 
 
 def log2(x):
@@ -44,6 +48,18 @@ class MkTorrentException(Exception):
     pass
 
 
+def get_version():
+    try:
+        mktorrent = subprocess.Popen(
+            [COMMAND], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = mktorrent.communicate()[0].decode('utf8')
+        return tuple(map(int, re.search(
+            r"(?<=^mktorrent )[\d.]+", out).group(0).split('.')))
+    except FileNotFoundError:
+        raise MkTorrentException(
+            "Could not find mktorrent, please ensure it is installed.")
+
+
 def make_torrent(fname):
     fsize = get_size(fname)
     psize_exp = piece_size_exp(fsize)
@@ -56,13 +72,27 @@ def make_torrent(fname):
     out_fname = os.path.splitext(os.path.split(fname)[1])[0] + ".torrent"
     out_fname = os.path.join(out_dir, out_fname)
 
-    mktorrent = subprocess.Popen([r"mktorrent", "-p",
-                                  "-l", str(psize_exp),
-                                  "-a", announce_url,
-                                  "-c", comment,
-                                  "-s", tracker,
-                                  "-o", out_fname,
-                                  fname], shell=False)
+    params = [
+        "-p",
+        "-l", str(psize_exp),
+        "-a", announce_url,
+        "-c", comment,
+        "-o", out_fname,
+    ]
+
+    version = get_version()
+    target_version = (1, 1)
+    if version < target_version:
+        log.warning("Cannot modify infohash by tracker since an old version "
+                    "({}<{}) of mktorrent is installed. Be careful with "
+                    "cross-seeding.",
+                    ".".join(map(str, version)),
+                    ".".join(map(str, target_version)))
+    else:
+        params.extend(["-s", tracker])
+
+    call = [COMMAND] + params + [fname]
+    mktorrent = subprocess.Popen(call, shell=False)
 
     log.info("Waiting for torrent creation to complete...")
     mktorrent.wait()
