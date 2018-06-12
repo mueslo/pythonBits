@@ -34,6 +34,13 @@ from .scene import is_scene_crc, query_scene_fname
 def format_tag(tag):
     tag = unidecode(tag)
     return tag.replace(' ', '.').replace('-', '.').replace('\'', '.').lower()
+  
+  
+def format_choices(choices):
+    return ", ".join([
+        str(num) + ": " + value
+        for num, value in enumerate(choices)
+    ])
 
 
 class BbSubmission(Submission):
@@ -282,9 +289,9 @@ class VideoSubmission(BbSubmission):
         #    markers['source'] = 'DVDSCR'
         else:
             print("File:", self['path'])
-            print("Choices:", dict(enumerate(sources)))
+            print("Choices:", format_choices(sources))
             while True:
-                choice = input("Please specify source: ")
+                choice = input("Please specify a source by number: ")
                 try:
                     return sources[int(choice)]
                 except (ValueError, IndexError):
@@ -346,9 +353,9 @@ class VideoSubmission(BbSubmission):
                 return res
         else:
             print("File:", self['path'])
-            print("Choices:", dict(enumerate(resolutions)))
+            print("Choices:", format_choices(resolutions))
             while True:
-                choice = input("Please specify resolution: ")
+                choice = input("Please specify a resolution by number: ")
                 try:
                     return resolutions[int(choice)]
                 except (ValueError, IndexError):
