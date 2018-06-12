@@ -34,8 +34,8 @@ from .scene import is_scene_crc, query_scene_fname
 def format_tag(tag):
     tag = unidecode(tag)
     return tag.replace(' ', '.').replace('-', '.').replace('\'', '.').lower()
-  
-  
+
+
 def format_choices(choices):
     return ", ".join([
         str(num) + ": " + value
