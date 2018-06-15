@@ -78,6 +78,9 @@ def parse_args():
                             'help': "Number of screenshots"},
         'num_cast': {'type': int, 'default': 5,
                      'help': "Number of actors to use in tags"},
+        'data_method': {'type': str, 'default': 'auto',
+                        'choices': ['hard', 'sym', 'copy', 'move'],
+                        'help': "Data method to use for placing media files"}
     }
 
     options = parser.add_argument_group(

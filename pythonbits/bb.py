@@ -19,7 +19,7 @@ from requests.exceptions import HTTPError
 
 from .config import config
 from .logging import log
-from .mktorrent import make_torrent
+from .torrent import make_torrent
 from . import tvdb
 from . import imdb
 from .imgur import ImgurUploader
@@ -98,20 +98,80 @@ class BbSubmission(Submission):
             elif choice.lower() == 'y':
                 return True
 
+    def data_method(self, source, target):
+        def copy(source, target):
+            if os.path.isfile(source):
+                return shutil.copy(source, target)
+            if os.path.isdir(source):
+                return shutil.copytree(source, target)
+            raise Exception('Source {} is neither '
+                            'file nor directory'.format(source))
+
+        cat_methods_map = {
+            'movie': ['hard', 'sym', 'copy', 'move'],
+            'tv': ['hard', 'sym', 'copy', 'move'],
+            'music': ['copy', 'move'],
+            }
+
+        method_map = {'hard': os.link,
+                      'sym': os.symlink,
+                      'copy': copy,
+                      'move': shutil.move}
+
+        # use cmd line option if specified
+        option_method = self['options'].get('data_method', 'auto')
+        if option_method != 'auto':
+            method = option_method
+        else:
+            pref_method = config.get('Torrent', 'data_method')
+            if pref_method not in method_map:
+                log.warning(
+                    'Preferred method {} not valid. '
+                    'Choices are {}'.format(pref_method,
+                                            list(method_map.keys())))
+            try:
+                category = self._category
+            except AttributeError:
+                log.warning("{} does not have a category attribute",
+                            type(self).__name__)
+                category = 'movie'  # use movie data methods
+
+            cat_methods = cat_methods_map[category]
+            if pref_method in cat_methods:
+                # use user preferred method if in category method list
+                method = pref_method
+            else:
+                # otherwise use first category method
+                method = cat_methods[0]
+
+        log.notice('Copying data using \'{}\' method', method)
+        return method_map[method](source, target)
+
     @finalize
     @form_field('file_input', 'file')
     def _render_torrentfile(self):
         return make_torrent(self['path'])
 
     def _finalize_torrentfile(self):
+        # move data to upload directory
+        up_dir = config.get('Torrent', 'upload_dir')
+        path_dir, path_base = os.path.split(self['path'])
+        if up_dir and not os.path.samefile(up_dir, path_dir):
+            target = os.path.join(up_dir, path_base)
+            print(target, os.path.exists(target))
+            if not os.path.exists(target):
+                self.data_method(self['path'], target)
+            else:
+                log.notice('Data method target already exists, skipping...')
+
         # black hole
-        out_dir = config.get('Torrent', 'black_hole')
-        if out_dir:
+        bh_dir = config.get('Torrent', 'black_hole')
+        if bh_dir:
             fname = os.path.basename(self['torrentfile'])
-            dest = os.path.join(out_dir, fname)
+            dest = os.path.join(bh_dir, fname)
 
             try:
-                assert os.path.exists(out_dir)
+                assert os.path.exists(bh_dir)
                 assert not os.path.isfile(dest)
             except AssertionError as e:
                 log.error(e)

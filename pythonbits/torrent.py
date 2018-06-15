@@ -19,7 +19,19 @@ config.register('Torrent', 'black_hole',
                 "torrent file. Temporary directory will be used if left blank."
                 "\nDirectory",
                 ask=True)
-
+config.register('Torrent', 'upload_dir',
+                "Enter a directory where the media files should be placed "
+                "so the torrent client has access to them for seeding. If "
+                "left blank, no action will be taken."
+                "\nDirectory",
+                ask=True)
+config.register('Torrent', 'data_method',
+                "Enter a preferred method to use for placing media files in "
+                "the upload directory. Choices are: 'hard', 'sym', 'copy', "
+                "'move'. Unless explicitly overridden, further restrictions "
+                "are automatically applied, e.g. music will be copied or "
+                "moved even if the preferred data method is linking."
+                "\nData method")
 
 COMMAND = "mktorrent"
 
