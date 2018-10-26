@@ -1,9 +1,10 @@
 # pythonBits
 [![GitHub release](https://img.shields.io/github/release/mueslo/pythonbits.svg)](https://GitHub.com/mueslo/pythonBits/releases/)
-[![PyPI version fury.io](https://badge.fury.io/py/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
+[![PyPI version](https://img.shields.io/pypi/v/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
+[![GitHub commits since release](https://img.shields.io/github/commits-since/mueslo/pythonbits/latest.svg)](https://github.com/mueslo/pythonBits/commits/master)
 [![GitHub license](https://img.shields.io/github/license/mueslo/pythonbits.svg)](https://github.com/mueslo/pythonbits/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/mueslo/pythonBits.svg?branch=master)](https://travis-ci.org/mueslo/pythonBits)
+[![Build Status](https://img.shields.io/travis/mueslo/pythonBits.svg)](https://travis-ci.org/mueslo/pythonBits)
 #### A Python description generator for movies and TV shows
 
 ## Install
