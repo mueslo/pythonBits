@@ -59,7 +59,7 @@ class Tracker():
             # alternatively check for redirects via resp.history
             if not self.logged_in(resp):
                 raise TrackerException("Log-in failed!")
-            logout_re = "logout\.php\?auth=[0-9a-f]{32}"
+            logout_re = r"logout\.php\?auth=[0-9a-f]{32}"
             m = re.search(logout_re, resp.text)
 
             logout_url = "https://{}/{}".format(domain, m.group(0))
