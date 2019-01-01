@@ -421,7 +421,7 @@ class VideoSubmission(BbSubmission):
                         audio_track['codec'])
 
     def _render_resolution(self):
-        resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
+        resolutions = ('2160p', '1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
 
         # todo: replace with regex?
         # todo: compare result with mediainfo
