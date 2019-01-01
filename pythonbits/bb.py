@@ -403,6 +403,16 @@ class VideoSubmission(BbSubmission):
             if audio_track['codec'].startswith(c):
                 c = c.replace('AC3', 'AC-3')
                 return c
+              
+        if audio_track['codec'] == 'DTS-HD':
+            if 'format_profile' in audio_track and audio_track['format_profile'] == 'X / MA / Core':
+                return 'DTS:X'
+            return 'DTS-HD'
+          
+        if audio_track['codec'] == 'TrueHD':
+            if 'format_profile' in audio_track and audio_track['format_profile'] == 'TrueHD+Atmos / TrueHD':
+                return 'Dolby Atmos'
+            return 'True-HD'
 
         if audio_track['codec'] == 'MPA1L3':
             return 'MP3'
