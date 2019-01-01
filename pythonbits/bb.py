@@ -443,14 +443,24 @@ class VideoSubmission(BbSubmission):
     def _render_additional(self):
         additional = []
         audio_tracks = self['tracks']['audio']
+        file_path = self['path']
         text_tracks = self['tracks']['text']
+        
+        # assumes the user:
+        # 1) has a folder structure that contains 'remux' in the path (ex. /mnt/movies/remux/filename.ext)
+        # 2) the file is properly named, containing 'remux'
+        if any(x in path for x in ('remux'. 'Remux', 'REMUX')):
+            if 'REMUX' not in additional:
+                additional.append('REMUX')
 
         for track in audio_tracks[1:]:
             if 'title' in track and 'commentary' in track['title'].lower():
-                additional.append('w. Commentary')
+                if 'w. Commentary' not in additional:
+                    additional.append('w. Commentary')
 
         if text_tracks:
-            additional.append('w. Subtitles')
+            if 'w. Subtitles' not in additional:
+                additional.append('w. Subtitles')
         # print [(track.title, track.language) for track in text_tracks]
 
         # todo: rule checking, e.g.
