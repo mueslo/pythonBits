@@ -405,14 +405,14 @@ class VideoSubmission(BbSubmission):
                 return c
 
         if audio_track['codec'] == 'DTS-HD':
-            if 'format_profile' in audio_track and
-              audio_track['format_profile'] == 'X / MA / Core':
+            if 'format_profile' in audio_track and \
+                audio_track['format_profile'] == 'X / MA / Core':
                 return 'DTS:X'
             return 'DTS-HD'
 
         if audio_track['codec'] == 'TrueHD':
-            if 'format_profile' in audio_track and
-              audio_track['format_profile'] == 'TrueHD+Atmos / TrueHD':
+            if 'format_profile' in audio_track and \
+                audio_track['format_profile'] == 'TrueHD+Atmos / TrueHD':
                 return 'Dolby Atmos'
             return 'True-HD'
 
@@ -424,7 +424,7 @@ class VideoSubmission(BbSubmission):
 
     def _render_resolution(self):
         resolutions = ('2160p', '1080p', '1080i', '720p',
-                       '720i', '480p', '480i', 'SD')
+                        '720i', '480p', '480i', 'SD')
 
         # todo: replace with regex?
         # todo: compare result with mediainfo
