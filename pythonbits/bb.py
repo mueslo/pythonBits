@@ -378,6 +378,14 @@ class VideoSubmission(BbSubmission):
                 return 'x264'
             else:
                 return 'H.264'
+        elif video_track['codec'] in ('V_MPEG4/ISO/HEVC', 'HEVC'):
+            if ('writing_library' in video_track and
+                    'x265' in video_track['writing_library']):
+                return 'x265'
+            else:
+                return 'H.265'
+        elif video_track['codec'] == 'WVC1':
+            return 'VC-1'
         elif video_track['codec'] == 'XVID':
             return 'XVid'
         else:
@@ -396,6 +404,18 @@ class VideoSubmission(BbSubmission):
                 c = c.replace('AC3', 'AC-3')
                 return c
 
+        if audio_track['codec'] == 'DTS-HD':
+            if ('format_profile' in audio_track and
+                    audio_track['format_profile'] == 'X / MA / Core'):
+                return 'DTS:X'
+            return 'DTS-HD'
+
+        if audio_track['codec'] == 'TrueHD':
+            if ('format_profile' in audio_track and
+                    audio_track['format_profile'] == 'TrueHD+Atmos / TrueHD'):
+                return 'Dolby Atmos'
+            return 'True-HD'
+
         if audio_track['codec'] == 'MPA1L3':
             return 'MP3'
 
@@ -403,7 +423,8 @@ class VideoSubmission(BbSubmission):
                         audio_track['codec'])
 
     def _render_resolution(self):
-        resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
+        resolutions = ('2160p', '1080p', '1080i', '720p',
+                       '720i', '480p', '480i', 'SD')
 
         # todo: replace with regex?
         # todo: compare result with mediainfo
@@ -425,14 +446,25 @@ class VideoSubmission(BbSubmission):
     def _render_additional(self):
         additional = []
         audio_tracks = self['tracks']['audio']
+        file_path = self['path']
         text_tracks = self['tracks']['text']
+
+        # assumes the user:
+        # 1) has a folder structure that contains 'remux' in the path
+        #    (ex. /mnt/movies/remux/filename.ext)
+        # 2) the file is properly named, containing 'remux'
+        if any(x in file_path for x in ('remux', 'Remux', 'REMUX')):
+            if 'REMUX' not in additional:
+                additional.append('REMUX')
 
         for track in audio_tracks[1:]:
             if 'title' in track and 'commentary' in track['title'].lower():
-                additional.append('w. Commentary')
+                if 'w. Commentary' not in additional:
+                    additional.append('w. Commentary')
 
         if text_tracks:
-            additional.append('w. Subtitles')
+            if 'w. Subtitles' not in additional:
+                additional.append('w. Subtitles')
         # print [(track.title, track.language) for track in text_tracks]
 
         # todo: rule checking, e.g.
