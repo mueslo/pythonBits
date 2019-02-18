@@ -430,6 +430,7 @@ class VideoSubmission(BbSubmission):
         for track in audio_tracks[1:]:
             if 'title' in track and 'commentary' in track['title'].lower():
                 additional.append('w. Commentary')
+                break
 
         if text_tracks:
             additional.append('w. Subtitles')
