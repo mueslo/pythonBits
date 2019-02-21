@@ -154,10 +154,10 @@ def build_payload(fd_val, form_field, fft):
 
     # or a rule to generate form field ids
     elif callable(form_field):
-            for i, val in enumerate(fd_val):
-                for pair in build_payload(
-                        val, form_field(i, val), fft):
-                    yield pair  # yield from
+        for i, val in enumerate(fd_val):
+            for pair in build_payload(
+                    val, form_field(i, val), fft):
+                yield pair  # yield from
 
     else:
         raise AssertionError(form_field, fd_val)

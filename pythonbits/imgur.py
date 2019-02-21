@@ -107,7 +107,7 @@ class ImgurUploader(object):
 
     def upload(self, image):
         if not isinstance(image, str):
-                return [self.upload(p) for p in image]
+            return [self.upload(p) for p in image]
         self.imgur_auth.prepare()
         params = {'headers': self.imgur_auth.get_auth_headers()}
 
