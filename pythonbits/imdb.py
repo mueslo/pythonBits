@@ -85,7 +85,7 @@ class IMDB(object):
 
         while True:
             choice = input('Select number or enter an alternate'
-                           ' search term: [0-%s, 0 default] ' %
+                           ' search term (or an IMDb id): [0-%s, 0 default] ' %
                            (len(results) - 1))
             try:
                 choice = int(choice)
