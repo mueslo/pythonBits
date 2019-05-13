@@ -68,6 +68,8 @@ def query_scene_fname(path):
         query = os.path.splitext(os.path.basename(path))[0]
     elif os.path.isdir(path):
         query = os.path.basename(path)
+    elif not os.path.exists(path):
+        raise FileNotFoundError('File or directory not found: %s' % (path,))
     else:
         raise Exception('wat')
 
