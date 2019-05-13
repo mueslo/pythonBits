@@ -284,18 +284,22 @@ class VideoSubmission(BbSubmission):
         try:
             path = self['mediainfo_path']
             if os.name == "nt":
-                return subprocess.Popen([r"mediainfo", path], shell=True,
-                                        stdout=subprocess.PIPE
-                                        ).communicate()[0].decode('utf8')
+                mi = subprocess.Popen([r"mediainfo", path], shell=True,
+                                      stdout=subprocess.PIPE
+                                      ).communicate()[0].decode('utf8')
             else:
-                return subprocess.Popen([r"mediainfo", path],
-                                        stdout=subprocess.PIPE
-                                        ).communicate()[0].decode('utf8')
+                mi = subprocess.Popen([r"mediainfo", path],
+                                      stdout=subprocess.PIPE
+                                      ).communicate()[0].decode('utf8')
         except OSError:
             sys.stderr.write(
                 "Error: Media Info not installed, refer to "
                 "http://mediainfo.sourceforge.net/en for installation")
             exit(1)
+        else:
+            # Replace absolute path with file name
+            mi_dir = os.path.dirname(self['mediainfo_path']) + '/'
+            return mi.replace(mi_dir, '')
 
     def _render_tracks(self):
         video_tracks = []
