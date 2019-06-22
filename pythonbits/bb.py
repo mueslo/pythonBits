@@ -395,6 +395,9 @@ class VideoSubmission(BbSubmission):
         audio_tracks = self['tracks']['audio']
         audio_track = audio_tracks[0]  # main audio track
 
+        if audio_track['codec_id'].startswith('A_'):
+            audio_track['codec_id'] = audio_track['codec_id'][2:]
+
         for c in audio_codecs:
             if audio_track['codec_id'].startswith(c):
                 c = c.replace('EAC3', 'AC-3')
