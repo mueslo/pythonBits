@@ -376,17 +376,17 @@ class VideoSubmission(BbSubmission):
         video_track = self['tracks']['video']
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
-        if video_track['codec'] in ('V_MPEG4/ISO/AVC', 'AVC'):
+        if video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC'):
             if ('writing_library' in video_track and
                     'x264' in video_track['writing_library']):
                 return 'x264'
             else:
                 return 'H.264'
-        elif video_track['codec'] == 'XVID':
+        elif video_track['codec_id'] == 'XVID':
             return 'XVid'
         else:
             raise Exception("Unknown or unsupported video codec",
-                            video_track['codec'],
+                            video_track['codec_id'],
                             video_track['writing_library'])
 
     def _render_audio_codec(self):
@@ -396,15 +396,15 @@ class VideoSubmission(BbSubmission):
         audio_track = audio_tracks[0]  # main audio track
 
         for c in audio_codecs:
-            if audio_track['codec'].startswith(c):
+            if audio_track['codec_id'].startswith(c):
                 c = c.replace('AC3', 'AC-3')
                 return c
 
-        if audio_track['codec'] == 'MPA1L3':
+        if audio_track['codec_id'] == 'MPA1L3':
             return 'MP3'
 
         raise Exception("Unknown or unsupported audio codec",
-                        audio_track['codec'])
+                        audio_track['codec_id'])
 
     def _render_resolution(self):
         resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
