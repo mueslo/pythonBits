@@ -390,13 +390,14 @@ class VideoSubmission(BbSubmission):
                             video_track['writing_library'])
 
     def _render_audio_codec(self):
-        audio_codecs = ('AC3', 'DTS', 'FLAC', 'AAC', 'MP3')
+        audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3')
 
         audio_tracks = self['tracks']['audio']
         audio_track = audio_tracks[0]  # main audio track
 
         for c in audio_codecs:
             if audio_track['codec_id'].startswith(c):
+                c = c.replace('EAC3', 'AC-3')
                 c = c.replace('AC3', 'AC-3')
                 return c
 
