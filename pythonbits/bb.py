@@ -406,6 +406,8 @@ class VideoSubmission(BbSubmission):
 
         if audio_track['codec_id'] == 'MPA1L3':
             return 'MP3'
+        elif audio_track['codec_id'] == 'TRUEHD':
+            return 'True-HD'
 
         raise Exception("Unknown or unsupported audio codec",
                         audio_track['codec_id'])
