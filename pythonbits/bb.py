@@ -386,7 +386,7 @@ class VideoSubmission(BbSubmission):
         #     (video_track.width*video_track.height))
         if video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC'):
             if ('writing_library' in video_track and
-                    'x264' in video_track['writing_library']):
+                'x264' in video_track['writing_library']):
                 return 'x264'
             else:
                 return 'H.264'
