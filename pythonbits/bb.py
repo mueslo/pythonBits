@@ -392,6 +392,8 @@ class VideoSubmission(BbSubmission):
                 return 'H.264'
         elif video_track['codec_id'] == 'XVID':
             return 'XVid'
+        elif 'VP9' in video_track['codec_id']:
+            return 'VP9'
         else:
             raise Exception("Unknown or unsupported video codec",
                             video_track['codec_id'],
