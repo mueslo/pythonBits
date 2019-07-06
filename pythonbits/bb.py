@@ -378,7 +378,7 @@ class VideoSubmission(BbSubmission):
         elif general['format'] == 'MPEG-4':
             return 'MP4'
         else:
-            raise Exception("Unknown or unsupported container", general.format)
+            raise Exception("Unknown or unsupported container: %r" % (general.format,))
 
     def _render_video_codec(self):
         video_track = self['tracks']['video']
@@ -417,8 +417,8 @@ class VideoSubmission(BbSubmission):
         elif audio_track['codec_id'] == 'TRUEHD':
             return 'True-HD'
 
-        raise Exception("Unknown or unsupported audio codec",
-                        audio_track['codec_id'])
+        raise Exception("Unknown or unsupported audio codec: %r" %
+                        (audio_track['codec_id'],))
 
     def _render_resolution(self):
         resolutions = ('1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
