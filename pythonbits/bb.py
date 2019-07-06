@@ -395,9 +395,9 @@ class VideoSubmission(BbSubmission):
         elif 'VP9' in video_track['codec_id']:
             return 'VP9'
         else:
-            raise Exception("Unknown or unsupported video codec",
-                            video_track['codec_id'],
-                            video_track['writing_library'])
+            raise Exception("Unknown or unsupported video codec: %r, %r" %
+                            (video_track.get('codec_id', '[NO CODEC]'),
+                             video_track.get('writing_library', '[NO LIBRARY]')))
 
     def _render_audio_codec(self):
         audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3')
