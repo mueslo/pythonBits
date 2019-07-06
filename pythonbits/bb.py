@@ -27,7 +27,7 @@ from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
-from .tracker import Tracker
+from .tracker import Tracker, TrackerException
 from .scene import is_scene_crc, query_scene_fname
 
 
@@ -73,7 +73,15 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
-        return t.upload(**payload)
+        for i in range(5):
+            try:
+                return t.upload(**payload)
+            except TrackerException:
+                if i >= 5:
+                    log.error('Login failed; giving up')
+                    break
+                else:
+                    log.notice('Login failed; trying again')
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
