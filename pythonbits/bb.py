@@ -73,11 +73,11 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
-        for i in range(5):
+        for i in range(11):
             try:
                 return t.upload(**payload)
             except TrackerException:
-                if i >= 5:
+                if i >= 10:
                     log.error('Login failed; giving up')
                     break
                 else:
