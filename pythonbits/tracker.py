@@ -84,7 +84,12 @@ class Tracker():
                 # (unlikely)
                 return resp.url
             else:
-                log.error('resp {}', resp)
-                log.error('search {}',
-                          ("No torrent file uploaded" in resp.text))
+                log.error('Response: {!r}', resp)
+                err_match = re.search(r''.join((r'(No torrent file uploaded.*?)',
+                                                re.escape(r'</p>'))),
+                                      resp.text)
+                if err_match:
+                    log.error('Error: {}', err_match.group(1))
+                else:
+                    log.error('Unknown error')
                 raise TrackerException('Failed to upload submission')
