@@ -78,7 +78,10 @@ class Tracker():
             resp = session.post(url, **kwargs)
             resp.raise_for_status()
 
-            log.debug(resp.history)
+            log.debug(f'url: {resp.url!r}')
+            log.debug(f'headers: {resp.headers!r}')
+            log.debug(f'history: {resp.history!r}')
+            log.debug(f'text: {resp.text!r}')
             if resp.history:
                 # todo: check if url is good, might have been logged out
                 # (unlikely)
