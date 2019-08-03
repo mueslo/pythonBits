@@ -128,4 +128,5 @@ class ImgurUploader(object):
             log.warn("Imgur converted {} to a {}.",
                      extensions[0], extensions[1])
 
+        log.notice("Image URL: {}", link)
         return link
