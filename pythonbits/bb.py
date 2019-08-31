@@ -247,6 +247,8 @@ class VideoSubmission(BbSubmission):
             return TvSpecifier(title, guess['season'],
                                guess.get('episode', None))
 
+        raise Exception('Unable to guess TV show')
+
     @form_field('tags')
     def _render_tags(self):
         # todo: get episode-specific actors (from imdb?)
