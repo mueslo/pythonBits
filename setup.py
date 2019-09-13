@@ -37,7 +37,7 @@ setup(
         "attrdict~=2.0",
         "appdirs~=1.4",
         "pymediainfo~=2.2",
-        "guessit~=2.1",
+        "guessit>=3.1",
         "unidecode~=1.0",
         "logbook~=1.2",
         "pyreadline~=2.1",
