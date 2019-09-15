@@ -8,6 +8,7 @@ import sys
 import shutil
 import re
 import subprocess
+import time
 
 from textwrap import dedent
 from collections import namedtuple
@@ -73,15 +74,18 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
+        delay = 2
         for i in range(11):
             try:
                 return t.upload(**payload)
             except TrackerException:
-                if i >= 10:
+                if i >= 4:
                     log.error('Login failed; giving up')
                     break
                 else:
-                    log.notice('Login failed; trying again')
+                    log.notice('Login failed; trying again in %d seconds' % (delay,))
+                    time.sleep(delay)
+                    delay *= 2
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
