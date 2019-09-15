@@ -77,22 +77,17 @@ class Tracker():
             log.notice("Posting submission")
             resp = session.post(url, **kwargs)
             resp.raise_for_status()
-
-            log.debug(f'url: {resp.url!r}')
-            log.debug(f'headers: {resp.headers!r}')
-            log.debug(f'history: {resp.history!r}')
-            log.debug(f'text: {resp.text!r}')
             if resp.history:
                 # todo: check if url is good, might have been logged out
                 # (unlikely)
                 return resp.url
             else:
-                log.error('Response: {!r}', resp)
+                log.error('Response: %s' % resp)
                 err_match = re.search(r''.join((r'(No torrent file uploaded.*?)',
                                                 re.escape(r'</p>'))),
                                       resp.text)
                 if err_match:
-                    log.error('Error: {}', err_match.group(1))
+                    log.error('Error: %s' % err_match.group(1))
                 else:
                     log.error('Unknown error')
                 raise TrackerException('Failed to upload submission')
