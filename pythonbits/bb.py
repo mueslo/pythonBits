@@ -74,7 +74,6 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
-        delay = 2
         for i in range(11):
             try:
                 return t.upload(**payload)
@@ -83,9 +82,7 @@ class BbSubmission(Submission):
                     log.error('Login failed; giving up')
                     break
                 else:
-                    log.notice('Login failed; trying again in %d seconds' % (delay,))
-                    time.sleep(delay)
-                    delay *= 2
+                    log.notice('Login failed; trying again')
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
