@@ -387,7 +387,7 @@ class VideoSubmission(BbSubmission):
         video_track = self['tracks']['video']
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
-        if video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC'):
+        if video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC', 'avc1'):
             if ('writing_library' in video_track and
                 'x264' in video_track['writing_library']):
                 return 'x264'
@@ -419,6 +419,8 @@ class VideoSubmission(BbSubmission):
 
         if audio_track['codec_id'] == 'MPA1L3':
             return 'MP3'
+        elif audio_track['codec_id'].lower().startswith('mp4a'):
+            return 'AAC'
         elif audio_track['codec_id'] == 'TRUEHD':
             return 'True-HD'
 
