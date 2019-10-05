@@ -218,6 +218,31 @@ class VideoSubmission(BbSubmission):
     def _render_guess(self):
         return {k: v for k, v in guessit.guessit(self['path']).items()}
 
+    def _render_confirmed_guess(self):
+        guess = {k: v for k, v in guessit.guessit(self['path']).items()}
+        print('Confirm by pressing enter or type in correct values:')
+
+        guess['title'] = input('Guessed title: %s > ' % (guess['title'],)) or guess['title']
+
+        confirmed_type = None
+        while confirmed_type not in ('movie', 'episode'):
+            user_type = 'tv' if guess['type'] == 'episode' else guess['type']
+            confirmed_type = (input('Guessed type ("movie" or "tv"): %s > ' % (user_type,))
+                              or guess['type'])
+            confirmed_type = 'episode' if confirmed_type == 'tv' else confirmed_type
+        guess['type'] = confirmed_type
+
+        if guess['type'] == 'episode' and 'season' not in guess:
+            while True:
+                try:
+                    guess['season'] = int(input('Season > '))
+                except (ValueError, TypeError):
+                    pass
+                else:
+                    break
+
+        return guess
+
     def subcategory(self):
         if type(self) == VideoSubmission:
             if self['tv_specifier']:
