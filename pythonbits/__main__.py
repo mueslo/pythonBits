@@ -76,7 +76,7 @@ def parse_args():
     options_d = {
         'num_screenshots': {'type': int, 'default': 2,
                             'help': "Number of screenshots"},
-        'num_cast': {'type': int, 'default': 5,
+        'num_cast': {'type': int, 'default': 10,
                      'help': "Number of actors to use in tags"},
         'data_method': {'type': str, 'default': 'auto',
                         'choices': ['hard', 'sym', 'copy', 'move'],
