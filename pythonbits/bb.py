@@ -446,18 +446,8 @@ class VideoSubmission(BbSubmission):
 
     def _render_audio_codec(self):
         audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3')
-
         audio_tracks = self['tracks']['audio']
         audio_track = audio_tracks[0]  # main audio track
-
-        if audio_track['codec_id'].startswith('A_'):
-            audio_track['codec_id'] = audio_track['codec_id'][2:]
-
-        for c in audio_codecs:
-            if audio_track['codec_id'].startswith(c):
-                c = c.replace('EAC3', 'AC-3')
-                c = c.replace('AC3', 'AC-3')
-                return c
 
         if audio_track['codec_id'] == 'MPA1L3':
             return 'MP3'
@@ -465,6 +455,21 @@ class VideoSubmission(BbSubmission):
             return 'AAC'
         elif audio_track['codec_id'] == 'TRUEHD':
             return 'True-HD'
+        elif 'Dolby Atmos' in audio_track['commercial_name']:
+            return 'Dolby Atmos'
+        elif 'DTS-HD' in audio_track['commercial_name']:
+            if ('format_profile' in audio_track and
+                audio_track['other_format'] == 'DTS XLL X'):
+                return 'DTS:X'
+            return 'DTS-HD'
+
+        if audio_track['codec_id'].startswith('A_'):
+            audio_track['codec_id'] = audio_track['codec_id'][2:]
+        for c in audio_codecs:
+            if audio_track['codec_id'].startswith(c):
+                c = c.replace('EAC3', 'AC-3')
+                c = c.replace('AC3', 'AC-3')
+                return c
 
         raise Exception("Unknown or unsupported audio codec: %r" %
                         (audio_track['codec_id'],))
