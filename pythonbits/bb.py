@@ -496,6 +496,7 @@ class VideoSubmission(BbSubmission):
 
     def _render_additional(self):
         additional = []
+        video_track = self['tracks']['video']
         audio_tracks = self['tracks']['audio']
         text_tracks = self['tracks']['text']
 
@@ -520,6 +521,9 @@ class VideoSubmission(BbSubmission):
 
         if self['guess'].get('proper_count') and self['scene']:
             additional.insert(0, 'PROPER')
+
+        if 'BT.2020' in video_track.get('color_primaries', ''):
+            additional.append('HDR10')
 
         return additional
 
