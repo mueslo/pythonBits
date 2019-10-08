@@ -385,7 +385,8 @@ class VideoSubmission(BbSubmission):
         #          TC, SDTV, DVD5, DVD9, HD-DVD
 
         # todo: replace with guess from self['guess']
-        if 'bluray' in self['path'].lower():
+        if ('bluray' in self['path'].lower() or
+            'blu-ray' in self['path'].lower()):
             return 'BluRay'
             # todo: 3d
         elif ('web-dl' in self['path'].lower() or
