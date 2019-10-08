@@ -429,6 +429,12 @@ class VideoSubmission(BbSubmission):
                 return 'x264'
             else:
                 return 'H.264'
+        elif video_track['codec_id'] in ('V_MPEGH/ISO/HEVC', 'HEVC'):
+            if ('writing_library' in video_track and
+                'x265' in video_track['writing_library']):
+                return 'x265'
+            else:
+                return 'H.265'
         elif video_track['codec_id'] == 'XVID':
             return 'XVid'
         elif 'VP9' in video_track['codec_id']:
