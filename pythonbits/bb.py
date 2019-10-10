@@ -346,7 +346,13 @@ class VideoSubmission(BbSubmission):
         else:
             # Replace absolute path with file name
             mi_dir = os.path.dirname(self['mediainfo_path']) + '/'
-            return mi.replace(mi_dir, '')
+            mi = mi.replace(mi_dir, '')
+
+            # bB's mediainfo parser expects "Xbps" instead of "Xb/s"
+            mi = mi.replace('Kb/s', 'Kbps') \
+                   .replace('kb/s', 'Kbps') \
+                   .replace('Mb/s', 'Mbps')
+            return mi
 
     def _render_tracks(self):
         video_tracks = []
