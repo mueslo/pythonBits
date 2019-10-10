@@ -443,10 +443,14 @@ class VideoSubmission(BbSubmission):
                 return 'x265'
             else:
                 return 'H.265'
-        elif video_track['codec_id'] == 'XVID':
-            return 'XVid'
+        elif video_track['codec_id'] in ('V_MS/VFW/FOURCC / WVC1',):
+            return 'VC-1'
         elif 'VP9' in video_track['codec_id']:
             return 'VP9'
+        elif video_track['codec_id'] == 'XVID':
+            return 'XVid'
+        elif video_track['format'] == 'MPEG Video':
+            return 'MPEG-2'
         else:
             raise Exception("Unknown or unsupported video codec: %r, %r" %
                             (video_track.get('codec_id', '[NO CODEC]'),
