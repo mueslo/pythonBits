@@ -423,6 +423,8 @@ class VideoSubmission(BbSubmission):
             return 'AVI'
         elif general['format'] == 'MPEG-4':
             return 'MP4'
+        elif general['format'] == 'BDAV':
+            return 'm2ts'
         else:
             raise Exception("Unknown or unsupported container: %r" % (general.format,))
 
