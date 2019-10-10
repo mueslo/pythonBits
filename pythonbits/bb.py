@@ -301,9 +301,10 @@ class VideoSubmission(BbSubmission):
 
         contained_files = []
         for dp, dns, fns in os.walk(self['path']):
-            contained_files += [
-                os.path.join(dp, fn) for fn in fns
-                if os.path.getsize(os.path.join(dp, fn)) > 10 * 2**20]
+            contained_files += [os.path.join(dp, fn) for fn in fns
+                                if os.path.getsize(os.path.join(dp, fn)) > 10 * 2**20]
+        if len(contained_files) == 1:
+            return contained_files[0]
 
         print("\nWhich file would you like to run mediainfo on? Choices are")
         contained_files.sort()
