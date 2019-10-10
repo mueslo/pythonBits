@@ -433,14 +433,12 @@ class VideoSubmission(BbSubmission):
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
         if video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC', 'avc1'):
-            if ('writing_library' in video_track and
-                'x264' in video_track['writing_library']):
+            if 'x264' in video_track.get('writing_library', ''):
                 return 'x264'
             else:
                 return 'H.264'
         elif video_track['codec_id'] in ('V_MPEGH/ISO/HEVC', 'HEVC'):
-            if ('writing_library' in video_track and
-                'x265' in video_track['writing_library']):
+            if 'x265' in video_track.get('writing_library', ''):
                 return 'x265'
             else:
                 return 'H.265'
