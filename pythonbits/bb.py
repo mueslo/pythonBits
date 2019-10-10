@@ -465,7 +465,7 @@ class VideoSubmission(BbSubmission):
         elif 'Dolby Atmos' in audio_track['commercial_name']:
             return 'Dolby Atmos'
         elif 'DTS-HD' in audio_track['commercial_name']:
-            if audio_track.get('other_format', '') == 'DTS XLL X'):
+            if audio_track.get('other_format', '') == 'DTS XLL X':
                 return 'DTS:X'
             return 'DTS-HD'
 
