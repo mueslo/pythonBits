@@ -508,30 +508,32 @@ class VideoSubmission(BbSubmission):
         audio_tracks = self['tracks']['audio']
         text_tracks = self['tracks']['text']
 
-        for track in audio_tracks[1:]:
-            if 'title' in track and 'commentary' in track['title'].lower():
-                additional.append('w. Commentary')
-                break
-
-        if text_tracks:
-            additional.append('w. Subtitles')
         # print [(track.title, track.language) for track in text_tracks]
-
         # todo: rule checking, e.g.
         # main_audio = audio_tracks[0]
         # if (main_audio.language and main_audio.language != 'en' and
         #         not self['tracks']['text']):
         #     raise BrokenRule("Missing subtitles")
 
+        if 'remux' in os.path.basename(self['path']).lower():
+            additional.append('REMUX')
+
         edition = self['guess'].get('edition')
         if edition:
-            additional.insert(0, edition)
+            additional.append(edition)
 
         if self['guess'].get('proper_count') and self['scene']:
-            additional.insert(0, 'PROPER')
+            additional.append('PROPER')
 
         if 'BT.2020' in video_track.get('color_primaries', ''):
             additional.append('HDR10')
+
+        for track in audio_tracks[1:]:
+            if 'title' in track and 'commentary' in track['title'].lower():
+                additional.append('w. Commentary')
+                break
+        if text_tracks:
+            additional.append('w. Subtitles')
 
         return additional
 
