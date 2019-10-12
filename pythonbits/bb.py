@@ -518,12 +518,12 @@ class VideoSubmission(BbSubmission):
         if 'remux' in os.path.basename(self['path']).lower():
             additional.append('REMUX')
 
+        if self['guess'].get('proper_count') and self['scene']:
+            additional.append('PROPER')
+
         edition = self['guess'].get('edition')
         if edition:
             additional.append(edition)
-
-        if self['guess'].get('proper_count') and self['scene']:
-            additional.append('PROPER')
 
         if 'BT.2020' in video_track.get('color_primaries', ''):
             additional.append('HDR10')
