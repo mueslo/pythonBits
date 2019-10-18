@@ -26,50 +26,65 @@ class TrackerException(Exception):
 class Tracker():
     headers = {'User-Agent': '{}/{}'.format(title, version)}
 
-    @staticmethod
-    def logged_in(resp):
-        if ("Log in!" in resp.text or "href=\"login.php\"" in resp.text):
-            return False
-        if ("logout.php" in resp.text):
-            return True
+    def _login(self, session, _tries=0):
+        domain = config.get('Tracker', 'domain')
+        login_url = "https://{}/login.php".format(domain)
+        payload = {'username': config.get('Tracker', 'username'),
+                   'password': config.get('Tracker', 'password'),
+                   'keeplogged': "1",
+                   'login': "Log in!"}
 
-        log.error(resp.text)
-        raise TrackerException('Unknown response format')
+        resp = session.post(login_url, data=payload)
+        resp.raise_for_status()
+
+        if 'href="login.php"' in resp.text:
+            if 'id="loginform"' in resp.text:
+                raise TrackerException("Login failed")
+            elif 'You are banned' in resp.text:
+                raise TrackerException("Login failed (login attempts exceeded)")
+            else:
+                # We encountered the login bug that sends you to "/" (which
+                # doesn't contain the login form) without logging you in
+                if _tries < 10:
+                    log.debug('Encountered login bug; trying again')
+                    self._login(session, _tries=_tries+1)
+                else:
+                    log.debug('Encountered login bug; giving up after 10 login attempts')
+                    raise TrackerException("Login failed")
+        elif 'logout.php' in resp.text:
+            # Login successful, find and remember logout URL
+            match = re.search(r"logout\.php\?auth=[0-9a-f]{32}", resp.text)
+            if match:
+                self._logout_url = "https://{}/{}".format(domain, match.group(0))
+            else:
+                raise TrackerException("Couldn't find logout URL")
+        else:
+            log.error(resp.text)
+            raise TrackerException("Couldn't determine login status from HTML")
+
+    def _logout(self, session):
+        logout_url = getattr(self, '_logout_url')
+        if logout_url:
+            delattr(self, '_logout_url')
+            resp = session.get(logout_url)
+            if 'logout.php' in resp.text:
+                raise TrackerException("Logout failed")
+        else:
+            raise TrackerException("No logout URL: Unable to logout")
 
     @contextlib.contextmanager
     def login(self):
-        domain = config.get('Tracker', 'domain')
-        login_url = "https://{}/login.php".format(domain)
-
-        username = config.get('Tracker', 'username')
-        password = config.get('Tracker', 'password')
-
-        payload = {'username': username,
-                   'password': password,
-                   'keep_logged': "1",
-                   'login': "Log in!"}
-
+        log.notice("Logging in {} to {}",
+                   config.get('Tracker', 'username'),
+                   config.get('Tracker', 'domain'))
         with requests.Session() as s:
             s.headers.update(self.headers)
-
-            log.notice("Logging in {} to {}", username, domain)
-            resp = s.post(login_url, data=payload)
-            resp.raise_for_status()
-
-            # alternatively check for redirects via resp.history
-            if not self.logged_in(resp):
-                raise TrackerException("Log-in failed!")
-            logout_re = r"logout\.php\?auth=[0-9a-f]{32}"
-            m = re.search(logout_re, resp.text)
-
-            logout_url = "https://{}/{}".format(domain, m.group(0))
-
+            self._login(s)
             yield s
-
-            resp = s.get(logout_url)
-            if self.logged_in(resp):
-                raise TrackerException("Log-out failed!")
-            log.notice("Logged out {}", username)
+            self._logout(s)
+        log.notice("Logged out {} of ",
+                   config.get('Tracker', 'username'),
+                   config.get('Tracker', 'domain'))
 
     def upload(self, **kwargs):
         url = "https://{}/upload.php".format(config.get('Tracker', 'domain'))

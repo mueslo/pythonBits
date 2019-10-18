@@ -74,15 +74,10 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
-        for i in range(11):
-            try:
-                return t.upload(**payload)
-            except TrackerException:
-                if i >= 4:
-                    log.error('Login failed; giving up')
-                    break
-                else:
-                    log.notice('Login failed; trying again')
+        try:
+            return t.upload(**payload)
+        except TrackerException as e:
+            log.error('Upload failed: %s' % (e,))
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
