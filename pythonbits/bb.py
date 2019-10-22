@@ -286,7 +286,9 @@ class VideoSubmission(BbSubmission):
 
         n = self['options']['num_cast']
         tags = list(self['summary']['genres'])
-        tags += [a['name'] for a in self['summary']['cast'][:n]]
+        tags += [a['name']
+                 for a in self['summary']['cast'][:n]
+                 if a['name']]
         return ",".join(format_tag(tag) for tag in tags)
 
     def _render_mediainfo_path(self):
