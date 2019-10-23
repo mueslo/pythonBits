@@ -34,6 +34,11 @@ from .scene import is_scene_crc, query_scene_fname
 
 def format_tag(tag):
     tag = unidecode(tag)
+    if '/' in tag:
+        # Multiple actors can be listed as a single actor like this:
+        # "Thierry Kazazian / Max Mittleman"
+        # (e.g. for "Miraculous: Tales of Ladybug & Cat Noir")
+        tag = tag[:tag.index('/')].strip()
     return tag.replace(' ', '.').replace('-', '.').replace('\'', '.').lower()
 
 
