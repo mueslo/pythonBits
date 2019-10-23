@@ -92,6 +92,10 @@ class Tracker():
             log.notice("Posting submission")
             resp = session.post(url, **kwargs)
             resp.raise_for_status()
+
+            # TODO: Catch this somehow:
+            # <p style="color: red;text-align:center;">You must enter at least one tag. Maximum length is 200 characters.</p>
+
             if resp.history:
                 # todo: check if url is good, might have been logged out
                 # (unlikely)
