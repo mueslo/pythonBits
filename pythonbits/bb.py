@@ -621,7 +621,7 @@ class TvSubmission(VideoSubmission):
             [b]Episode title[/b]: {title} ({links})
             [b]Aired[/b]: {air_date} on {network}
             [b]IMDb Rating[/b]: {rating}
-            [b]Director[/b]: {director}
+            [b]Directors[/b]: {directors}
             [b]Writer(s)[/b]: {writers}
             [b]Content rating[/b]: {contentrating}""").format(
                 title=s['episode_title'],
@@ -629,7 +629,7 @@ class TvSubmission(VideoSubmission):
                 air_date=s['air_date'],
                 network=s['network'],
                 rating=rating_bb,
-                director=s['director'],
+                directors=' | '.join(s['directors']),
                 writers=' | '.join(s['writers']),
                 contentrating=s['contentrating']
             )

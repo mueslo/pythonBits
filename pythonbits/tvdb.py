@@ -12,39 +12,39 @@ class TvdbResult(object):
         self.season = season
         self.episode = episode
 
-    def banner(self, season_number=-1):
+    def banner(self, season_number):
         # todo offer choice of cover if multiple?
         # todo cache banner upload per season?
         # get best banner, preferably for season
 
-        def best_banner(banners): return sorted(
-            banners, key=lambda b: float(b.get('rating', 0)))[-1]
+        def best_banner(banners):
+            def get_rating(banner):
+                return banner.get('ratingsInfo', {}).get('average', 0)
+            sorted_banners = sorted(banners, key=get_rating)
+            return sorted_banners[-1]
 
         try:
-            season_banners = self.show['_banners']['season']['season']
-
-            season_banners = [
-                banner for banner in season_banners.values()
-                if banner['season'] == str(season_number)]
-
-            return best_banner(season_banners)['_bannerpath']
+            season_banners = self.show['_banners']['season']
+            best_banner = best_banner([banner for banner in season_banners['raw']
+                                       if banner['subKey'] == str(season_number)])
+            return season_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
         except (IndexError, KeyError):
             # failing that, use show banner. if there's no banner at all we
             # just error out for now
-            series_banners = [v for r in self.show['_banners']
-                              ['poster'].values() for k, v in r.items()]
-            return best_banner(series_banners)['_bannerpath']
+            series_banners = self.show['_banners']['poster']
+            best_banner = best_banner(series_banners['raw'])
+            return series_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
 
     def summary(self):
         return {
             'title': self.show['seriesname'],
             'network': self.show['network'],
-            'genres': self.show['genre'].strip('|').split('|'),
+            'genres': self.show['genre'],
             'seriessummary': self.show['overview'],
             'cast': self.show['_actors'],
             # 'seasons': len(self.show),
             # 'status': self.show['status'],
-            'contentrating': self.show['contentrating']
+            'contentrating': self.show['rating']
         }
 
 
@@ -52,27 +52,25 @@ class TvdbSeason(TvdbResult):
     def summary(self):
         s = super(TvdbSeason, self).summary()
         some_episode = next(iter(self.season.values()))
-        season_number = some_episode['seasonnumber']
-        series_id = some_episode['seriesid']
-        season_id = some_episode['seasonid']
-
+        season_number = some_episode['airedSeason']
+        series_url = 'https://thetvdb.com/series/%s' % (self.show['slug'],)
         s.update(**{'num_episodes': len(self.season),
                     'episodes': []})
         for episode_number in self.season:
             episode = self.season[episode_number]
+            episode_url = 'https://thetvdb.com/series/{}/episodes/{}'.format(
+                self.show['slug'], episode['id'])
+
             s["episodes"].append({
                 'title': episode['episodename'],
-                'url': "http://thetvdb.com/?tab=episode&seriesid=" + series_id
-                       + "&seasonid=" + season_id +
-                       "&id=" + episode['id'],
-                'imdb_id': episode['imdb_id'],
+                'url': episode_url,
+                'imdb_id': episode['imdbId'],
                 'rating': (episode['rating'] and
                            float(episode['rating']), 10)})
-        s['url'] = ("http://thetvdb.com/?tab=episode&seriesid=" + series_id +
-                    "&seasonid=" + season_id)
+        s['url'] = series_url
         s['cover'] = self.banner(season_number)
         s['season'] = season_number
-        s['imdb_id'] = self.show['imdb_id']
+        s['imdb_id'] = self.show['imdbId']
         return s
 
 
@@ -80,24 +78,21 @@ class TvdbEpisode(TvdbResult):
     def summary(self):
         summary = super(TvdbEpisode, self).summary()
         summary.update(**{
-                'season': self.episode['seasonnumber'],
+                'season': self.episode['airedSeason'],
                 'episode': self.episode['episodenumber'],
                 'episode_title': self.episode['episodename'],
-                'imdb_id': self.episode['imdb_id'],
-                'director': self.episode['director'],
+                'imdb_id': self.episode['imdbId'],
+                'directors': self.episode['directors'],
                 'air_date': self.episode['firstaired'],
                 # 'air_dow': self.show['airs_dayofweek'],
                 # 'air_time': self.show['airs_time'],
-                'writers': (self.episode['writer'] or
-                            "").strip('|').split('|'),
-                'rating': (self.episode['rating'] and
+                'writers': self.episode['writers'],
+                'rating': (self.episode['siteRating'] and
                            float(self.episode['rating']), 10),
-                'votes': self.episode['ratingcount'],
+                'votes': self.episode['siteRatingCount'],
                 'episodesummary': self.episode['overview'],
                 'language': self.episode['language'],
-                'url': "http://thetvdb.com/?tab=episode&seriesid=" +
-                       self.episode['seriesid'] + "&seasonid=" +
-                       self.episode['seasonid'] + "&id=" + self.episode['id'],
+                'url': 'https://thetvdb.com/series/{}'.format(self.show['slug']),
                 'cover': self.banner(self.episode['seasonnumber'])})
 
         return summary
