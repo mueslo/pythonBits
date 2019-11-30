@@ -33,7 +33,7 @@ setup(
         "configparser~=3.5",
         "imdbpie~=5.5",
         "requests~=2.18",
-        "tvdb-api~=1.9",
+        "tvdb-api~=2.0",
         "attrdict~=2.0",
         "appdirs~=1.4",
         "pymediainfo~=2.2",
