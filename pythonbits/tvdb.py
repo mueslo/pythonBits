@@ -101,7 +101,7 @@ class TvdbEpisode(TvdbResult):
 class TVDB(object):
     def __init__(self):
         # todo: selectfirst=False
-        self.tvdb = tvdb_api.Tvdb(banners=True, actors=True)
+        self.tvdb = tvdb_api.Tvdb(interactive=True, banners=True, actors=True)
 
     def search(self, tv_specifier):
         show = self.tvdb[tv_specifier.title]
