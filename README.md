@@ -1,24 +1,19 @@
-# pythonBits
-[![GitHub release](https://img.shields.io/github/release/mueslo/pythonbits.svg)](https://GitHub.com/mueslo/pythonBits/releases/)
-[![PyPI version](https://img.shields.io/pypi/v/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
-[![GitHub commits since release](https://img.shields.io/github/commits-since/mueslo/pythonbits/latest.svg)](https://github.com/mueslo/pythonBits/commits/master)
-[![GitHub license](https://img.shields.io/github/license/mueslo/pythonbits.svg)](https://github.com/mueslo/pythonbits/blob/master/LICENSE)
-[![Build Status](https://img.shields.io/travis/mueslo/pythonBits.svg)](https://travis-ci.org/mueslo/pythonBits)
-#### A Python description generator for movies and TV shows
+This is a sloppy fork of [pythonBits](https://github.com/mueslo/pythonbits) that
+fixes compatibility issues with recent tools (e.g. mediainfo and tvdb). It's not
+a proper fork, I just fix bugs as I find them.
 
-## Install
-1. (Optional, highly recommended) Set up a virtualenv to avoid polluting your system with dependencies.
-  - with virtualenvwrapper: `mkvirtualenv pythonbits`
-    - activate the virtualenv with `workon pythonbits`
-2. Install pythonBits in one of the following ways
-  - install via `pip install pythonbits`
-  - clone and `pip install .`
-  - (dev) clone, install requirements from setup.py and run as `python -m pythonbits` instead of `pythonbits`
-3. Install mediainfo, ffmpeg and mktorrent>=1.1 such that they are accessible for pythonBits
-  - you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
+Everything should work like it does with mueslo/pythonBits, except for the
+installation. I recommend [pipx](https://pipxproject.github.io/pipx/), which
+installs Python packages with all dependencies in `~/.local/pipx/<package name>`.
 
-If you don't want to use a virtualenv but keep system pollution with PyPI packages to a minimum, install via `pip install --user`. For more information, visit [this site](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
+```sh
+$ # Install pipx with your package manager or with pip
+$ pip3 install --user pipx
+$ # Install from the git repository
+$ pipx install --spec git+https://github.com/plotski/pythonBits.git pythonBits
+$ # Uninstall if you don't like it
+$ pipx uninstall pythonBits
+```
 
 ## Usage
 ```
