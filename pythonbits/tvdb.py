@@ -65,8 +65,7 @@ class TvdbSeason(TvdbResult):
                 'title': episode['episodename'],
                 'url': episode_url,
                 'imdb_id': episode['imdbId'],
-                'rating': (episode['rating'] and
-                           float(episode['rating']), 10)})
+                'rating': episode['siteRating']})
         s['url'] = series_url
         s['cover'] = self.banner(season_number)
         s['season'] = season_number
@@ -87,8 +86,7 @@ class TvdbEpisode(TvdbResult):
                 # 'air_dow': self.show['airs_dayofweek'],
                 # 'air_time': self.show['airs_time'],
                 'writers': self.episode['writers'],
-                'rating': (self.episode['siteRating'] and
-                           float(self.episode['rating']), 10),
+                'rating': self.episode['siteRating'],
                 'votes': self.episode['siteRatingCount'],
                 'episodesummary': self.episode['overview'],
                 'language': self.episode['language'],
