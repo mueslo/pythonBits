@@ -645,9 +645,13 @@ class TvSubmission(VideoSubmission):
                 if not e['imdb_id']:
                     return bb.link(e['title'], e['url']) + "\n"
 
-                rating, votes = i.get_rating(e['imdb_id'])
-                return (bb.link(e['title'], e['url']) + "\n" +
-                        bb.s1(bb.format_rating(*rating)))
+                try:
+                    rating, votes = i.get_rating(e['imdb_id'])
+                except ValueError:
+                    return ''
+                else:
+                    return (bb.link(e['title'], e['url']) + "\n" +
+                            bb.s1(bb.format_rating(*rating)))
 
             description += "[b]Episodes[/b]:\n" + bb.list(
                 map(episode_fmt, s['episodes']), style=1)
