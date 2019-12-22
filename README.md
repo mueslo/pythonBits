@@ -3,15 +3,30 @@ fixes compatibility issues with recent tools (e.g. mediainfo and tvdb). It's not
 a proper fork, I just fix bugs as I find them.
 
 Everything should work like it does with mueslo/pythonBits, except for the
-installation. I recommend [pipx](https://pipxproject.github.io/pipx/), which
-installs Python packages with all dependencies in `~/.local/pipx/<package name>`.
+installation.
+
+## Installation
+
+I recommend [pipx](https://pipxproject.github.io/pipx/), which installs Python
+packages with all dependencies in a virtual environment in
+`~/.local/pipx/<package name>` and thus makes it very easy to uninstall them. To
+uninstall pythonBits with pip, you need to do something like this:
 
 ```sh
-$ # Install pipx with your package manager or with pip
+pip3 uninstall -y appdirs attrdict attrs babelfish boto certifi chardet configparser diskcache future guessit idna imdbpie Logbook pip pkg-resources progressbar2 pymediainfo pyreadline python-dateutil python-utils pythonbits rebulk requests requests-cache setuptools six trans tvdb-api Unidecode urllib3 wheel
+```
+
+But this might break other Python packages that share dependencies with
+pythonBits. This issue doesn't exist with pipx:
+
+```sh
+$ # If possible, install pipx with your package manager, otherwise use pip
 $ pip3 install --user pipx
-$ # Install from the git repository
+$ # Install pythonBits
 $ pipx install --spec git+https://github.com/plotski/pythonBits.git pythonBits
-$ # Uninstall if you don't like it
+$ # Upgrading is easy
+$ pipx upgrade pythonBits
+$ # Uninstalling is just as easy
 $ pipx uninstall pythonBits
 ```
 
