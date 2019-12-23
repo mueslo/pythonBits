@@ -24,9 +24,9 @@ $ # If possible, install pipx with your package manager, otherwise use pip
 $ pip3 install --user pipx
 $ # Install pythonBits
 $ pipx install --spec git+https://github.com/plotski/pythonBits.git pythonBits
-$ # Upgrading is easy
-$ pipx upgrade pythonBits
-$ # Uninstalling is just as easy
+$ # You must also specify the git repository when upgrading
+$ pipx upgrade --spec git+https://github.com/plotski/pythonBits.git pythonBits
+$ # Uninstalling is straightforward
 $ pipx uninstall pythonBits
 ```
 
