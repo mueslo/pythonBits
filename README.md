@@ -30,6 +30,12 @@ $ # Uninstalling is straightforward
 $ pipx uninstall pythonBits
 ```
 
+If cannot use pipx for some reason, you can also use plain pip, of course.
+
+```sh
+$ pip3 install --upgrade --user git+https://github.com/plotski/pythonBits.git
+```
+
 ## Usage
 ```
 usage: pythonbits [-h] [--version] [-v] [-c {tv,movie}] [-u FIELD VALUE] [-i]
