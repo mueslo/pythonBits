@@ -31,7 +31,7 @@ class TvdbResult(object):
         except (IndexError, KeyError):
             # failing that, use show banner. if there's no banner at all we
             # just error out for now
-            series_banners = self.show['_banners']['poster']
+            series_banners = self.show['_banners']['series']
             best_banner = best_banner(series_banners['raw'])
             return series_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
 
