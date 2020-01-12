@@ -29,11 +29,14 @@ class TvdbResult(object):
                                        if banner['subKey'] == str(season_number)])
             return season_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
         except (IndexError, KeyError):
-            # failing that, use show banner. if there's no banner at all we
-            # just error out for now
-            series_banners = self.show['_banners']['series']
-            best_banner = best_banner(series_banners['raw'])
-            return series_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
+            for key in ('poster', 'series', 'fanart'):
+                try:
+                    series_banners = self.show['_banners'][key]
+                    best_banner = best_banner(series_banners['raw'])
+                    return series_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
+                except (IndexError, KeyError):
+                    pass
+        raise Exception('Unable to find cover')
 
     def summary(self):
         return {
