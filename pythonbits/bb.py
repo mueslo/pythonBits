@@ -525,7 +525,7 @@ class VideoSubmission(BbSubmission):
 
         edition = self['guess'].get('edition')
         if edition:
-            additional.append(edition)
+            additional.extend(edition)
 
         if 'BT.2020' in video_track.get('color_primaries', ''):
             additional.append('HDR10')
