@@ -11,7 +11,7 @@ import subprocess
 import time
 
 from textwrap import dedent
-from collections import namedtuple
+from collections import namedtuple, abc
 
 import pymediainfo
 import guessit
@@ -524,7 +524,9 @@ class VideoSubmission(BbSubmission):
             additional.append('PROPER')
 
         edition = self['guess'].get('edition')
-        if edition:
+        if isinstance(edition, str):
+            additional.append(edition)
+        elif isinstance(edition, abc.Sequence):
             additional.extend(edition)
 
         if 'BT.2020' in video_track.get('color_primaries', ''):
