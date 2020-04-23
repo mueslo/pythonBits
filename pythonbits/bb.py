@@ -283,7 +283,6 @@ class VideoSubmission(BbSubmission):
                 title = cguess['title']
             return TvSpecifier(title, cguess['season'],
                                cguess.get('episode', None))
-        raise Exception('Unable to find TV show: %s' % (cguess['title'],))
 
     @form_field('tags')
     def _render_tags(self):
