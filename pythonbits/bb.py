@@ -695,7 +695,13 @@ class MovieSubmission(VideoSubmission):
         return self['guess']['title']
 
     def _render_title(self):
-        return self['summary']['title']
+        # "<original title> AKA <english title>"
+        title_original = self['summary']['title']
+        title_english = self['summary']['titles'].get('XWW', None)
+        if title_english is not None:
+            return '{} AKA {}'.format(title_original, title_english)
+        else:
+            return title_original
 
     @form_field('title')
     def _render_form_title(self):
