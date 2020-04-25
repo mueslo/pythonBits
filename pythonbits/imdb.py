@@ -72,7 +72,10 @@ class IMDB(object):
         self.movie = None
 
     def get_rating(self, imdb_id):
-        res = self.imdb.get_title_ratings(imdb_id)
+        try:
+            res = self.imdb.get_title_ratings(imdb_id)
+        except LookupError:
+            res = {}
         return (res.get('rating'), 10), res.get('ratingCount', 0)
 
     def search(self, title):
