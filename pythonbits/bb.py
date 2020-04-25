@@ -79,10 +79,7 @@ class BbSubmission(Submission):
     @staticmethod
     def submit(payload):
         t = Tracker()
-        try:
-            return t.upload(**payload)
-        except TrackerException as e:
-            log.error('Upload failed: %s' % (e,))
+        return t.upload(**payload)
 
     @form_field('scene', 'checkbox')
     def _render_scene(self):
