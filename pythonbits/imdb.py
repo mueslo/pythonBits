@@ -51,6 +51,7 @@ class ImdbResult(object):
     def summary(self):
         return {
             'title': get(self.movie, 'base', 'title'),
+            'titles': get(self.movie, 'titles'),
             'directors': get(self.movie, 'credits', 'director', default=[]),
             'runtime': self.runtime,
             'rating': (get(self.movie, 'ratings', 'rating'), 10),
@@ -107,4 +108,8 @@ class IMDB(object):
                 movie = AttrDict(self.imdb.get_title(imdb_id))
                 movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
                 movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
+                title_versions = self.imdb.get_title_versions(imdb_id)
+                movie.titles = {item["region"]: item["title"]
+                          for item in title_versions['alternateTitles']
+                          if "region" in item and "title" in item}
                 return ImdbResult(movie)
