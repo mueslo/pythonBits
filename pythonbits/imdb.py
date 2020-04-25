@@ -46,7 +46,7 @@ class ImdbResult(object):
     def url(self):
         movie_id = get(self.movie, 'base', 'id')
         if movie_id:
-            return "http://www.imdb.com" + movie_id
+            return "https://www.imdb.com" + movie_id
 
     def summary(self):
         return {
