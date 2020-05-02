@@ -456,7 +456,7 @@ class VideoSubmission(BbSubmission):
 
     def _render_audio_codec(self):
         audio_track = self['tracks']['audio'][0]  # main audio track
-        if audio_track['codec_id'] in ('MPA1L3', '55'):
+        if audio_track['codec_id_hint'] == 'MP3':
             return 'MP3'
         elif audio_track['codec_id'].lower().startswith('mp4a'):
             return 'AAC'
