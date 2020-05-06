@@ -99,7 +99,8 @@ class ImgurAuth(object):
     def get_auth_headers(self):
         return {"Authorization": "Bearer %s" % self.access_token}
 
-
+import urllib
+import urllib.request
 class ImgurUploader(object):
     # todo: upload to album to avoid clutter
     def __init__(self):
@@ -107,14 +108,17 @@ class ImgurUploader(object):
 
     def upload(self, image):
         if not isinstance(image, str):
-            return [self.upload(p) for p in image]
+                return [self.upload(p) for p in image]
         self.imgur_auth.prepare()
         params = {'headers': self.imgur_auth.get_auth_headers()}
+        log.notice("Debug:: {}-{}", str(image), str(urlparse(image).scheme))
 
         if urlparse(image).scheme in ('http', 'https'):
             params['data'] = {'image': image}
         elif urlparse(image).scheme in ('file', ''):
             params['files'] = {'image': open(urlparse(image).path, "rb")}
+        elif urlparse(image).scheme in ('c'):
+            params['files'] = {'image': open(urllib.request.url2pathname(image), "rb")}
         else:
             raise Exception('Unknown image URI scheme', urlparse(image).scheme)
         res = requests.post(API_URL + "3/image", **params)
