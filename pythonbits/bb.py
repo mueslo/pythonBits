@@ -273,25 +273,18 @@ class VideoSubmission(BbSubmission):
 
             # todo: test tv show name from title_arg, but episode from filename
 
-        guess = self['guess']
-        log.debug('Guess: %s' % (guess,))
-        if guess['type'] == 'episode':
-            if self['title_arg']:
-                title = self['title_arg']
-            else:
-                title = guess['title']
-            return TvSpecifier(title, guess['season'],
-                               guess.get('episode', None))
-
-        cguess = self['confirmed_guess']
-        log.debug('Confirmed guess: %s' % (cguess,))
-        if cguess['type'] == 'episode':
-            if self['title_arg']:
-                title = self['title_arg']
-            else:
-                title = cguess['title']
-            return TvSpecifier(title, cguess['season'],
-                               cguess.get('episode', None))
+        # Try autodetection first, fall back to user prompts if values look fishy
+        for key in ('guess', 'confirmed_guess'):
+            guess = self.__getitem__(key)
+            log.debug('Guess: %s' % (guess,))
+            if guess['type'] == 'episode':
+                if self['title_arg']:
+                    title = self['title_arg']
+                else:
+                    title = guess['title']
+                if 'season' in guess:
+                    return TvSpecifier(title, guess['season'],
+                                       guess.get('episode', None))
 
     @form_field('tags')
     def _render_tags(self):
