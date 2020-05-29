@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division,
 from builtins import *  # noqa: F401, F403
 
 import tvdb_api
+from . import imdb
 
 
 class TvdbResult(object):
@@ -47,8 +48,27 @@ class TvdbResult(object):
             'cast': self.show['_actors'],
             # 'seasons': len(self.show),
             # 'status': self.show['status'],
-            'contentrating': self.show['rating']
+            'contentrating': self.show['rating'],
+            'imdb_id': self.show['imdbId'],
         }
+
+    def add_show_titles(self, summary):
+        i = imdb.IMDB()
+        try:
+            imdb_info = i.get_info(summary['imdb_id'])
+        except Exception:
+            summary['titles'] = {}
+        else:
+            imdb_sum = imdb_info.summary()
+            tvdb_title = summary['title']
+            # Original title
+            summary['title'] = imdb_sum['title']
+            # dict of international titles
+            summary['titles'] = imdb_sum['titles']
+            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't include the
+            # year if there are multiple shows with the same name.
+            if 'XWW' in summary['titles']:
+                summary['titles']['XWW'] = tvdb_title
 
 
 class TvdbSeason(TvdbResult):
@@ -73,6 +93,7 @@ class TvdbSeason(TvdbResult):
         s['cover'] = self.banner(season_number)
         s['season'] = season_number
         s['imdb_id'] = self.show['imdbId']
+        self.add_show_titles(s)
         return s
 
 
@@ -95,7 +116,7 @@ class TvdbEpisode(TvdbResult):
                 'language': self.episode['language'],
                 'url': 'https://thetvdb.com/series/{}'.format(self.show['slug']),
                 'cover': self.banner(self.episode['seasonnumber'])})
-
+        self.add_show_titles(summary)
         return summary
 
 
