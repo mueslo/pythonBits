@@ -260,6 +260,15 @@ class VideoSubmission(BbSubmission):
                 return MovieSubmission
         return type(self)
 
+    def _render_title(self):
+        # Use format "<original title> AKA <english title>" where applicable
+        title_original = self['summary']['title']
+        title_english = self['summary']['titles'].get('XWW', None)
+        if title_english is not None and title_original != title_english:
+            return '{} AKA {}'.format(title_original, title_english)
+        else:
+            return title_original
+
     def _render_tv_specifier(self):
         # if title is specified, look if season/episode are set
         if self['title_arg']:
@@ -566,9 +575,6 @@ class TvSubmission(VideoSubmission):
     def _render_search_title(self):
         return self['tv_specifier'].title
 
-    def _render_title(self):
-        return self['summary']['title']
-
     @form_field('title')
     def _render_form_title(self):
         markers_list = [self['source'], self['video_codec'],
@@ -699,15 +705,6 @@ class MovieSubmission(VideoSubmission):
             return self['title_arg']
 
         return self['guess']['title']
-
-    def _render_title(self):
-        # "<original title> AKA <english title>"
-        title_original = self['summary']['title']
-        title_english = self['summary']['titles'].get('XWW', None)
-        if title_english is not None:
-            return '{} AKA {}'.format(title_original, title_english)
-        else:
-            return title_original
 
     @form_field('title')
     def _render_form_title(self):
