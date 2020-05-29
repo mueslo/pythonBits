@@ -213,7 +213,14 @@ class VideoSubmission(BbSubmission):
     default_fields = BbSubmission.default_fields
 
     def _render_guess(self):
-        return {k: v for k, v in guessit.guessit(self['path']).items()}
+        if isinstance(self, TvSubmission):
+            type = 'episode'
+            guess = guessit.guessit(self['path'], options=('--type', 'episode'))
+        elif isinstance(self, MovieSubmission):
+            guess = guessit.guessit(self['path'], options=('--type', 'movie'))
+        else:
+            guess = guessit.guessit(self['path'])
+        return dict(guess)
 
     def _render_confirmed_guess(self):
         guess = {k: v for k, v in guessit.guessit(self['path']).items()}
