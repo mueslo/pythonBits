@@ -223,11 +223,15 @@ class VideoSubmission(BbSubmission):
         return dict(guess)
 
     def _render_confirmed_guess(self):
-        guess = {k: v for k, v in guessit.guessit(self['path']).items()}
+        # If there are any inconsistencies in the information from guess it
+        # (e.g. type="episode" but no "season"), ask the user.
+        guess = self['guess']
         print('Confirm by pressing enter or type in correct values:')
 
+        # Confirm detected title
         guess['title'] = input('Guessed title: %s > ' % (guess['title'],)) or guess['title']
 
+        # Confirm detected type (movie or episode)
         confirmed_type = None
         while confirmed_type not in ('movie', 'episode'):
             user_type = 'tv' if guess['type'] == 'episode' else guess['type']
@@ -236,6 +240,7 @@ class VideoSubmission(BbSubmission):
             confirmed_type = 'episode' if confirmed_type == 'tv' else confirmed_type
         guess['type'] = confirmed_type
 
+        # Get missing season if applicable
         if guess['type'] == 'episode' and 'season' not in guess:
             while True:
                 try:
