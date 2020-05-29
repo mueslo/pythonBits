@@ -103,13 +103,15 @@ class IMDB(object):
             except IndexError:
                 pass
             else:
-                imdb_id = result['imdb_id']
-                log.debug("Found IMDb item {}", imdb_id)
-                movie = AttrDict(self.imdb.get_title(imdb_id))
-                movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
-                movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
-                title_versions = self.imdb.get_title_versions(imdb_id)
-                movie.titles = {item["region"]: item["title"]
-                          for item in title_versions['alternateTitles']
-                          if "region" in item and "title" in item}
-                return ImdbResult(movie)
+                log.debug("Found IMDb item {}", result['imdb_id'])
+                return self.get_info(result['imdb_id'])
+
+    def get_info(self, imdb_id):
+        movie = AttrDict(self.imdb.get_title(imdb_id))
+        movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
+        movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
+        title_versions = self.imdb.get_title_versions(imdb_id)
+        movie.titles = {item["region"]: item["title"]
+                        for item in title_versions['alternateTitles']
+                        if "region" in item and "title" in item}
+        return ImdbResult(movie)
