@@ -41,7 +41,7 @@ def test_tv_specifier(title, path, specifier):
 
 def test_proper():
     tracks = {'general': "",
-              'video': "",
+              'video': dict(),
               'audio': "",
               'text': ["sub", "title"]}
 

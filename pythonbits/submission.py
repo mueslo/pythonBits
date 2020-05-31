@@ -276,9 +276,6 @@ class Submission(CachedRenderer, metaclass=RegisteringType):
 
                     new_value = rlinput("New (empty to cancel): ", val)
 
-                    if sys.version_info[0] == 2:  # PY2 compatibility
-                        new_value = new_value.decode('utf8')
-
                     if new_value:
                         if isinstance(val, bool):
                             string_true = {'true', 'True', 'y', 'yes'}

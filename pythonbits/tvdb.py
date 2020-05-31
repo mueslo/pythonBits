@@ -22,15 +22,18 @@ class TvdbResult(object):
 
         try:
             season_banners = self.show['_banners']['season']
-            best_banner = best_banner([banner for banner in season_banners['raw']
-                                       if banner['subKey'] == str(season_number)])
-            return season_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
+            best_banner = best_banner(
+                [banner for banner in season_banners['raw']
+                 if banner['subKey'] == str(season_number)])
+            return (season_banners[best_banner['resolution']]
+                    [best_banner['id']]['_bannerpath'])
         except (IndexError, KeyError):
             for key in ('poster', 'series', 'fanart'):
                 try:
                     series_banners = self.show['_banners'][key]
                     best_banner = best_banner(series_banners['raw'])
-                    return series_banners[best_banner['resolution']][best_banner['id']]['_bannerpath']
+                    return (series_banners[best_banner['resolution']]
+                            [best_banner['id']]['_bannerpath'])
                 except (IndexError, KeyError):
                     pass
         raise Exception('Unable to find cover')
@@ -61,8 +64,8 @@ class TvdbResult(object):
             summary['title'] = imdb_sum['title']
             # dict of international titles
             summary['titles'] = imdb_sum['titles']
-            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't include the
-            # year if there are multiple shows with the same name.
+            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
+            # include the year if there are multiple shows with the same name.
             if 'XWW' in summary['titles']:
                 summary['titles']['XWW'] = tvdb_title
 
@@ -110,7 +113,8 @@ class TvdbEpisode(TvdbResult):
                 'votes': self.episode['siteRatingCount'],
                 'episodesummary': self.episode['overview'],
                 'language': self.episode['language'],
-                'url': 'https://thetvdb.com/series/{}'.format(self.show['slug']),
+                'url': 'https://thetvdb.com/series/{}'.format(
+                    self.show['slug']),
                 'cover': self.banner(self.episode['seasonnumber'])})
         self.add_show_titles(summary)
         return summary

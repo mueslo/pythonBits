@@ -103,10 +103,6 @@ def parse_args():
     set_field['title_arg'] = args.title
     get_field = args.fields + args.fields_ex
 
-    if sys.version_info[0] == 2:  # PY2. Please die already.
-        for k, v in set_field.items():
-            set_field[k] = v.decode('utf8')
-
     return Category, set_field, get_field
 
 

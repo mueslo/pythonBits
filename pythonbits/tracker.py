@@ -2,6 +2,7 @@
 import requests
 import contextlib
 import re
+import time
 
 from . import __version__ as version, __title__ as title
 from .config import config
@@ -23,6 +24,8 @@ class Tracker():
     headers = {'User-Agent': '{}/{}'.format(title, version)}
 
     def _login(self, session, _tries=0):
+        maxtries = 10
+
         domain = config.get('Tracker', 'domain')
         login_url = "https://{}/login.php".format(domain)
         payload = {'username': config.get('Tracker', 'username'),
@@ -37,21 +40,29 @@ class Tracker():
             if 'id="loginform"' in resp.text:
                 raise TrackerException("Login failed")
             elif 'You are banned' in resp.text:
-                raise TrackerException("Login failed (login attempts exceeded)")
+                raise TrackerException(
+                    "Login failed (login attempts exceeded)")
             else:
                 # We encountered the login bug that sends you to "/" (which
                 # doesn't contain the login form) without logging you in
-                if _tries < 10:
-                    log.debug('Encountered login bug; trying again')
+                # todo: convert this to a retry decorator
+                if _tries < maxtries:
+                    backoff = min(10**_tries/1000, 16.)
+                    log.debug('Encountered login bug; trying again after '
+                              '{}s back-off'.format(backoff))
+                    time.sleep(backoff)
                     self._login(session, _tries=_tries+1)
                 else:
-                    log.debug('Encountered login bug; giving up after 10 login attempts')
+                    log.debug('Encountered login bug; '
+                              'giving up after '
+                              '{} login attempts'.format(_tries))
                     raise TrackerException("Login failed")
         elif 'logout.php' in resp.text:
             # Login successful, find and remember logout URL
             match = re.search(r"logout\.php\?auth=[0-9a-f]{32}", resp.text)
             if match:
-                self._logout_url = "https://{}/{}".format(domain, match.group(0))
+                self._logout_url = "https://{}/{}".format(
+                    domain, match.group(0))
             else:
                 raise TrackerException("Couldn't find logout URL")
         else:
@@ -90,7 +101,8 @@ class Tracker():
             resp.raise_for_status()
 
             # TODO: Catch this somehow:
-            # <p style="color: red;text-align:center;">You must enter at least one tag. Maximum length is 200 characters.</p>
+            # <p style="color: red;text-align:center;">You must enter at least
+            # one tag. Maximum length is 200 characters.</p>
 
             if resp.history:
                 # todo: check if url is good, might have been logged out
@@ -98,9 +110,10 @@ class Tracker():
                 return resp.url
             else:
                 log.error('Response: %s' % resp)
-                err_match = re.search(r''.join((r'(No torrent file uploaded.*?)',
-                                                re.escape(r'</p>'))),
-                                      resp.text)
+                err_match = re.search(r''.join(
+                        (r'(No torrent file uploaded.*?)',
+                         re.escape(r'</p>'))),
+                    resp.text)
                 if err_match:
                     log.error('Error: %s' % err_match.group(1))
                 else:

@@ -23,7 +23,7 @@ from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
-from .tracker import Tracker, TrackerException
+from .tracker import Tracker
 from .scene import is_scene_crc, query_scene_fname
 
 
@@ -249,7 +249,6 @@ class VideoSubmission(BbSubmission):
             return TvSpecifier(title, guess['season'],
                                guess.get('episode', None))
 
-
     @form_field('tags')
     def _render_tags(self):
         # todo: get episode-specific actors (from imdb?)
@@ -269,7 +268,8 @@ class VideoSubmission(BbSubmission):
         contained_files = []
         for dp, dns, fns in os.walk(self['path']):
             contained_files += [os.path.join(dp, fn) for fn in fns
-                                if os.path.getsize(os.path.join(dp, fn)) > 10 * 2**20]
+                                if (os.path.getsize(os.path.join(dp, fn))
+                                    > 10 * 2**20)]
         if len(contained_files) == 1:
             return contained_files[0]
 
@@ -359,16 +359,14 @@ class VideoSubmission(BbSubmission):
         #          TC, SDTV, DVD5, DVD9, HD-DVD
 
         # todo: replace with guess from self['guess']
-        if ('bluray' in self['path'].lower() or
-            'blu-ray' in self['path'].lower()):
-            return 'BluRay'
-            # todo: 3d
-        elif ('web-dl' in self['path'].lower() or
-              'webdl' in self['path'].lower()):
+        regpath = self['path'].lower().strip('-')
+        if 'bluray' in regpath:
+            return 'BluRay'  # todo: 3d
+        elif 'webdl' in regpath:
             return 'WEB-DL'
-        elif 'webrip' in self['path'].lower():
+        elif 'webrip' in regpath:
             return 'WebRip'
-        elif 'hdtv' in self['path'].lower():
+        elif 'hdtv' in regpath:
             return 'HDTV'
         # elif 'dvdscr' in self['path'].lower():
         #    markers['source'] = 'DVDSCR'
@@ -393,14 +391,15 @@ class VideoSubmission(BbSubmission):
         elif general['format'] == 'BDAV':
             return 'm2ts'
         else:
-            raise Exception("Unknown or unsupported container: %r" % (general.format,))
+            raise RuntimeError("Unknown or unsupported container '{}'".format(
+                general.format))
 
     def _render_video_codec(self):
         video_track = self['tracks']['video']
         # norm_bitrate = (float(bit_rate) /
         #     (video_track.width*video_track.height))
         if (video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC', 'avc1') or
-            video_track['format'] == 'AVC'):
+                video_track['format'] == 'AVC'):
             if 'x264' in video_track.get('writing_library', ''):
                 return 'x264'
             else:
@@ -419,14 +418,15 @@ class VideoSubmission(BbSubmission):
         elif video_track['format'] == 'MPEG Video':
             return 'MPEG-2'
         else:
-            raise Exception("Unknown or unsupported video codec: %r, %r" %
-                            (video_track.get('codec_id', '[NO CODEC]'),
-                             video_track.get('writing_library', '[NO LIBRARY]')))
+            msg = "Unknown or unsupported video codec '{}' ({})".format(
+                            video_track.get('codec_id'),
+                            video_track.get('writing_library'))
+            raise RuntimeError(msg)
 
     def _render_audio_codec(self):
         audio_track = self['tracks']['audio'][0]  # main audio track
         if (audio_track.get('codec_id_hint') == 'MP3' or
-            audio_track['codec_id'] in ('MPA1L3', '55')):
+                audio_track['codec_id'] in ('MPA1L3', '55')):
             return 'MP3'
         elif audio_track['codec_id'].lower().startswith('mp4a'):
             return 'AAC'
@@ -439,7 +439,8 @@ class VideoSubmission(BbSubmission):
 
         if audio_track['codec_id'].startswith('A_'):
             audio_track['codec_id'] = audio_track['codec_id'][2:]
-        audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3', 'TRUEHD', 'PCM')
+        audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3', 'TRUEHD',
+                        'PCM')
         for c in audio_codecs:
             if audio_track['codec_id'].startswith(c):
                 c = c.replace('EAC3', 'AC-3') \
@@ -447,11 +448,12 @@ class VideoSubmission(BbSubmission):
                      .replace('TRUEHD', 'True-HD')
                 return c
 
-        raise Exception("Unknown or unsupported audio codec: %r" %
-                        (audio_track['codec_id'],))
+        raise ValueError("Unknown or unsupported audio codec '{}'".format(
+            audio_track['codec_id']))
 
     def _render_resolution(self):
-        resolutions = ('2160p', '1080p', '720p', '1080i', '720i', '480p', '480i', 'SD')
+        resolutions = ('2160p', '1080p', '720p', '1080i', '720i',
+                       '480p', '480i', 'SD')
 
         # todo: replace with regex?
         # todo: compare result with mediainfo
@@ -594,7 +596,7 @@ class TvSubmission(VideoSubmission):
             [b]Writer(s)[/b]: {writers}
             [b]Content rating[/b]: {contentrating}""").format(
                 title=s['episode_title'],
-                links=", ".join(bb.link(*l) for l in links),
+                links=", ".join(bb.link(*l) for l in links),  # noqa: E741
                 air_date=s['air_date'],
                 network=s['network'],
                 rating=rating_bb,
@@ -713,7 +715,7 @@ class MovieSubmission(VideoSubmission):
         [b]Director(s)[/b]: {directors}
         [b]Writer(s)[/b]: {writers}
         [b]Cast[/b]: {cast}""").format(
-            links=", ".join(bb.link(*l) for l in links),
+            links=", ".join(bb.link(*l) for l in links),  # noqa: E741
             name=summary['name'],
             mpaa=summary['mpaa'],
             rating=bb.format_rating(summary['rating'][0],
