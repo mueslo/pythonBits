@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *  # noqa: F401, F403
-from future.utils import with_metaclass
-
 import os
 import sys
 import re
@@ -191,7 +186,7 @@ def toposort(depends_on):
         return sorted_funcs
 
 
-class Submission(with_metaclass(RegisteringType, CachedRenderer)):
+class Submission(CachedRenderer, metaclass=RegisteringType):
     def __repr__(self):
         return "\n".join(
             ["Field {k}:\n\t{v}\n".format(k=k, v=v)

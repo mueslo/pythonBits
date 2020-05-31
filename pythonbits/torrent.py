@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *  # noqa: F401, F403
-
 import os
 import re
 import subprocess
 import math
 import tempfile
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 from . import _release as release
 from .config import config

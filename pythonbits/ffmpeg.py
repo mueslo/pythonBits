@@ -5,11 +5,6 @@ ffmpeg.py
 Created by Ichabond on 2012-07-01.
 Copyright (c) 2012 Baconseed. All rights reserved.
 """
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *  # noqa: F401, F403
-
-
 import os
 import subprocess
 import re

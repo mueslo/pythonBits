@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *  # noqa: F401, F403
-
 import os
 import sys
 import shutil
 import re
 import subprocess
-import time
 
 from textwrap import dedent
 from collections import namedtuple, abc
@@ -254,7 +249,6 @@ class VideoSubmission(BbSubmission):
             return TvSpecifier(title, guess['season'],
                                guess.get('episode', None))
 
-        raise Exception('Unable to guess TV show')
 
     @form_field('tags')
     def _render_tags(self):

@@ -1,40 +1,24 @@
-This is a sloppy fork of [pythonBits](https://github.com/mueslo/pythonbits) that
-fixes compatibility issues with recent tools (e.g. mediainfo and tvdb). It's not
-a proper fork, I just fix bugs as I find them.
+# pythonBits
+[![GitHub release](https://img.shields.io/github/release/mueslo/pythonbits.svg)](https://GitHub.com/mueslo/pythonBits/releases/)
+[![PyPI version](https://img.shields.io/pypi/v/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
+[![GitHub commits since release](https://img.shields.io/github/commits-since/mueslo/pythonbits/latest.svg)](https://github.com/mueslo/pythonBits/commits/master)
+[![GitHub license](https://img.shields.io/github/license/mueslo/pythonbits.svg)](https://github.com/mueslo/pythonbits/blob/master/LICENSE)
+[![Build Status](https://img.shields.io/travis/mueslo/pythonBits.svg)](https://travis-ci.org/mueslo/pythonBits)
+#### A Python description generator for movies and TV shows
 
-Everything should work like it does with mueslo/pythonBits, except for the
-installation.
+## Install
+1. (Optional, highly recommended) Set up a virtualenv to avoid polluting your system with dependencies.
+  - with virtualenvwrapper: `mkvirtualenv pythonbits`
+    - activate the virtualenv with `workon pythonbits`
+2. Install pythonBits in one of the following ways
+  - install via `pip install pythonbits`
+  - clone and `pip install .`
+  - (dev) clone, install requirements from setup.py and run as `python -m pythonbits` instead of `pythonbits`
+3. Install mediainfo, ffmpeg and mktorrent>=1.1 such that they are accessible for pythonBits
+  - you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
 
-## Installation
-
-I recommend [pipx](https://pipxproject.github.io/pipx/), which installs Python
-packages with all dependencies in a virtual environment in
-`~/.local/pipx/<package name>` and thus makes it very easy to uninstall them. To
-uninstall pythonBits with pip, you need to do something like this:
-
-```sh
-pip3 uninstall -y appdirs attrdict attrs babelfish boto certifi chardet configparser diskcache future guessit idna imdbpie Logbook pip pkg-resources progressbar2 pymediainfo pyreadline python-dateutil python-utils pythonbits rebulk requests requests-cache setuptools six trans tvdb-api Unidecode urllib3 wheel
-```
-
-But this might break other Python packages that share dependencies with
-pythonBits. This issue doesn't exist with pipx:
-
-```sh
-$ # If possible, install pipx with your package manager, otherwise use pip
-$ pip3 install --user pipx
-$ # Install pythonBits
-$ pipx install --spec git+https://github.com/plotski/pythonBits.git pythonBits
-$ # You must also specify the git repository when upgrading
-$ pipx upgrade --spec git+https://github.com/plotski/pythonBits.git pythonBits
-$ # Uninstalling is straightforward
-$ pipx uninstall pythonBits
-```
-
-If cannot use pipx for some reason, you can also use plain pip, of course.
-
-```sh
-$ pip3 install --upgrade --user git+https://github.com/plotski/pythonBits.git
-```
+If you don't want to use a virtualenv but keep system pollution with PyPI packages to a minimum, install via `pip install --user`. For more information, visit [this site](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/).
 
 ## Usage
 ```
