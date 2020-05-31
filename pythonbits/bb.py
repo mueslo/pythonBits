@@ -213,44 +213,7 @@ class VideoSubmission(BbSubmission):
     default_fields = BbSubmission.default_fields
 
     def _render_guess(self):
-        if isinstance(self, TvSubmission):
-            type = 'episode'
-            guess = guessit.guessit(self['path'], options=('--type', 'episode'))
-        elif isinstance(self, MovieSubmission):
-            guess = guessit.guessit(self['path'], options=('--type', 'movie'))
-        else:
-            guess = guessit.guessit(self['path'])
-        return dict(guess)
-
-    def _render_confirmed_guess(self):
-        # If there are any inconsistencies in the information from guess it
-        # (e.g. type="episode" but no "season"), ask the user.
-        guess = self['guess']
-        print('Confirm by pressing enter or type in correct values:')
-
-        # Confirm detected title
-        guess['title'] = input('Guessed title: %s > ' % (guess['title'],)) or guess['title']
-
-        # Confirm detected type (movie or episode)
-        confirmed_type = None
-        while confirmed_type not in ('movie', 'episode'):
-            user_type = 'tv' if guess['type'] == 'episode' else guess['type']
-            confirmed_type = (input('Guessed type ("movie" or "tv"): %s > ' % (user_type,))
-                              or guess['type'])
-            confirmed_type = 'episode' if confirmed_type == 'tv' else confirmed_type
-        guess['type'] = confirmed_type
-
-        # Get missing season if applicable
-        if guess['type'] == 'episode' and 'season' not in guess:
-            while True:
-                try:
-                    guess['season'] = int(input('Season > '))
-                except (ValueError, TypeError):
-                    pass
-                else:
-                    break
-
-        return guess
+        return dict(guessit.guessit(self['path']))
 
     def subcategory(self):
         if type(self) == VideoSubmission:
@@ -282,18 +245,16 @@ class VideoSubmission(BbSubmission):
 
             # todo: test tv show name from title_arg, but episode from filename
 
-        # Try autodetection first, fall back to user prompts if values look fishy
-        for key in ('guess', 'confirmed_guess'):
-            guess = self.__getitem__(key)
-            log.debug('Guess: %s' % (guess,))
-            if guess['type'] == 'episode':
-                if self['title_arg']:
-                    title = self['title_arg']
-                else:
-                    title = guess['title']
-                if 'season' in guess:
-                    return TvSpecifier(title, guess['season'],
-                                       guess.get('episode', None))
+        guess = self['guess']
+        if guess['type'] == 'episode':
+            if self['title_arg']:
+                title = self['title_arg']
+            else:
+                title = guess['title']
+            return TvSpecifier(title, guess['season'],
+                               guess.get('episode', None))
+
+        raise Exception('Unable to guess TV show')
 
     @form_field('tags')
     def _render_tags(self):
@@ -572,6 +533,10 @@ class TvSubmission(VideoSubmission):
         'form_description': ('desc', 'text'),
         }
 
+    def _render_guess(self):
+        return dict(guessit.guessit(self['path'],
+                                    options=('--type', 'episode')))
+
     def _render_search_title(self):
         return self['tv_specifier'].title
 
@@ -699,6 +664,10 @@ class MovieSubmission(VideoSubmission):
         'mediainfo': ('release_desc', 'text'),
         'screenshots': (lambda i, v: 'screenshot' + str(i + 1), 'text'),
         }
+
+    def _render_guess(self):
+        return dict(guessit.guessit(self['path'],
+                                    options=('--type', 'movie')))
 
     def _render_search_title(self):
         if self['title_arg']:
