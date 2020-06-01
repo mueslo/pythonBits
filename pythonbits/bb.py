@@ -24,7 +24,7 @@ from . import templating as bb
 from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
 from .tracker import Tracker
-from .scene import is_scene_crc, query_scene_fname
+from . import scene
 
 
 def format_tag(tag):
@@ -42,6 +42,17 @@ def format_choices(choices):
         str(num) + ": " + value
         for num, value in enumerate(choices)
     ])
+
+def prompt_yesno(question, default):
+    while True:
+        choices = '[Y/n]' if default else '[y/N]'
+        choice = input('%s %s ' % (question, choices))
+        if not choice:
+            return default
+        elif choice.casefold() == 'y':
+            return True
+        elif choice.casefold() == 'n':
+            return False
 
 
 class BbSubmission(Submission):
@@ -76,28 +87,48 @@ class BbSubmission(Submission):
         t = Tracker()
         return t.upload(**payload)
 
+    # TODO: These should be detected as scene releases and produce an error message
+    #       because they must be in a directory named after the release:
+
+    # voa-the_omega_man_x264_bluray.mkv -> The.Omega.Man.1971.1080p.BluRay.x264-VOA/voa-the_omega_man_x264_bluray.mkv
+    # hd1080-wtl.mkv -> Walk.the.Line.Extended.Cut.2005.1080p.BluRay.x264-HD1080/hd1080-wtl.mkv
+
     @form_field('scene', 'checkbox')
     def _render_scene(self):
-        # todo: if path is directory, choose file for crc
-        path = os.path.normpath(self['path'])  # removes trailing slash
-        try:
-            try:
-                if os.path.exists(path) and not os.path.isdir(path):
-                    return is_scene_crc(path)
-            except KeyboardInterrupt:
-                sys.stdout.write('...skipped\n')
+        def ask_user():
+            return prompt_yesno('Is this a scene release?', default=False)
 
-            query_scene_fname(path)
-        except HTTPError as e:
-            log.notice(e)
+        def handle_error(filepath, error):
+            log.error(str(error))
 
-        while True:
-            choice = input('Is this a scene release? [y/N] ')
+        path = self['path']
+        modified = scene.check_integrity(path, on_error=handle_error)
+        # modified is True, False or None (unknown)
+        if modified is False:
+            return True
+        elif modified is True:
+            if prompt_yesno('Abort?', default=True):
+                # The return statement is there because sys.exit() is mocked in tests.
+                log.debug('Aborting')
+                return sys.exit(1)
+            else:
+                log.debug('Asking user')
+                return ask_user()
 
-            if not choice or choice.lower() == 'n':
-                return False
-            elif choice.lower() == 'y':
-                return True
+        # Check if release was renamed
+        release_names = scene.release_names(path)
+        if not release_names:
+            return False
+        elif release_names:
+            print('Existing releases:')
+            for release_name in release_names:
+                print('  * {}'.format(release_name))
+            log.error('This release was very likely modified and should not be uploaded like this.')
+            if prompt_yesno('Abort?', default=True):
+                # The return statement is there because sys.exit() is mocked in tests.
+                return sys.exit(1)
+            else:
+                return ask_user()
 
     def data_method(self, source, target):
         def copy(source, target):

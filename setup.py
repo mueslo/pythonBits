@@ -41,6 +41,7 @@ setup(
         "logbook~=1.2",
         "pyreadline~=2.1",
         "progressbar2~=3.38",
+        "beautifulsoup4~=4.9",
     ],
     python_requires=">=3.5,<4.0",
     tests_require=['tox', 'pytest', 'flake8'],
