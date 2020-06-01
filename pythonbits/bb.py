@@ -861,37 +861,24 @@ class MusicSubmission(AudioSubmission):
     default_fields = (AudioSubmission.default_fields + (
         'remaster', 'remaster_year', 'remaster_title'))
     _form_type = 'Music'
-    # # submit
-    # # type
-    # # artist
-    # # title
-    #  remaster_true (checkbox, special edition info) (!?!?!)
-    #   -> remaster_year
-    #   -> remaster_title (optional)
-    # # year
-    # # scene (checkbox)
-    # # format (select, options: MP3, FLAC, Ogg, AAC, DTS 5.1 Audio,
-    #                            24bit FLAC)
-    # # bitrate (select, options: 192, V2 (VBR), 256, V0 (VBR), 320, Lossless,
-    #                             Other)
-    # # media (select, options: CD, DVD, Vinyl, Soundboard, DAT, Web)
-    # # image
-    #  album_desc (!!!)
-    # # release_desc (optional)
 
     @form_field('remaster_true', 'checkbox')
     def _render_remaster(self):
         # todo user input function/module to reduce boilerplating
         return bool(
-            input('Is this a special/remastered edition?').lower() != 'n')
+            input('Is this a special/remastered edition? [y/N] ').lower()
+            != 'n')
 
     @form_field('remaster_year')
     def _render_remaster_year(self):
-        pass
+        if self['remaster']:
+            return input('Please enter the remaster year: ')
 
     @form_field('remaster_title')
     def _render_remaster_title(self):
-        pass
+        if self['remaster']:
+            return (input('Please enter the remaster title (optional): ')
+                    or None)
 
     @form_field('format')
     def _render_format(self):
@@ -941,6 +928,8 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('media')
     def _render_media(self):
+        choices = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'DAT', 'Web']
+
         media = self['summary']['media']
         if len(media) > 1:
             log.debug(media)
@@ -1040,7 +1029,10 @@ class MusicSubmission(AudioSubmission):
         #  - scan for mb tags
         print('rg', rg)
         print('r', release)
-        # todo: assert # of tracks equal
+
+        # todo: assert release group matches!
+        #  e.g.: assert # of tracks equal
+        #  and if not, generate basic info from release group only
 
         return release, rg
 
