@@ -4,7 +4,7 @@
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/pythonbits.svg)](https://pypi.python.org/pypi/pythonbits/)
 [![GitHub commits since release](https://img.shields.io/github/commits-since/mueslo/pythonbits/latest.svg)](https://github.com/mueslo/pythonBits/commits/master)
 [![GitHub license](https://img.shields.io/github/license/mueslo/pythonbits.svg)](https://github.com/mueslo/pythonbits/blob/master/LICENSE)
-[![Build Status](https://img.shields.io/travis/mueslo/pythonBits.svg)](https://travis-ci.org/mueslo/pythonBits)
+[![Build Status](https://img.shields.io/travis/mueslo/pythonBits/master.svg)](https://travis-ci.org/mueslo/pythonBits)
 #### A Python description generator for movies and TV shows
 
 ## Install
@@ -14,6 +14,7 @@
 2. Install pythonBits in one of the following ways
   - install via `pip install pythonbits`
   - clone and `pip install .`
+  - pipx
   - (dev) clone, install requirements from setup.py and run as `python -m pythonbits` instead of `pythonbits`
 3. Install mediainfo, ffmpeg and mktorrent>=1.1 such that they are accessible for pythonBits
   - you can also manually specify things such as the torrent file or screenshots, this will prevent the programs from being called, removing the dependency
