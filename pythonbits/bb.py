@@ -246,8 +246,13 @@ class VideoSubmission(BbSubmission):
                 title = self['title_arg']
             else:
                 title = guess['title']
-            return TvSpecifier(title, guess['season'],
-                               guess.get('episode', None))
+            try:
+                season = guess['season']
+            except KeyError:
+                raise Exception('Could not find a season in the path name. '
+                                'Try specifying it in the TITLE argument, '
+                                'e.g. "Some TV Show S02" for a season 2 pack')
+            return TvSpecifier(title, season, guess.get('episode', None))
 
     @form_field('tags')
     def _render_tags(self):
