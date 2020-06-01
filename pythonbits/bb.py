@@ -1042,7 +1042,7 @@ class MusicSubmission(AudioSubmission):
         return {
             'artist': rg['artist-credit-phrase'],
             'title': rg['title'],
-            'year': release['release-event-list'][0]['date'][:4],
+            'year': rg['first-release-date'][:4],
             'tags': [t['name'] for t in
                      sorted(rg.get('tag-list', []),
                             key=lambda t: int(t['count']))][-5:],
