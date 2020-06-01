@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # pylint: disable=invalid-name
 """
 Upload image file or image URL to the ptpimg.me image hosting.
 
-Borrowed from https://github.com/theirix/ptpimg-uploader/blob/master/ptpimg_uploader.py
+Borrowed from
+https://github.com/theirix/ptpimg-uploader/blob/master/ptpimg_uploader.py
 
 """
 
@@ -11,7 +12,6 @@ import contextlib
 import mimetypes
 import os
 from io import BytesIO
-from sys import stdout
 from textwrap import dedent
 
 import requests
@@ -24,9 +24,9 @@ mimetypes.init()
 config.register(
     'PtpImg', 'api_key',
     dedent("""\
-    To find your PTPImg API key, login to https://ptpimg.me, 
-    open the page source (i.e. "View->Developer->View source" menu in Chrome), 
-    find the string api_key and copy the hexademical string from the value attribute.
+    To find your PTPImg API key, login to https://ptpimg.me, open the page
+    source (i.e. "View->Developer->View source" menu in Chrome), find the
+    string api_key and copy the hexademical string from the value attribute.
     Your API key should look like 43fe0fee-f935-4084-8a38-3e632b0be68c.
     3. Enter the API Key below
     API Key"""))
@@ -109,7 +109,8 @@ class PtpImgUploader:
                 resp = requests.get(url, timeout=self.timeout)
                 if resp.status_code != requests.codes.ok:
                     raise ValueError(
-                        'Cannot fetch url {} with error {}'.format(url, resp.status_code))
+                        'Cannot fetch url {} with error {}'.format(
+                            url, resp.status_code))
 
                 mime_type = resp.headers['content-type']
                 if not mime_type or mime_type.split('/')[0] != 'image':
