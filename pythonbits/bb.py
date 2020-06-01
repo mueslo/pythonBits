@@ -18,7 +18,7 @@ from .logging import log
 from .torrent import make_torrent
 from . import tvdb
 from . import imdb
-from .imgur import ImgurUploader
+from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize,
@@ -292,7 +292,7 @@ class VideoSubmission(BbSubmission):
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        return ImgurUploader().upload(self['screenshots'])
+        return imagehosting.upload_files(self['screenshots'])
 
     def _render_mediainfo(self):
         try:
@@ -518,7 +518,7 @@ class VideoSubmission(BbSubmission):
         return self['summary']['cover']
 
     def _finalize_cover(self):
-        return ImgurUploader().upload(self['cover'])
+        return imagehosting.upload_urls(self['cover'])
 
 
 class TvSubmission(VideoSubmission):
