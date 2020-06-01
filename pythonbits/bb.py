@@ -917,30 +917,40 @@ class MusicSubmission(AudioSubmission):
         format = self['format']
         tags = self['tags']
         if format == 'MP3':
-            if tags['encoder_settings'] == '-V 0':
+            if '-V 0' in tags['encoder_settings']:
                 return 'V0(VBR)'
-            elif tags['encoder_settings'] == '-V 2':
+            elif '-V 2' in tags['encoder_settings']:
                 return 'V2(VBR)'
-            elif tags['bitrate'] == 192000:
-                return '192'
-            elif tags['bitrate'] == 256000:
-                return '256'
-            elif tags['bitrate'] == 320000:
-                return '320'
+            elif tags['bitrate_mode'] in [mutagen.mp3.BitrateMode.CBR,
+                                          mutagen.mp3.BitrateMode.UNKNOWN]:
+                if abs(tags['bitrate']-192000) < 100:
+                    return '192'
+                elif abs(tags['bitrate']-256000) < 100:
+                    return '256'
+                elif abs(tags['bitrate']-320000) < 100:
+                    return '320'
 
         elif 'FLAC' in format:
             return 'Lossless'
 
-        raise Exception('Unrecognized format/bitrate')
+        log.debug("format:{}\ntags:{}", format, tags)
+        raise RuntimeError('Unrecognized format/bitrate')
 
     @form_field('media')
     def _render_media(self):
         media = self['summary']['media']
+        if len(media) > 1:
+            log.debug(media)
+        media = media[0]
 
-        if len(media) == 1:
-            return media[0]
+        if media == 'CD':
+            return media
+        elif media == 'Digital Media':
+            return 'Web'
+        elif "vinyl" in media.lower():
+            return 'Vinyl'
 
-        raise Exception('Handle this')
+        raise NotImplementedError(media)
 
     def _render_mediainfo_path(self):
         assert os.path.isdir(self['path'])
@@ -953,41 +963,56 @@ class MusicSubmission(AudioSubmission):
                     return full_path
         raise Exception('No media file found')
 
-    def _render_songlist(self):
-        # from musicbrainz release
+    def _render_tracklist(self):
+        release, _ = self['release']
+        full_tracklist = []
+        mediumlist = release['medium-list']
 
-        return None
+        for medium in mediumlist:
+            log.debug('medium {}', medium.keys())
+            if len(mediumlist) > 1:
+                title = "{} {}".format(medium['format'], medium['position'])
+                if 'title' in medium:
+                    title += ": {}".format(medium['title'])
+            else:
+                title = medium['format']
+
+            tracklist = [
+                (t['number'], t['recording']['title'],
+                timedelta(milliseconds=int(t['recording']['length'])))
+                for t in medium['track-list']]
+            full_tracklist.append((title, tracklist))
+
+        return full_tracklist
 
     def _render_tags(self):
         tags = mutagen.File(self['mediainfo_path'], easy=True)
         # if type(tags) == mutagen.mp3.MP3:
         #     tags = mutagen.mp3.MP3(self['mediainfo_path'], ID3=EasyID3)
 
-        print(dir(tags.info))
+        print('tagsdir', dir(tags.info))
         try:
-            print(tags.info.encoder_settings)
+            print('encoder', tags.info.encoder_settings)
         except AttributeError:
             pass
-        log.debug(type(tags))
-        log.debug(tags.pprint())
+        log.debug('type tags', type(tags))
+        log.debug('tags', tags.pprint())
 
         return {'artist': tags.get('albumartist', tags['artist'])[0],
                 'title': tags['album'][0],
                 'rid': tags.get('musicbrainz_albumid', [None])[0],
                 'format': type(tags).__name__,
                 'bitrate': tags.info.bitrate,
+                'bitrate_mode': tags.info.bitrate_mode,
                 'bits_per_sample': getattr(tags.info, 'bits_per_sample',
                                            None),
                 'encoder_settings': getattr(tags.info, 'encoder_settings',
                                             None),
                 }
 
-    def _render_summary(self):
-        # identify self:
-        #  - num tracks todo
-        #  - scan for mb tags
+    def _render_release(self):
         tags = self['tags']
-        print(tags)
+        #print(tags)
         if tags['rid']:
             log.info('Found MusicBrainz release in tags')
             release = mb.musicbrainzngs.get_release_by_id(
@@ -1006,17 +1031,17 @@ class MusicSubmission(AudioSubmission):
                 query = tags['title']
             rg, release = mb.find_release(query, artist=query_artist)
 
-        print('rg', rg)
-        print('r', release)
+        # identify self:
+        #  - num tracks todo
+        #  - scan for mb tags
+        #print('rg', rg)
+        #print('r', release)
 
-        for medium in release['medium-list']:
-            for track in medium['track-list']:
-                print(track['number'],
-                      track['recording']['title'],
-                      timedelta(milliseconds=int(
-                          track['recording']['length'])))
+        return release, rg
 
-        print(rg.keys())
+    def _render_summary(self):
+        release, rg = self['release']
+
         return {
             'artist': rg['artist-credit-phrase'],
             'title': rg['title'],
@@ -1042,11 +1067,42 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('tags')
     def _render_form_tags(self):
+        _defaults = ['acoustic','alternative','ambient','blues','classic.rock',
+                     'classical','country','dance','dubstep','electronic',
+                     'experimental','folk','funk','hardcore','heavy.metal',
+                     'hip.hop','indie','indie.pop','instrumental','jazz',
+                     'metal','pop','post.hardcore','post.rock',
+                     'progressive.rock','psychedelic','punk','reggae','rock',
+                     'soul','trance','trip.hop']
+
         return self['summary']['tags']
+
+    def _render_section_information(self):
+        pass
+
+    def _render_section_tracklist(self):
+        s = ""
+        for title, tracks in self['tracklist']:
+            s += title
+            s += "[table]"
+            for i, tt, l in tracks:
+                s += "[tr]"
+                s += "[td]" + i + "[/td]"
+                s += "[td]" + tt + "[/td]"
+                s += "[td]" + str(l) + "[/td]"
+                s += "[/tr]"
+            s += "[/table]"
+        return s
 
     @form_field('album_desc')
     def _render_description(self):
-        return 'album description'
+        sections = [("Information", self['section_information']),
+                    ("Track list", self['section_tracklist'])]
+
+        description = "\n".join(bb.section(*s) for s in sections)
+        description += bb.release
+
+        return description
 
     @form_field('artist')
     def _render_artist(self):
