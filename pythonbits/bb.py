@@ -135,7 +135,10 @@ class BbSubmission(Submission):
                     'Choices are {}'.format(pref_method,
                                             list(method_map.keys())))
             try:
-                category = self._category
+                # todo fix this, proper category mapping,
+                #  e.g. 'music' <-> bb.MusicSubmission
+                category = ('music' if isinstance(self, AudioSubmission)
+                            else 'movie')
             except AttributeError:
                 log.warning("{} does not have a category attribute",
                             type(self).__name__)
@@ -1003,7 +1006,7 @@ class MusicSubmission(AudioSubmission):
                 'rid': tags.get('musicbrainz_albumid', [None])[0],
                 'format': type(tags).__name__,
                 'bitrate': tags.info.bitrate,
-                'bitrate_mode': tags.info.bitrate_mode,
+                'bitrate_mode': getattr(tags.info, 'bitrate_mode', None),
                 'bits_per_sample': getattr(tags.info, 'bits_per_sample',
                                            None),
                 'encoder_settings': getattr(tags.info, 'encoder_settings',
@@ -1017,7 +1020,8 @@ class MusicSubmission(AudioSubmission):
             log.info('Found MusicBrainz release in tags')
             release = mb.musicbrainzngs.get_release_by_id(
                 tags['rid'],
-                includes=['release-groups', 'media', 'recordings'])['release']
+                includes=['release-groups', 'media', 'recordings',
+                          'url-rels',])['release']
             rg = mb.musicbrainzngs.get_release_group_by_id(
                 release['release-group']['id'],
                 includes=['tags', 'artist-credits'])['release-group']
@@ -1034,8 +1038,9 @@ class MusicSubmission(AudioSubmission):
         # identify self:
         #  - num tracks todo
         #  - scan for mb tags
-        #print('rg', rg)
-        #print('r', release)
+        print('rg', rg)
+        print('r', release)
+        # todo: assert # of tracks equal
 
         return release, rg
 
@@ -1067,37 +1072,75 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('tags')
     def _render_form_tags(self):
-        _defaults = ['acoustic','alternative','ambient','blues','classic.rock',
-                     'classical','country','dance','dubstep','electronic',
-                     'experimental','folk','funk','hardcore','heavy.metal',
-                     'hip.hop','indie','indie.pop','instrumental','jazz',
-                     'metal','pop','post.hardcore','post.rock',
-                     'progressive.rock','psychedelic','punk','reggae','rock',
-                     'soul','trance','trip.hop']
-
-        return self['summary']['tags']
+        _defaults = ['acoustic', 'alternative', 'ambient', 'blues',
+                     'classic.rock', 'classical', 'country', 'dance',
+                     'dubstep', 'electronic', 'experimental', 'folk', 'funk',
+                     'hardcore', 'heavy.metal', 'hip.hop', 'indie',
+                     'indie.pop', 'instrumental', 'jazz', 'metal', 'pop',
+                     'post.hardcore', 'post.rock', 'progressive.rock',
+                     'psychedelic', 'punk', 'reggae', 'rock', 'soul', 'trance',
+                     'trip.hop']
+        tags = self['summary']['tags']
+        return list(set(format_tag(tag) for tag in tags))
 
     def _render_section_information(self):
-        pass
+        release, rg = self['release']
+        urls = release['url-relation-list']
+        return dedent("""\
+                [b]Title[/b]: {title} ({links})
+                [b]Artist(s)[/b]: {artist}
+                [b]MusicBrainz[/b]: [url]{releasegroup}[/url]
+                [b]Type[/b]: {type}
+                [b]Original release[/b]: {firstrel}""").format(
+            title=rg['title'],
+            artist=rg['artist-credit-phrase'],
+            links=", ".join(bb.link(u['type'], u['target']) for u in urls),
+            releasegroup="https://musicbrainz.org/release-group/" + rg['id'],
+            type=rg['type'],
+            firstrel=rg['first-release-date'],
+            )
 
     def _render_section_tracklist(self):
         s = ""
         for title, tracks in self['tracklist']:
             s += title
-            s += "[table]"
-            for i, tt, l in tracks:
-                s += "[tr]"
-                s += "[td]" + i + "[/td]"
-                s += "[td]" + tt + "[/td]"
-                s += "[td]" + str(l) + "[/td]"
-                s += "[/tr]"
-            s += "[/table]"
+            s += bb.table("".join(bb.tr(bb.td(i) +
+                                        bb.td(tt) +
+                                        bb.td(str(l).split(".")[0]))
+                                  for i, tt, l in tracks))
+
         return s
 
     @form_field('album_desc')
     def _render_description(self):
-        sections = [("Information", self['section_information']),
+        sections = [("Information", self['section_information']),]
+
+        description = "\n".join(bb.section(*s) for s in sections)
+        description += bb.release
+
+        return description
+
+    @form_field('release_desc')
+    def _render_release_desc(self):
+        release, rg = self['release']
+        tags = self['tags']
+        s = dedent("""\
+                [b]MusicBrainz[/b]: [url]{release}[/url]
+                [b]Status[/b]: {status}
+                [b]Release[/b]: {thisrel} ({country})""").format(
+            release="https://musicbrainz.org/release/" + release['id'],
+            status=release['status'],
+            thisrel=release['date'],
+            country=release['country'],
+            )
+
+        if tags['encoder_settings']:
+            s += "\n[b]Encoder settings[/b]: " + tags['encoder_settings']
+
+
+        sections = [("Release Information", s),
                     ("Track list", self['section_tracklist'])]
+
 
         description = "\n".join(bb.section(*s) for s in sections)
         description += bb.release
@@ -1111,3 +1154,7 @@ class MusicSubmission(AudioSubmission):
     @form_field('title')
     def _render_title(self):
         return self['summary']['title']
+
+    @form_field('scene', 'checkbox')
+    def _render_scene(self):
+        return False
