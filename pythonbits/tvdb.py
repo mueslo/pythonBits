@@ -51,10 +51,10 @@ class TvdbResult(object):
             'imdb_id': self.show['imdbId'],
         }
 
-    def add_show_titles(self, summary):
+    def add_show_titles(self, imdb_id, summary):
         i = imdb.IMDB()
         try:
-            imdb_info = i.get_info(summary['imdb_id'])
+            imdb_info = i.get_info(imdb_id)
         except Exception:
             summary['titles'] = {}
         else:
@@ -92,13 +92,14 @@ class TvdbSeason(TvdbResult):
         s['cover'] = self.banner(season_number)
         s['season'] = season_number
         s['imdb_id'] = self.show['imdbId']
-        self.add_show_titles(s)
+        self.add_show_titles(s['imdb_id'], s)
         return s
 
 
 class TvdbEpisode(TvdbResult):
     def summary(self):
         summary = super(TvdbEpisode, self).summary()
+        imdb_show_id = summary['imdb_id']
         summary.update(**{
                 'season': self.episode['airedSeason'],
                 'episode': self.episode['episodenumber'],
@@ -116,7 +117,7 @@ class TvdbEpisode(TvdbResult):
                 'url': 'https://thetvdb.com/series/{}'.format(
                     self.show['slug']),
                 'cover': self.banner(self.episode['seasonnumber'])})
-        self.add_show_titles(summary)
+        self.add_show_titles(imdb_show_id, summary)
         return summary
 
 
