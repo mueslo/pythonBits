@@ -560,7 +560,26 @@ class TvSubmission(VideoSubmission):
     def _render_summary(self):
         t = tvdb.TVDB()
         result = t.search(self['tv_specifier'])
-        return result.summary()
+        summary = result.summary()
+
+        try:
+            imdb_id = result.show['imdbId']
+            i = imdb.IMDB()
+            imdb_info = i.get_info(imdb_id)
+        except Exception:
+            summary['titles'] = {}
+        else:
+            imdb_sum = imdb_info.summary()
+            tvdb_title = summary['title']
+            # Original title
+            summary['title'] = imdb_sum['title']
+            # dict of international titles
+            summary['titles'] = imdb_sum['titles']
+            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
+            # include the year if there are multiple shows with the same name.
+            if 'XWW' in summary['titles']:
+                summary['titles']['XWW'] = tvdb_title
+        return summary
 
     def _render_section_description(self):
         summary = self['summary']

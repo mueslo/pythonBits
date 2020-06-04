@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import tvdb_api
-from . import imdb
 
 
 class TvdbResult(object):
@@ -51,24 +50,6 @@ class TvdbResult(object):
             'imdb_id': self.show['imdbId'],
         }
 
-    def add_show_titles(self, imdb_id, summary):
-        i = imdb.IMDB()
-        try:
-            imdb_info = i.get_info(imdb_id)
-        except Exception:
-            summary['titles'] = {}
-        else:
-            imdb_sum = imdb_info.summary()
-            tvdb_title = summary['title']
-            # Original title
-            summary['title'] = imdb_sum['title']
-            # dict of international titles
-            summary['titles'] = imdb_sum['titles']
-            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
-            # include the year if there are multiple shows with the same name.
-            if 'XWW' in summary['titles']:
-                summary['titles']['XWW'] = tvdb_title
-
 
 class TvdbSeason(TvdbResult):
     def summary(self):
@@ -91,15 +72,12 @@ class TvdbSeason(TvdbResult):
         s['url'] = series_url
         s['cover'] = self.banner(season_number)
         s['season'] = season_number
-        s['imdb_id'] = self.show['imdbId']
-        self.add_show_titles(s['imdb_id'], s)
         return s
 
 
 class TvdbEpisode(TvdbResult):
     def summary(self):
         summary = super(TvdbEpisode, self).summary()
-        imdb_show_id = summary['imdb_id']
         summary.update(**{
                 'season': self.episode['airedSeason'],
                 'episode': self.episode['episodenumber'],
@@ -117,14 +95,13 @@ class TvdbEpisode(TvdbResult):
                 'url': 'https://thetvdb.com/series/{}'.format(
                     self.show['slug']),
                 'cover': self.banner(self.episode['seasonnumber'])})
-        self.add_show_titles(imdb_show_id, summary)
         return summary
 
 
 class TVDB(object):
-    def __init__(self):
-        # todo: selectfirst=False
-        self.tvdb = tvdb_api.Tvdb(interactive=True, banners=True, actors=True)
+    def __init__(self, interactive=True):
+        self.tvdb = tvdb_api.Tvdb(
+            interactive=interactive, banners=True, actors=True)
 
     def search(self, tv_specifier):
         show = self.tvdb[tv_specifier.title]
