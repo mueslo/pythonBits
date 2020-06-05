@@ -14,7 +14,11 @@ musicbrainzngs.set_useragent(appname, version, github)
 
 
 def get_artwork(release_group_id):
-    data = musicbrainzngs.get_release_group_image_list(release_group_id)
+    try:
+        data = musicbrainzngs.get_release_group_image_list(release_group_id)
+    except musicbrainzngs.musicbrainz.ResponseError:
+        return None
+
     for image in data["images"]:
         if "Front" in image["types"] and image["approved"]:
             return image["thumbnails"]["large"]
