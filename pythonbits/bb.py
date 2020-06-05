@@ -9,6 +9,7 @@ from textwrap import dedent
 from collections import namedtuple, abc
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import timedelta
+from mimetypes import guess_type
 
 import pymediainfo
 import mutagen
@@ -850,7 +851,7 @@ class MovieSubmission(VideoSubmission):
 
 
 class AudioSubmission(BbSubmission):
-    default_fields = ("description", "form_tags", "year", "image", "artist",
+    default_fields = ("description", "form_tags", "year", "cover", "artist",
                       "title", "format", "bitrate", "media")
 
     def subcategory(self):
@@ -867,7 +868,7 @@ class MusicSubmission(AudioSubmission):
         # todo user input function/module to reduce boilerplating
         return bool(
             input('Is this a special/remastered edition? [y/N] ').lower()
-            != 'n')
+            == 'y')
 
     @form_field('remaster_year')
     def _render_remaster_year(self):
@@ -950,9 +951,8 @@ class MusicSubmission(AudioSubmission):
         # get first file over 1 MiB
         for dp, dns, fns in os.walk(self['path']):
             for fn in fns:
-                full_path = os.path.join(dp, fn)
-                if os.path.getsize(full_path) > 1 * 2**20:
-                    return full_path
+                if guess_type(fn)[0].startswith('audio'):
+                    return os.path.join(dp, fn)  #return full path
         raise Exception('No media file found')
 
     def _render_tracklist(self):
@@ -960,14 +960,14 @@ class MusicSubmission(AudioSubmission):
         full_tracklist = []
         mediumlist = release['medium-list']
 
+        DEFAULT_FORMAT = 'CD'
         for medium in mediumlist:
             log.debug('medium {}', medium.keys())
+            title = medium.get('format', DEFAULT_FORMAT)
             if len(mediumlist) > 1:
-                title = "{} {}".format(medium['format'], medium['position'])
+                title += " {}".format(format, medium['position'])
                 if 'title' in medium:
                     title += ": {}".format(medium['title'])
-            else:
-                title = medium['format']
 
             tracklist = [
                 (t['number'], t['recording']['title'],
@@ -1046,17 +1046,19 @@ class MusicSubmission(AudioSubmission):
             'tags': [t['name'] for t in
                      sorted(rg.get('tag-list', []),
                             key=lambda t: int(t['count']))][-5:],
-            'media': [m['format'] for m in release['medium-list']],
+            'media': [m.get('format', 'CD') for m in release['medium-list']],
             'cover': mb.get_artwork(rg['id']),
             }
 
     @finalize
     @form_field('image')
-    def _render_image(self):
-        return self['summary']['cover']
+    def _render_cover(self):
+        cover = self['summary']['cover']
+        assert cover is not None
+        return cover
 
-    def _finalize_image(self):
-        return ImgurUploader().upload(self['image'])
+    def _finalize_cover(self):
+        return ImgurUploader().upload(self['cover'])
 
     @form_field('year')
     def _render_year(self):
@@ -1064,16 +1066,19 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('tags')
     def _render_form_tags(self):
-        _defaults = ['acoustic', 'alternative', 'ambient', 'blues',
-                     'classic.rock', 'classical', 'country', 'dance',
-                     'dubstep', 'electronic', 'experimental', 'folk', 'funk',
-                     'hardcore', 'heavy.metal', 'hip.hop', 'indie',
-                     'indie.pop', 'instrumental', 'jazz', 'metal', 'pop',
-                     'post.hardcore', 'post.rock', 'progressive.rock',
-                     'psychedelic', 'punk', 'reggae', 'rock', 'soul', 'trance',
-                     'trip.hop']
+        _defaults = {'acoustic', 'alternative', 'ambient', 'blues',
+                     'classic.rock', 'classical', 'country', 'dance', 'dubstep',
+                     'electronic', 'experimental', 'folk', 'funk', 'hardcore',
+                     'heavy.metal', 'hip.hop', 'indie', 'indie.pop',
+                     'instrumental', 'jazz', 'metal', 'pop', 'post.hardcore',
+                     'post.rock', 'progressive.rock', 'psychedelic', 'punk',
+                     'reggae', 'rock', 'soul', 'trance', 'trip.hop'}
         tags = self['summary']['tags']
-        return list(set(format_tag(tag) for tag in tags))
+        if not tags:
+            tags = input('No tags found. Please enter tags:').split(',')
+        tags = set(format_tag(tag) for tag in tags)
+        assert tags & _defaults != set()
+        return list(tags)
 
     def _render_section_information(self):
         release, rg = self['release']
