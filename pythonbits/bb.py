@@ -297,7 +297,7 @@ class VideoSubmission(BbSubmission):
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        return imagehosting.upload_files(self['screenshots'])
+        return imagehosting.upload_files(*self['screenshots'])
 
     def _render_mediainfo(self):
         try:

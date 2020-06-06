@@ -10,17 +10,17 @@ config.register('ImageHosting', 'provider',
                 ask=True)
 
 
-def upload_files(images):
+def upload_files(*images):
     provider = config.get('ImageHosting', 'provider')
     if provider.lower() == 'imgur':
-        return ImgurUploader().upload(images)
+        return ImgurUploader().upload(*images)
     elif provider.lower() == 'ptpimg':
         return PtpImgUploader().upload_files(*images)
 
 
-def upload_urls(images):
+def upload_urls(*images):
     provider = config.get('ImageHosting', 'provider')
     if provider.lower() == 'imgur':
-        return ImgurUploader().upload(images)
+        return ImgurUploader().upload(*images)
     elif provider.lower() == 'ptpimg':
-        return PtpImgUploader().upload_urls(images)
+        return PtpImgUploader().upload_urls(*images)

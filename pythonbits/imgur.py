@@ -101,28 +101,32 @@ class ImgurUploader(object):
     def __init__(self):
         self.imgur_auth = ImgurAuth()
 
-    def upload(self, image):
-        if not isinstance(image, str):
-            return [self.upload(p) for p in image]
+    def upload(self, *images):
         self.imgur_auth.prepare()
-        params = {'headers': self.imgur_auth.get_auth_headers()}
+        links = []
+        for image in images:
+            params = {'headers': self.imgur_auth.get_auth_headers()}
 
-        if urlparse(image).scheme in ('http', 'https'):
-            params['data'] = {'image': image}
-        elif urlparse(image).scheme in ('file', ''):
-            params['files'] = {'image': open(urlparse(image).path, "rb")}
-        else:
-            raise Exception('Unknown image URI scheme', urlparse(image).scheme)
-        res = requests.post(API_URL + "3/image", **params)
-        res.raise_for_status()  # raises if invalid api request
-        response = json.loads(res.text)
+            if urlparse(image).scheme in ('http', 'https'):
+                params['data'] = {'image': image}
+            elif urlparse(image).scheme in ('file', ''):
+                params['files'] = {'image': open(urlparse(image).path, "rb")}
+            else:
+                raise Exception('Unknown image URI scheme', urlparse(image).scheme)
+            res = requests.post(API_URL + "3/image", **params)
+            res.raise_for_status()  # raises if invalid api request
+            response = json.loads(res.text)
 
-        link = response["data"]["link"]
-        extensions = [path.split(".")[-1]
-                      for path in (image, link)]
-        if extensions[0] != extensions[1]:
-            log.warn("Imgur converted {} to a {}.",
-                     extensions[0], extensions[1])
+            link = response["data"]["link"]
+            extensions = [path.split(".")[-1]
+                          for path in (image, link)]
+            if extensions[0] != extensions[1]:
+                log.warn("Imgur converted {} to a {}.",
+                         extensions[0], extensions[1])
 
-        log.notice("Image URL: {}", link)
-        return link
+            log.notice("Image URL: {}", link)
+            if len(images) == 1:
+                return link
+            else:
+                links.append(link)
+        return links
