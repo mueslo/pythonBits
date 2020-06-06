@@ -35,6 +35,8 @@ class Config():
         chmod(self.config_path, 0o600)
 
     def set(self, section, option, value):
+        if not self._config.has_section(section):
+            self._config.add_section(section)
         self._config.set(section, option, value)
         self._write()
 
@@ -63,11 +65,7 @@ class Config():
                         self.config_path)).lower() == 'n'):
                 return value
 
-            if not self._config.has_section(section):
-                self._config.add_section(section)
-            self._config.set(section, option, value)
-
-            self._write()
+            self.set(section, option, value)
 
             return value
 

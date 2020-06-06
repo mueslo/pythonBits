@@ -2,37 +2,20 @@
 import requests
 import json
 from urllib.parse import urlparse
-from textwrap import dedent
 
+from .api_utils import d
 from .config import config
 from .logging import log
 
 API_URL = 'https://api.imgur.com/'
 USER_URL_TEMPLATE = ("https://api.imgur.com/oauth2/"
                      "authorize?client_id=%s&response_type=pin")
-
-config.register(
-    'Imgur', 'client_id',
-    dedent("""\
-    To upload images to Imgur, you first have to create an Imgur account
-    and application:
-    1. Sign up for an imgur account: https://imgur.com/register
-    2. Create an application: https://api.imgur.com/oauth2/addclient
-        - Application name: Your choice
-        - Authorization type: "OAuth 2 authorization without a callback URL"
-        - Authorization callback URL: Leave blank
-        - Application website: Leave blank
-        - Email: Your choice
-        - Description: Your choice
-    3. Enter the Client ID and Client Secret below
-    Client ID"""))
-config.register('Imgur', 'client_secret', "Client Secret")
-
+client_id = 'US\x01]T\\RPQ\x06YP\x03V\x07'
+client_secret = ('VSW\x0eVT\x03\x07\x03\x01\x0fR\x07\x01\x02RVSP\x06V\x01\x03T'
+                 '\x01\x08\r\x03P\\Q\x0eYRP\x03\x03VU\x01')
 
 class ImgurAuth(object):
     def __init__(self):
-        self.client_id = config.get('Imgur', 'client_id')
-        self.client_secret = config.get('Imgur', 'client_secret')
         self.refresh_token = config.get('Imgur', 'refresh_token', None)
         self.access_token = None
 
@@ -41,11 +24,6 @@ class ImgurAuth(object):
             # Already prepared
             return
 
-        while not (self.client_id and self.client_secret):
-            print(("Client ID: %s or Client Secret: %s missing" %
-                  (self.client_id, self.client_secret)))
-            self.request_client_details()
-
         if self.refresh_token:
             self.refresh_access_token()
 
@@ -53,14 +31,8 @@ class ImgurAuth(object):
             log.notice("You are not currently logged in.")
             self.request_login()
 
-    def request_client_details(self):
-        # todo properly query these
-
-        self.client_id = input("Client ID: ")
-        self.client_secret = input("Client Secret: ")
-
     def request_login(self):
-        user_url = USER_URL_TEMPLATE % self.client_id
+        user_url = USER_URL_TEMPLATE % d(client_id)
         print("pythonBits needs access to your account.")
         print("To authorize:")
         print(("   1. In your browser, open: " + user_url))
@@ -75,8 +47,8 @@ class ImgurAuth(object):
     def fetch_access_token(self, grant_type, value):
         # grant type: pin or refresh_token
         data = {
-            'client_id': config.get('Imgur', 'client_id'),
-            'client_secret': config.get('Imgur', 'client_secret'),
+            'client_id': d(client_id),
+            'client_secret': d(client_secret),
             'grant_type': grant_type,
             grant_type: value
         }
