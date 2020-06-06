@@ -14,6 +14,7 @@ client_id = 'US\x01]T\\RPQ\x06YP\x03V\x07'
 client_secret = ('VSW\x0eVT\x03\x07\x03\x01\x0fR\x07\x01\x02RVSP\x06V\x01\x03T'
                  '\x01\x08\r\x03P\\Q\x0eYRP\x03\x03VU\x01')
 
+
 class ImgurAuth(object):
     def __init__(self):
         self.refresh_token = config.get('Imgur', 'refresh_token', None)
@@ -84,7 +85,8 @@ class ImgurUploader(object):
             elif urlparse(image).scheme in ('file', ''):
                 params['files'] = {'image': open(urlparse(image).path, "rb")}
             else:
-                raise Exception('Unknown image URI scheme', urlparse(image).scheme)
+                raise Exception('Unknown image URI scheme',
+                                urlparse(image).scheme)
             res = requests.post(API_URL + "3/image", **params)
             res.raise_for_status()  # raises if invalid api request
             response = json.loads(res.text)

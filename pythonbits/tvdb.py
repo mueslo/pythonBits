@@ -5,6 +5,7 @@ from .api_utils import d
 
 api_key = 'RS\nvT<%<g#~bsS~3'
 
+
 class TvdbResult(object):
     def __init__(self, show, season, episode=None):
         self.show = show
