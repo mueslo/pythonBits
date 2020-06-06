@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import tvdb_api
 
+from .api_utils import d
+
+api_key = 'RS\nvT<%<g#~bsS~3'
 
 class TvdbResult(object):
     def __init__(self, show, season, episode=None):
@@ -100,8 +103,8 @@ class TvdbEpisode(TvdbResult):
 
 class TVDB(object):
     def __init__(self, interactive=True):
-        self.tvdb = tvdb_api.Tvdb(
-            interactive=interactive, banners=True, actors=True)
+        self.tvdb = tvdb_api.Tvdb(interactive=interactive, banners=True,
+                                  actors=True, apikey=d(api_key))
 
     def search(self, tv_specifier):
         show = self.tvdb[tv_specifier.title]
