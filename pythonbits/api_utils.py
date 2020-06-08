@@ -4,7 +4,9 @@ from hashlib import sha256, sha224
 from .config import config
 
 seed = config.get('Tracker', 'domain').encode('utf8')
-assert sha224(seed).hexdigest().endswith('f280f')
+test = sha224(seed).hexdigest()
+if not test.endswith('f280f') and not test.endswith('5abc3'):
+    raise Exception('Wrong domain! Manually fix {}'.format(config.config_path))
 psk = sha256(seed).hexdigest()
 
 

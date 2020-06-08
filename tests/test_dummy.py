@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import os
+import pythonbits.config as config
 
-from __future__ import print_function
-from __future__ import unicode_literals
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config.config.config_path = dir_path + '/pythonbits.cfg'
+print(config.config.config_path)
 
-import pythonbits.submission as submission
-import pythonbits.bb as bb
-import pytest
+import pythonbits.submission as submission  # noqa: E402
+import pythonbits.bb as bb  # noqa: E402
+import pytest  # noqa: E402
 
 
 def test_attribute_logic():
