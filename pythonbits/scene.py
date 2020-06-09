@@ -13,14 +13,18 @@ from .logging import log
 
 srrdb = b64decode('aHR0cHM6Ly9zcnJkYi5jb20v').decode('utf8')
 
+
 class SceneError(Exception):
     pass
+
 
 class APIError(Exception):
     pass
 
+
 # FIXME: "hd1080-wtl.mkv" (from Walk.the.Line.Extended.Cut.2005.1080p.BluRay.x264-HD1080)
 #        should report an error, but it's not found on any scene indexers.
+
 
 def check_integrity(path, on_error=None):
     """
@@ -206,7 +210,6 @@ def search(guess):
 
     Return a list of release names
     """
-    import sys
     log.debug('Searching for {}', guess)
     # Make search query
     query = list(guess['title'].split(' '))
