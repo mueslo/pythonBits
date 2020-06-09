@@ -43,7 +43,7 @@ setup(
         "progressbar2~=3.38",
     ],
     python_requires=">=3.5,<4.0",
-    tests_require=['tox', 'pytest', 'flake8'],
+    tests_require=['tox', 'pytest', 'flake8', 'pytest-logbook'],
     classifiers=[
         "Operating System :: OS Independent",
         "Programming Language :: Python",
