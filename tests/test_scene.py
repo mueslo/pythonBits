@@ -6,7 +6,6 @@ import json
 import os
 import pickle
 import contextlib
-import logbook
 
 # Silence guessit
 import logging
@@ -342,10 +341,10 @@ def test_yield_file_info_for_season_release_of_original_episode_release(mock_get
         ('', {}),
         ('Foo.S01E01.x264-ABC',
          {'Foo.S01E01.x264-ABC.mkv': {'release_name': 'Foo.S01E01.x264-ABC', 'filename': 'Foo.S01E01.x264-ABC.mkv',
-                                 'size': 123, 'crc': '12345678'}}),
+                                      'size': 123, 'crc': '12345678'}}),
         ('Foo.S01E02.x264-ABC',
          {'Foo.S01E02.x264-ABC.mkv': {'release_name': 'Foo.S01E02.x264-ABC', 'filename': 'Foo.S01E02.x264-ABC.mkv',
-                                 'size': 234, 'crc': 'ABCD1234'}}),
+                                      'size': 234, 'crc': 'ABCD1234'}}),
         ('', {}),
     )
     mock_listdir.return_value = ['Foo.S01E01.x264-ABC.mkv', 'Foo.S01E02.x264-ABC.mkv', 'unknown file']
@@ -368,9 +367,9 @@ def test_yield_file_info_for_episode_release_of_original_season_release_with_eno
         ('', {}),
         ('Foo.S01.x264-ABC',
          {'Foo.S01E01.x264-ABC.mkv': {'release_name': 'Foo.S01.x264-ABC', 'filename': 'Foo.S01E01.x264-ABC.mkv',
-                                 'size': 123, 'crc': '12345678'},
+                                      'size': 123, 'crc': '12345678'},
           'Foo.S01E02.x264-ABC.mkv': {'release_name': 'Foo.S01.x264-ABC', 'filename': 'Foo.S01E02.x264-ABC.mkv',
-                                 'size': 234, 'crc': 'ABCD1234'}})
+                                      'size': 234, 'crc': 'ABCD1234'}})
     )
     mock_guessit.return_value = {'release_group': 'TEHFOO', 'season': 1, 'episode': 2}
     mock_search.return_value = ['Foo.S01.x264-ABC']
@@ -422,7 +421,7 @@ def test_yield_file_info_for_episode_release_of_original_season_release_with_eno
     assert mock_search.call_args_list == []
 
 
-### Integration tests
+# Integration tests
 
 # The first item is the release name, all following items are file (name, size) tuples. If
 # there is only one item, it's a single-file release. File size of directories is ignored.
@@ -535,11 +534,11 @@ def test_detection_of_scene_release_with_wrong_file_size(mock_listdir, mock_prom
     mock_exit.return_value = '<some exit code>'
     mock_listdir.return_value = [os.path.basename(fs[0]) for fs in content[1:]]
     release_name = content[0][0]
-    modified_content = ((relpath, size-1) for relpath,size in content)
+    modified_content = ((relpath, size - 1) for relpath,size in content)
     with mock_files(*modified_content, path_prefix='path/to'):
         # User wants to abort
         mock_prompt_yesno.side_effect = (True,)
-        assert bb.VideoSubmission(path='path/to/' + release_name)['scene'] is '<some exit code>'
+        assert bb.VideoSubmission(path='path/to/' + release_name)['scene'] == '<some exit code>'
         assert mock_prompt_yesno.call_args_list == [call('Abort?', default=True)]
         assert mock_exit.call_args_list == [call(1)]
         mock_prompt_yesno.reset_mock()
@@ -575,7 +574,7 @@ def test_detection_of_scene_release_with_wrong_release_name(mock_listdir, mock_p
     with mock_files(*content, path_prefix='path/to'):
         # User wants to abort
         mock_prompt_yesno.side_effect = (True,)
-        assert bb.VideoSubmission(path='path/to/' + wrong_release_name)['scene'] is '<some exit code>'
+        assert bb.VideoSubmission(path='path/to/' + wrong_release_name)['scene'] == '<some exit code>'
         assert mock_prompt_yesno.call_args_list == [call('Abort?', default=True)]
         assert mock_exit.call_args_list == [call(1)]
         mock_prompt_yesno.reset_mock()
@@ -615,10 +614,9 @@ def test_detection_of_non_scene_release(mock_listdir, mock_prompt_yesno, mock_ex
 def test_workaround_for_group_in_front(mock_prompt_yesno, mock_exit):
     mock_prompt_yesno.return_value = False
     mock_exit.return_value = '<some exit code>'
-    correct_release_name = 'The.Omega.Man.1971.1080p.BluRay.x264-VOA'
     wrong_release_name = 'voa-the_omega_man_x264_bluray.mkv'
     with mock_files((wrong_release_name, 123), path_prefix='path/to'):
         mock_prompt_yesno.side_effect = (True,)
-        assert bb.VideoSubmission(path='path/to/' + wrong_release_name)['scene'] is '<some exit code>'
+        assert bb.VideoSubmission(path='path/to/' + wrong_release_name)['scene'] == '<some exit code>'
         assert mock_prompt_yesno.call_args_list == [call('Abort?', default=True)]
         assert mock_exit.call_args_list == [call(1)]
