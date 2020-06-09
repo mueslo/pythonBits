@@ -22,3 +22,4 @@ wheels/
 *.egg
 MANIFEST
 .tox
+.python-version
