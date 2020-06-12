@@ -911,13 +911,13 @@ class MusicSubmission(AudioSubmission):
             br_mode = tags['bitrate_mode']
             enc_settings = tags['encoder_settings']
             if ('-V 0' in enc_settings or
-                'preset extereme' in enc_settings):
+                    'preset extereme' in enc_settings):
                 return 'V0 (VBR)'
             elif ('-V 2' in enc_settings or
-                  'preset standard' in enc_settings):
+                    'preset standard' in enc_settings):
                 return 'V2 (VBR)'
             elif br_mode in [mutagen.mp3.BitrateMode.CBR,
-                                          mutagen.mp3.BitrateMode.UNKNOWN]:
+                             mutagen.mp3.BitrateMode.UNKNOWN]:
                 if abs(tags['bitrate']-192000) < 100:
                     return '192'
                 elif abs(tags['bitrate']-256000) < 100:
@@ -934,7 +934,7 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('media')
     def _render_media(self):
-        choices = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'DAT', 'Web']
+        # choices = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'DAT', 'Web']
 
         media = self['summary']['media']
         if len(media) > 1:
@@ -957,7 +957,7 @@ class MusicSubmission(AudioSubmission):
         for dp, dns, fns in os.walk(self['path']):
             for fn in fns:
                 if guess_type(fn)[0].startswith('audio'):
-                    return os.path.join(dp, fn)  #return full path
+                    return os.path.join(dp, fn)  # return full path
         raise Exception('No media file found')
 
     def _render_tracklist(self):
@@ -970,13 +970,13 @@ class MusicSubmission(AudioSubmission):
             log.debug('medium {}', medium.keys())
             title = medium.get('format', DEFAULT_FORMAT)
             if len(mediumlist) > 1:
-                title += " {}".format(format, medium['position'])
+                title += " {}".format(medium['position'])
                 if 'title' in medium:
                     title += ": {}".format(medium['title'])
 
             tracklist = [
                 (t['number'], t['recording']['title'],
-                timedelta(milliseconds=int(t['recording']['length'])))
+                 timedelta(milliseconds=int(t['recording']['length'])))
                 for t in medium['track-list']]
             full_tracklist.append((title, tracklist))
 
@@ -1009,13 +1009,13 @@ class MusicSubmission(AudioSubmission):
 
     def _render_release(self):
         tags = self['tags']
-        #print(tags)
+        # print(tags)
         if tags['rid']:
             log.info('Found MusicBrainz release in tags')
             release = mb.musicbrainzngs.get_release_by_id(
                 tags['rid'],
                 includes=['release-groups', 'media', 'recordings',
-                          'url-rels',])['release']
+                          'url-rels'])['release']
             rg = mb.musicbrainzngs.get_release_group_by_id(
                 release['release-group']['id'],
                 includes=['tags', 'artist-credits'])['release-group']
@@ -1071,13 +1071,14 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('tags')
     def _render_form_tags(self):
-        _defaults = {'acoustic', 'alternative', 'ambient', 'blues',
-                     'classic.rock', 'classical', 'country', 'dance', 'dubstep',
-                     'electronic', 'experimental', 'folk', 'funk', 'hardcore',
-                     'heavy.metal', 'hip.hop', 'indie', 'indie.pop',
-                     'instrumental', 'jazz', 'metal', 'pop', 'post.hardcore',
-                     'post.rock', 'progressive.rock', 'psychedelic', 'punk',
-                     'reggae', 'rock', 'soul', 'trance', 'trip.hop'}
+        _defaults = {
+            'acoustic', 'alternative', 'ambient', 'blues', 'classic.rock',
+            'classical', 'country', 'dance', 'dubstep', 'electronic',
+            'experimental', 'folk', 'funk', 'hardcore', 'heavy.metal',
+            'hip.hop', 'indie', 'indie.pop', 'instrumental', 'jazz', 'metal',
+            'pop', 'post.hardcore', 'post.rock', 'progressive.rock',
+            'psychedelic', 'punk', 'reggae', 'rock', 'soul', 'trance',
+            'trip.hop'}
         tags = self['summary']['tags']
         if not tags:
             tags = input('No tags found. Please enter tags:').split(',')
@@ -1115,7 +1116,7 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('album_desc')
     def _render_description(self):
-        sections = [("Information", self['section_information']),]
+        sections = [("Information", self['section_information'])]
 
         description = "\n".join(bb.section(*s) for s in sections)
         description += bb.release
@@ -1139,10 +1140,8 @@ class MusicSubmission(AudioSubmission):
         if tags['encoder_settings']:
             s += "\n[b]Encoder settings[/b]: " + tags['encoder_settings']
 
-
         sections = [("Release Information", s),
                     ("Track list", self['section_tracklist'])]
-
 
         description = "\n".join(bb.section(*s) for s in sections)
         description += bb.release
