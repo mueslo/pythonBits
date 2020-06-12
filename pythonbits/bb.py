@@ -908,11 +908,15 @@ class MusicSubmission(AudioSubmission):
         format = self['format']
         tags = self['tags']
         if format == 'MP3':
-            if '-V 0' in tags['encoder_settings']:
+            br_mode = tags['bitrate_mode']
+            enc_settings = tags['encoder_settings']
+            if ('-V 0' in enc_settings or
+                'preset extereme' in enc_settings):
                 return 'V0(VBR)'
-            elif '-V 2' in tags['encoder_settings']:
+            elif ('-V 2' in enc_settings or
+                  'preset standard' in enc_settings):
                 return 'V2(VBR)'
-            elif tags['bitrate_mode'] in [mutagen.mp3.BitrateMode.CBR,
+            elif br_mode in [mutagen.mp3.BitrateMode.CBR,
                                           mutagen.mp3.BitrateMode.UNKNOWN]:
                 if abs(tags['bitrate']-192000) < 100:
                     return '192'
@@ -920,6 +924,7 @@ class MusicSubmission(AudioSubmission):
                     return '256'
                 elif abs(tags['bitrate']-320000) < 100:
                     return '320'
+            log.debug("br_mode: {}\nenc_settings: {}", br_mode, enc_settings)
 
         elif 'FLAC' in format:
             return 'Lossless'
