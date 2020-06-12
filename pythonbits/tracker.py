@@ -117,5 +117,6 @@ class Tracker():
                 if err_match:
                     log.error('Error: %s' % err_match.group(1))
                 else:
+                    log.debug(resp.text)
                     log.error('Unknown error')
                 raise TrackerException('Failed to upload submission')
