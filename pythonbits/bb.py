@@ -904,7 +904,7 @@ class MusicSubmission(AudioSubmission):
 
     @form_field('bitrate')
     def _render_bitrate(self):
-        # 192, V2(VBR), 256, V0(VBR), 320, Lossless, Other)
+        # 192, V2 (VBR), 256, V0 (VBR), 320, Lossless, Other)
         format = self['format']
         tags = self['tags']
         if format == 'MP3':
@@ -912,10 +912,10 @@ class MusicSubmission(AudioSubmission):
             enc_settings = tags['encoder_settings']
             if ('-V 0' in enc_settings or
                 'preset extereme' in enc_settings):
-                return 'V0(VBR)'
+                return 'V0 (VBR)'
             elif ('-V 2' in enc_settings or
                   'preset standard' in enc_settings):
-                return 'V2(VBR)'
+                return 'V2 (VBR)'
             elif br_mode in [mutagen.mp3.BitrateMode.CBR,
                                           mutagen.mp3.BitrateMode.UNKNOWN]:
                 if abs(tags['bitrate']-192000) < 100:
@@ -1063,7 +1063,7 @@ class MusicSubmission(AudioSubmission):
         return cover
 
     def _finalize_cover(self):
-        return ImgurUploader().upload(self['cover'])
+        return imagehosting.upload_files(self['cover'])
 
     @form_field('year')
     def _render_year(self):
