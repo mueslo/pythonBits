@@ -1003,6 +1003,7 @@ class MusicSubmission(AudioSubmission):
                 'bitrate_mode': getattr(tags.info, 'bitrate_mode', None),
                 'bits_per_sample': getattr(tags.info, 'bits_per_sample',
                                            None),
+                'encoder_info': getattr(tags.info, 'encoder_info', None),
                 'encoder_settings': getattr(tags.info, 'encoder_settings',
                                             None),
                 }
@@ -1018,7 +1019,8 @@ class MusicSubmission(AudioSubmission):
                           'url-rels'])['release']
             rg = mb.musicbrainzngs.get_release_group_by_id(
                 release['release-group']['id'],
-                includes=['tags', 'artist-credits'])['release-group']
+                includes=['tags', 'artist-credits', 'url-rels']
+                )['release-group']
 
         else:
             if self['title_arg']:
@@ -1095,19 +1097,32 @@ class MusicSubmission(AudioSubmission):
             else:
                 return ",".join(tags)
 
+    def _render_links(self):
+        release, rg = self['release']
+        try:
+            return rg['url-relation-list']
+        except KeyError:
+            log.warning('No links found for release group, trying release.')
+
+        try:
+            return release['url-relation-list']
+        except KeyError:
+            log.warning('No links found for release.')
+            return []
+
     def _render_section_information(self):
         release, rg = self['release']
-        urls = release['url-relation-list']
+        urls = self['links']
+        mb_link = "https://musicbrainz.org/release-group/" + rg['id']
+        urls.insert(0, {'type': 'MusicBrainz', 'target': mb_link})
         return dedent("""\
                 [b]Title[/b]: {title} ({links})
                 [b]Artist(s)[/b]: {artist}
-                [b]MusicBrainz[/b]: [url]{releasegroup}[/url]
                 [b]Type[/b]: {type}
                 [b]Original release[/b]: {firstrel}""").format(
             title=rg['title'],
             artist=rg['artist-credit-phrase'],
             links=", ".join(bb.link(u['type'], u['target']) for u in urls),
-            releasegroup="https://musicbrainz.org/release-group/" + rg['id'],
             type=rg['type'],
             firstrel=rg['first-release-date'],
             )
@@ -1145,6 +1160,9 @@ class MusicSubmission(AudioSubmission):
             thisrel=release['date'],
             country=release['country'],
             )
+
+        if tags['encoder_info']:
+            s += "\n[b]Encoder[/b]: " + tags['encoder_info']
 
         if tags['encoder_settings']:
             s += "\n[b]Encoder settings[/b]: " + tags['encoder_settings']
