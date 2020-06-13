@@ -143,26 +143,27 @@ def _check_file(relpath, fspath, info):
     if scene_release_type == 'file':
         # Scene released file so we don't care about our own directory name
         filename = os.path.basename(fspath)
-        exp_filename = info['filename']
+        exp_filenames = (info['filename'],)
         log.debug('Existing filename: {}', filename)
-        log.debug('Expected filename: {}', exp_filename)
-        if filename != exp_filename:
-            raise SceneError('%s was renamed to %s' % (exp_filename, filename))
+        log.debug('Expected filename: {}', exp_filenames)
+        if filename not in exp_filenames:
+            raise SceneError('%s was renamed to %s' % (exp_filenames[0], filename))
     else:
         # Scene released directory
         if release_type == 'file':
             # Don't check directory name
             filename = os.path.basename(fspath)
-            exp_filename = info['filename']
+            exp_filenames = (info['filename'],
+                             info['release_name'] + '.mkv')
         else:
             # Check full internal/relative path
             filename = os.path.join(os.path.basename(os.path.dirname(fspath)),
                                     os.path.basename(fspath))
-            exp_filename = os.path.join(info['release_name'], info['filename'])
+            exp_filenames = (os.path.join(info['release_name'], info['filename']),)
         log.debug('Existing filename: {}', filename)
-        log.debug('Expected filename: {}', exp_filename)
-        if filename != exp_filename:
-            raise SceneError('%s was renamed to %s' % (exp_filename, filename))
+        log.debug('Expected filename: {}', exp_filenames)
+        if filename not in exp_filenames:
+            raise SceneError('%s was renamed to %s' % (exp_filenames[0], filename))
 
     if not _path_exists(fspath):
         raise SceneError('%s: Missing file' % (fspath,))
