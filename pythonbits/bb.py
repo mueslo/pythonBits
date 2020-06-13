@@ -27,7 +27,7 @@ from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize,
-                         SubmissionAttributeError)
+                         SubmissionAttributeError, rlinput)
 from .tracker import Tracker
 from .scene import is_scene_crc, query_scene_fname
 
@@ -1081,10 +1081,19 @@ class MusicSubmission(AudioSubmission):
             'trip.hop'}
         tags = self['summary']['tags']
         if not tags:
-            tags = input('No tags found. Please enter tags:').split(',')
+            tags = input("No tags found. Please enter tags "
+                         "(comma-separated): ").split(',')
         tags = set(format_tag(tag) for tag in tags)
-        assert tags & _defaults != set()
-        return list(tags)
+        while True:
+            try:
+                assert tags & _defaults != set()
+            except AssertionError:
+                print("Default tags:\n" + ", ".join(sorted(_defaults)))
+                print("Submission must contain at least one default tag.")
+                tags = rlinput("Enter tags: ", ",".join(tags)).split(',')
+                tags = set(format_tag(tag) for tag in tags)
+            else:
+                return ",".join(tags)
 
     def _render_section_information(self):
         release, rg = self['release']
