@@ -956,7 +956,8 @@ class MusicSubmission(AudioSubmission):
         # get first file over 1 MiB
         for dp, dns, fns in os.walk(self['path']):
             for fn in fns:
-                if guess_type(fn)[0].startswith('audio'):
+                g = guess_type(fn)[0]
+                if g and g.startswith('audio'):
                     return os.path.join(dp, fn)  # return full path
         raise Exception('No media file found')
 
