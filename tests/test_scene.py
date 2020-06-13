@@ -616,11 +616,11 @@ def test_detection_of_non_scene_release(mock_listdir, mock_prompt_yesno, mock_ex
 @patch('sys.exit')
 @patch('pythonbits.bb.prompt_yesno')
 def test_workaround_for_group_in_front(mock_prompt_yesno, mock_exit):
-    mock_prompt_yesno.return_value = False
+    mock_prompt_yesno.side_effect = (True,)
     mock_exit.return_value = '<some exit code>'
     wrong_release_name = 'voa-the_omega_man_x264_bluray.mkv'
-    with mock_files((wrong_release_name, 123), path_prefix='path/to'):
-        mock_prompt_yesno.side_effect = (True,)
+    content = (wrong_release_name, 123)
+    with mock_files(content, path_prefix='path/to'):
         assert bb.VideoSubmission(path='path/to/' + wrong_release_name)['scene'] == '<some exit code>'
         assert mock_prompt_yesno.call_args_list == [call('Abort?', default=True)]
         assert mock_exit.call_args_list == [call(1)]
