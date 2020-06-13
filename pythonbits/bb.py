@@ -18,7 +18,7 @@ from .logging import log
 from .torrent import make_torrent
 from . import tvdb
 from . import imdb
-from .imgur import ImgurUploader
+from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize,
@@ -267,8 +267,13 @@ class VideoSubmission(BbSubmission):
                 title = self['title_arg']
             else:
                 title = guess['title']
-            return TvSpecifier(title, guess['season'],
-                               guess.get('episode', None))
+            try:
+                season = guess['season']
+            except KeyError:
+                raise Exception('Could not find a season in the path name. '
+                                'Try specifying it in the TITLE argument, '
+                                'e.g. "Some TV Show S02" for a season 2 pack')
+            return TvSpecifier(title, season, guess.get('episode', None))
 
     @form_field('tags')
     def _render_tags(self):
@@ -313,7 +318,7 @@ class VideoSubmission(BbSubmission):
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        return ImgurUploader().upload(self['screenshots'])
+        return imagehosting.upload_files(*self['screenshots'])
 
     def _render_mediainfo(self):
         try:
@@ -539,7 +544,7 @@ class VideoSubmission(BbSubmission):
         return self['summary']['cover']
 
     def _finalize_cover(self):
-        return ImgurUploader().upload(self['cover'])
+        return imagehosting.upload_urls(self['cover'])
 
 
 class TvSubmission(VideoSubmission):
@@ -576,7 +581,26 @@ class TvSubmission(VideoSubmission):
     def _render_summary(self):
         t = tvdb.TVDB()
         result = t.search(self['tv_specifier'])
-        return result.summary()
+        summary = result.summary()
+
+        try:
+            imdb_id = result.show['imdbId']
+            i = imdb.IMDB()
+            imdb_info = i.get_info(imdb_id)
+        except Exception:
+            summary['titles'] = {}
+        else:
+            imdb_sum = imdb_info.summary()
+            tvdb_title = summary['title']
+            # Original title
+            summary['title'] = imdb_sum['title']
+            # dict of international titles
+            summary['titles'] = imdb_sum['titles']
+            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
+            # include the year if there are multiple shows with the same name.
+            if 'XWW' in summary['titles']:
+                summary['titles']['XWW'] = tvdb_title
+        return summary
 
     def _render_section_description(self):
         summary = self['summary']

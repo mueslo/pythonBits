@@ -44,6 +44,13 @@ class ImdbResult(object):
         if movie_id:
             return "https://www.imdb.com" + movie_id
 
+    @property
+    def cast(self):
+        cast = get(self.movie, 'credits', 'cast', default=[])
+        stars = get(self.movie, 'stars', default=[])
+        star_ids = set(star['id'] for star in stars)
+        return stars + [actor for actor in cast if actor['id'] not in star_ids]
+
     def summary(self):
         return {
             'title': get(self.movie, 'base', 'title'),
@@ -55,7 +62,7 @@ class ImdbResult(object):
             'votes': get(self.movie, 'ratings', 'ratingCount', default=0),
             'cover': get(self.movie, 'base', 'image', 'url'),
             'genres': get(self.movie, 'genres', default=[]),
-            'cast': get(self.movie, 'credits', 'cast', default=[]),
+            'cast': self.cast,
             'writers': get(self.movie, 'credits', 'writer', default=[]),
             'mpaa': "",
             'description': self.description,
@@ -105,6 +112,7 @@ class IMDB(object):
     def get_info(self, imdb_id):
         movie = AttrDict(self.imdb.get_title(imdb_id))
         movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
+        movie.stars = self.imdb.get_title_auxiliary(imdb_id)['principals']
         movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
         title_versions = self.imdb.get_title_versions(imdb_id)
         movie.titles = {item["region"]: item["title"]
