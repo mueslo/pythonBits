@@ -25,6 +25,7 @@ from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
 from .tracker import Tracker
 from . import scene
+from . import prompt
 
 
 def format_tag(tag):
@@ -42,17 +43,6 @@ def format_choices(choices):
         str(num) + ": " + value
         for num, value in enumerate(choices)
     ])
-
-def prompt_yesno(question, default):
-    while True:
-        choices = '[Y/n]' if default else '[y/N]'
-        choice = input('%s %s ' % (question, choices))
-        if not choice:
-            return default
-        elif choice.casefold() == 'y':
-            return True
-        elif choice.casefold() == 'n':
-            return False
 
 
 class BbSubmission(Submission):
@@ -96,7 +86,7 @@ class BbSubmission(Submission):
     @form_field('scene', 'checkbox')
     def _render_scene(self):
         def ask_user():
-            return prompt_yesno('Is this a scene release?', default=False)
+            return prompt.yesno('Is this a scene release?', default=False)
 
         def handle_error(filepath, error):
             log.error(str(error))
@@ -107,7 +97,7 @@ class BbSubmission(Submission):
         if modified is False:
             return True
         elif modified is True:
-            if prompt_yesno('Abort?', default=True):
+            if prompt.yesno('Abort?', default=True):
                 # The return statement is there because sys.exit() is mocked in tests.
                 log.debug('Aborting')
                 return sys.exit(1)
@@ -124,7 +114,7 @@ class BbSubmission(Submission):
             for release_name in release_names:
                 print('  * {}'.format(release_name))
             log.error('This release was very likely modified and should not be uploaded like this.')
-            if prompt_yesno('Abort?', default=True):
+            if prompt.yesno('Abort?', default=True):
                 # The return statement is there because sys.exit() is mocked in tests.
                 return sys.exit(1)
             else:

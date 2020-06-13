@@ -518,7 +518,7 @@ def mock_files(*filespecs, path_prefix=''):
 
 @pytest.mark.parametrize('content', scene_releases, ids=(fs[0][0] for fs in scene_releases))
 @patch('pythonbits.scene._get', capture_request)
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 @patch('pythonbits.scene._os_listdir')
 def test_detection_of_unmodified_scene_release(mock_listdir, mock_prompt_yesno, content):
     release_name = content[0][0]
@@ -531,7 +531,7 @@ def test_detection_of_unmodified_scene_release(mock_listdir, mock_prompt_yesno, 
 @pytest.mark.parametrize('content', scene_releases, ids=(fs[0][0] for fs in scene_releases))
 @patch('pythonbits.scene._get', capture_request)
 @patch('sys.exit')
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 @patch('pythonbits.scene._os_listdir')
 def test_detection_of_scene_release_with_wrong_file_size(mock_listdir, mock_prompt_yesno, mock_exit, content):
     mock_prompt_yesno.return_value = False
@@ -567,7 +567,7 @@ def test_detection_of_scene_release_with_wrong_file_size(mock_listdir, mock_prom
 @pytest.mark.parametrize('content', scene_releases, ids=(fs[0][0] for fs in scene_releases))
 @patch('pythonbits.scene._get', capture_request)
 @patch('sys.exit')
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 @patch('pythonbits.scene._os_listdir')
 def test_detection_of_scene_release_with_wrong_release_name(mock_listdir, mock_prompt_yesno, mock_exit, content):
     mock_prompt_yesno.return_value = False
@@ -603,7 +603,7 @@ def test_detection_of_scene_release_with_wrong_release_name(mock_listdir, mock_p
 @pytest.mark.parametrize('content', non_scene_releases, ids=(fs[0] for fs in non_scene_releases))
 @patch('pythonbits.scene._get', capture_request)
 @patch('sys.exit')
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 @patch('pythonbits.scene._os_listdir')
 def test_detection_of_non_scene_release(mock_listdir, mock_prompt_yesno, mock_exit, content):
     release_name = content[0]
@@ -614,7 +614,7 @@ def test_detection_of_non_scene_release(mock_listdir, mock_prompt_yesno, mock_ex
 
 @patch('pythonbits.scene._get', capture_request)
 @patch('sys.exit')
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 def test_workaround_for_group_in_front(mock_prompt_yesno, mock_exit):
     mock_prompt_yesno.side_effect = (True,)
     mock_exit.return_value = '<some exit code>'
@@ -627,7 +627,7 @@ def test_workaround_for_group_in_front(mock_prompt_yesno, mock_exit):
 
 @patch('pythonbits.scene._get', capture_request)
 @patch('sys.exit')
-@patch('pythonbits.bb.prompt_yesno')
+@patch('pythonbits.bb.prompt.yesno')
 def test_renaming_is_ok_if_file_name_is_release_name(mock_prompt_yesno, mock_exit):
     mock_prompt_yesno.return_value = False
     mock_exit.return_value = '<some exit code>'
