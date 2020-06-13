@@ -263,7 +263,13 @@ class VideoSubmission(BbSubmission):
         tags += [a['name']
                  for a in self['summary']['cast'][:n]
                  if a['name']]
-        return ",".join(format_tag(tag) for tag in tags)
+
+        # Maximum tags length is 200 characters
+        def tags_string(tags):
+            return ",".join(format_tag(tag) for tag in tags)
+        while len(tags_string(tags)) > 200:
+            del tags[-1]
+        return tags_string(tags)
 
     def _render_mediainfo_path(self):
         assert os.path.exists(self['path'])
