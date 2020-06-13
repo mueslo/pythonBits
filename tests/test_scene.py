@@ -492,6 +492,10 @@ def capture_request(path):
 
 @contextlib.contextmanager
 def mock_files(*filespecs, path_prefix=''):
+    print('Mocking files:')
+    for fs in filespecs:
+        print(fs)
+
     def mock_exists(path):
         for path_,size in filespecs:
             if os.path.join(path_prefix, path_) == path:
