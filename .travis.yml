@@ -6,6 +6,8 @@ python:
 - '3.5'
 install:
 - pip install tox-travis
+env:
+- TOX_SKIP_ENV=flake8
 script:
 - tox
 deploy:
