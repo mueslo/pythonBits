@@ -4,7 +4,6 @@ import pytest
 
 import json
 import os
-import pickle
 import contextlib
 
 # Silence guessit
@@ -478,16 +477,16 @@ real_scene_get = scene._get
 capture_dir = os.path.join(os.path.dirname(__file__), 'scene_responses')
 
 def capture_request(path):
-    filepath = os.path.join(capture_dir, path.replace('/', '_') + '.pickle')
+    filepath = os.path.join(capture_dir, path.replace('/', '_') + '.response')
     if not capture_requests and os.path.exists(filepath):
-        with open(filepath, 'rb') as f:
-            return pickle.loads(f.read())
+        with open(filepath, 'r') as f:
+            return mock_response(f.read())
     else:
         response = real_scene_get(path)
         if not os.path.exists(capture_dir):
             os.mkdir(capture_dir)
-        with open(filepath, 'wb') as f:
-            f.write(pickle.dumps(response))
+        with open(filepath, 'w') as f:
+            f.write(response.text)
         return response
 
 @contextlib.contextmanager
