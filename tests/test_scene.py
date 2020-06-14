@@ -633,6 +633,6 @@ def test_renaming_is_ok_if_file_name_is_release_name(mock_prompt_yesno, mock_exi
     acceptable_release_name = 'Walk.the.Line.Extended.Cut.2005.1080p.BluRay.x264-HD1080.mkv'
     content = (acceptable_release_name, 11743374939)
     with mock_files(content, path_prefix='path/to'):
-        assert bb.VideoSubmission(path='path/to/' + acceptable_release_name)['scene'] == True
+        assert bb.VideoSubmission(path='path/to/' + acceptable_release_name)['scene'] is True
         assert mock_prompt_yesno.call_args_list == []
         assert mock_exit.call_args_list == []
