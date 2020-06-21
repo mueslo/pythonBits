@@ -117,12 +117,11 @@ def _check_dir(path):
 
 def _check_file(relpath, fspath, info):
     """
-    Return True if `path` is unmodified or None if not sure
+    Return True if file was not renamed and has the correct size
 
     relpath: Relative path that starts with the release name
     fspath: Path that exists in the file system
-
-    It is important that `path` is relative and starts with the release/torrent name.
+    info: Dictionary from _yield_file_info()
 
     Raise SceneError if `path` does not match `info`
     """
