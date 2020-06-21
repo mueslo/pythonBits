@@ -954,7 +954,7 @@ class MusicSubmission(AudioSubmission):
         assert os.path.isdir(self['path'])
 
         # get first file over 1 MiB
-        for dp, dns, fns in os.walk(self['path']):
+        for dp, _, fns in os.walk(self['path']):
             for fn in fns:
                 g = guess_type(fn)[0]
                 if g and g.startswith('audio'):
