@@ -370,7 +370,7 @@ class VideoSubmission(BbSubmission):
         #          TC, SDTV, DVD5, DVD9, HD-DVD
 
         # todo: replace with guess from self['guess']
-        regpath = self['path'].lower().strip('-')
+        regpath = self['path'].lower().replace('-', '')
         if 'bluray' in regpath:
             return 'BluRay'  # todo: 3d
         elif 'webdl' in regpath:
