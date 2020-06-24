@@ -304,7 +304,7 @@ class VideoSubmission(BbSubmission):
         return ffmpeg.take_screenshots(ns)
 
     def _finalize_screenshots(self):
-        return imagehosting.upload_files(*self['screenshots'])
+        return imagehosting.upload(*self['screenshots'])
 
     def _render_mediainfo(self):
         try:
@@ -530,7 +530,7 @@ class VideoSubmission(BbSubmission):
         return self['summary']['cover']
 
     def _finalize_cover(self):
-        return imagehosting.upload_urls(self['cover'])
+        return imagehosting.upload(self['cover'])
 
 
 class TvSubmission(VideoSubmission):
