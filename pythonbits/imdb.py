@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from attrdict import AttrDict
+from concurrent.futures import ThreadPoolExecutor
+
 import imdbpie
+from attrdict import AttrDict
 
 from .logging import log
 
@@ -85,6 +87,8 @@ class IMDB(object):
     def search(self, title):
         log.debug("Searching IMDb for '{}'", title)
         results = self.imdb.search_for_title(title)
+        if len(results) == 1:
+            return self.get_info(results[0]['imdb_id'])
 
         print("Results:")
         for i, movie in enumerate(results):
@@ -110,11 +114,19 @@ class IMDB(object):
                 return self.get_info(result['imdb_id'])
 
     def get_info(self, imdb_id):
-        movie = AttrDict(self.imdb.get_title(imdb_id))
-        movie.credits = self.imdb.get_title_credits(imdb_id)['credits']
-        movie.stars = self.imdb.get_title_auxiliary(imdb_id)['principals']
-        movie.genres = self.imdb.get_title_genres(imdb_id)['genres']
-        title_versions = self.imdb.get_title_versions(imdb_id)
+        log.debug('getinfo')
+        with ThreadPoolExecutor() as executor:
+            f_movie = executor.submit(self.imdb.get_title, imdb_id)
+            f_credits = executor.submit(self.imdb.get_title_credits, imdb_id)
+            f_aux = executor.submit(self.imdb.get_title_auxiliary, imdb_id)
+            f_genres = executor.submit(self.imdb.get_title_genres, imdb_id)
+            f_versions = executor.submit(self.imdb.get_title_versions, imdb_id)
+
+        movie = AttrDict(f_movie.result())
+        movie.credits = f_credits.result()['credits']
+        movie.stars = f_aux.result()['principals']
+        movie.genres = f_genres.result()['genres']
+        title_versions = f_versions.result()
         movie.titles = {item["region"]: item["title"]
                         for item in title_versions['alternateTitles']
                         if "region" in item and "title" in item}
