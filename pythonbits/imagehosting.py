@@ -10,17 +10,19 @@ config.register('ImageHosting', 'provider',
                 ask=True)
 
 
-def upload_files(*images):
+def get_provider():
     provider = config.get('ImageHosting', 'provider')
     if provider.lower() == 'imgur':
-        return ImgurUploader().upload(*images)
+        return ImgurUploader
     elif provider.lower() == 'ptpimg':
-        return PtpImgUploader().upload_files(*images)
+        return PtpImgUploader
+    raise Exception('Unknown image hosting provider in config {}'.format(
+        config.config_path
+        ))
 
 
-def upload_urls(*images):
-    provider = config.get('ImageHosting', 'provider')
-    if provider.lower() == 'imgur':
-        return ImgurUploader().upload(*images)
-    elif provider.lower() == 'ptpimg':
-        return PtpImgUploader().upload_urls(*images)
+def upload(*images, provider=None):
+    if not provider:
+        provider = get_provider()
+        uploader = provider()
+    return list(uploader.upload(*images))
