@@ -10,8 +10,8 @@ import subprocess
 import re
 
 from tempfile import mkdtemp
+from concurrent.futures.thread import ThreadPoolExecutor
 
-from .utils import threadmap
 
 class FfmpegException(Exception):
     pass
@@ -54,10 +54,10 @@ class FFMpeg(object):
         duration = self.duration()
         stops = range(20, 81, 60 // (num_screenshots - 1))
 
-        _ms = lambda x: self.make_screenshot(x[0], x[1])
-
-        imgs = threadmap(_ms,
-                         [(duration * stop / 100,
-                           os.path.join(self.tempdir, "screen%s.png" % stop))
-                          for stop in stops])
+        with ThreadPoolExecutor() as executor:
+            imgs = executor.map(
+                lambda x: self.make_screenshot(x[0], x[1]),
+                [(duration * stop / 100,
+                 os.path.join(self.tempdir, "screen%s.png" % stop))
+                 for stop in stops])
         return list(imgs)
