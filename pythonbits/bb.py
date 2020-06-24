@@ -7,6 +7,7 @@ import subprocess
 
 from textwrap import dedent
 from collections import namedtuple, abc
+from concurrent.futures import ThreadPoolExecutor
 
 import pymediainfo
 import guessit
@@ -42,6 +43,13 @@ def format_choices(choices):
         str(num) + ": " + value
         for num, value in enumerate(choices)
     ])
+
+
+def threadmap(f, it, n_threads=10):
+    with ThreadPoolExecutor(max_workers=n_threads) as executor:
+        jobs = [executor.submit(f, i) for i in it]
+        for j in jobs:
+            yield j.result()
 
 
 class BbSubmission(Submission):
@@ -654,8 +662,8 @@ class TvSubmission(VideoSubmission):
                     return (bb.link(e['title'], e['url']) + "\n" +
                             bb.s1(bb.format_rating(*rating)))
 
-            description += "[b]Episodes[/b]:\n" + bb.list(
-                map(episode_fmt, s['episodes']), style=1)
+            episodes = threadmap(episode_fmt, s['episodes'])
+            description += "[b]Episodes[/b]:\n" + bb.list(episodes, style=1)
 
         return description
 
