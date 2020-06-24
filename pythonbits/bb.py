@@ -7,13 +7,13 @@ import subprocess
 
 from textwrap import dedent
 from collections import namedtuple, abc
+from concurrent.futures.thread import ThreadPoolExecutor
 
 import pymediainfo
 import guessit
 from unidecode import unidecode
 from requests.exceptions import HTTPError
 
-from .utils import threadmap
 from .config import config
 from .logging import log
 from .torrent import make_torrent
@@ -655,7 +655,8 @@ class TvSubmission(VideoSubmission):
                     return (bb.link(e['title'], e['url']) + "\n" +
                             bb.s1(bb.format_rating(*rating)))
 
-            episodes = threadmap(episode_fmt, s['episodes'])
+            with ThreadPoolExecutor() as executor:
+                episodes = executor.map(episode_fmt, s['episodes'])
             description += "[b]Episodes[/b]:\n" + bb.list(episodes, style=1)
 
         return description
