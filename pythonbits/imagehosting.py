@@ -21,8 +21,8 @@ def get_provider():
         ))
 
 
-def upload(*images, provider=None):
-    if not provider:
+def upload(*images, uploader=None):
+    if not uploader:
         provider = get_provider()
         uploader = provider()
     return list(uploader.upload(*images))
