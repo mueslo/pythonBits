@@ -7,13 +7,13 @@ import subprocess
 
 from textwrap import dedent
 from collections import namedtuple, abc
-from concurrent.futures import ThreadPoolExecutor
 
 import pymediainfo
 import guessit
 from unidecode import unidecode
 from requests.exceptions import HTTPError
 
+from .utils import threadmap
 from .config import config
 from .logging import log
 from .torrent import make_torrent
@@ -43,13 +43,6 @@ def format_choices(choices):
         str(num) + ": " + value
         for num, value in enumerate(choices)
     ])
-
-
-def threadmap(f, it, n_threads=10):
-    with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        jobs = [executor.submit(f, i) for i in it]
-        for j in jobs:
-            yield j.result()
 
 
 class BbSubmission(Submission):
