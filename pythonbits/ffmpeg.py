@@ -11,6 +11,7 @@ import re
 
 from tempfile import mkdtemp
 
+from .utils import threadmap
 
 class FfmpegException(Exception):
     pass
@@ -37,19 +38,26 @@ class FFMpeg(object):
         dur_ss = int(dur[2])
         return dur_hh * 3600 + dur_mm * 60 + dur_ss
 
+    def make_screenshot(self, seek, fname_out):
+        subprocess.Popen(
+            [r"ffmpeg",
+             "-ss", str(seek),
+             "-i", self.file,
+             "-vframes", "1",
+             "-y",
+             "-f", "image2",
+             "-vf", "scale='max(sar,1)*iw':'max(1/sar,1)*ih'", fname_out],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+        return fname_out
+
     def take_screenshots(self, num_screenshots):
         duration = self.duration()
         stops = range(20, 81, 60 // (num_screenshots - 1))
-        imgs = []
-        for stop in stops:
-            imgs.append(os.path.join(self.tempdir, "screen%s.png" % stop))
-            subprocess.Popen(
-                [r"ffmpeg",
-                 "-ss", str((duration * stop) / 100),
-                 "-i", self.file,
-                 "-vframes", "1",
-                 "-y",
-                 "-f", "image2",
-                 "-vf", "scale='max(sar,1)*iw':'max(1/sar,1)*ih'", imgs[-1]],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
-        return imgs
+
+        _ms = lambda x: self.make_screenshot(x[0], x[1])
+
+        imgs = threadmap(_ms,
+                         [(duration * stop / 100,
+                           os.path.join(self.tempdir, "screen%s.png" % stop))
+                          for stop in stops])
+        return list(imgs)
