@@ -76,7 +76,6 @@ class ImgurUploader(object):
 
     def upload(self, *images):
         self.imgur_auth.prepare()
-        links = []
         for image in images:
             params = {'headers': self.imgur_auth.get_auth_headers()}
 
@@ -99,8 +98,4 @@ class ImgurUploader(object):
                          extensions[0], extensions[1])
 
             log.notice("Image URL: {}", link)
-            if len(images) == 1:
-                return link
-            else:
-                links.append(link)
-        return links
+            yield link
