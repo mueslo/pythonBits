@@ -548,118 +548,44 @@ class TvSubmission(VideoSubmission):
     def _render_search_title(self):
         return self['tv_specifier'].title
 
-    @form_field('title')
-    def _render_form_title(self):
-        markers_list = [self['source'], self['video_codec'],
-                        self['audio_codec'], self['container'],
-                        self['resolution']] + self['additional']
-        markers = " / ".join(markers_list)
+    def subcategory(self):
+        if type(self) == TvSubmission:
+            if self['tv_specifier'].episode is None:
+                return SeasonSubmission
+            elif not isinstance(self['tv_specifier'].episode, abc.Sequence):
+                return EpisodeSubmission
+            else:
+                return MultiEpisodeSubmission
+        return type(self)
 
-        if self['tv_specifier'].episode is not None:
-            return "{t} S{s:02d}E{e:02d} [{m}]".format(
-                t=self['title'], s=self['tv_specifier'].season,
-                e=self['tv_specifier'].episode,
-                m=markers)
-        else:
-            return "{t} - Season {s} [{m}]".format(
-                t=self['title'], s=self['tv_specifier'].season, m=markers)
-
-    def _render_summary(self):
-        t = tvdb.TVDB()
-        result = t.search(self['tv_specifier'])
-        summary = result.summary()
-
+    @staticmethod
+    def tvdb_title_i18n(result):
         try:
-            imdb_id = result.show['imdbId']
+            tvdb_sum = result.summary()
+            imdb_id = tvdb_sum['show_imdb_id']
             i = imdb.IMDB()
             imdb_info = i.get_info(imdb_id)
-        except Exception:
-            summary['titles'] = {}
-        else:
-            imdb_sum = imdb_info.summary()
-            tvdb_title = summary['title']
-            # Original title
-            summary['title'] = imdb_sum['title']
-            # dict of international titles
-            summary['titles'] = imdb_sum['titles']
-            # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
-            # include the year if there are multiple shows with the same name.
-            if 'XWW' in summary['titles']:
-                summary['titles']['XWW'] = tvdb_title
-        return summary
+        except Exception as e:
+            log.error(e)
+            return {'titles': {}}
 
-    def _render_section_description(self):
-        summary = self['summary']
-        if 'episodesummary' in summary:
-            return summary['seriessummary'] + bb.spoiler(
-                summary['episodesummary'], "Episode description")
-        else:
-            return summary['seriessummary']
+        imdb_sum = imdb_info.summary()
+        tvdb_title = tvdb_sum['title']
+        titles_d = {}
+        # Original title
+        titles_d['title'] = imdb_sum['title']
+        # dict of international titles
+        titles_d['titles'] = imdb_sum['titles']
+        # "XWW" is IMDb's international title, but unlike TVDB, it doesn't
+        # include the year if there are multiple shows with the same name.
+        if 'XWW' in titles_d['titles']:
+            titles_d['titles']['XWW'] = tvdb_title
+        return titles_d
 
-    def _render_section_information(self):
-        def imdb_link(r):
-            return bb.link(r.name, "https://www.imdb.com"+r.id)
-
-        s = self['summary']
-        links = [('TVDB', s['url'])]
-
-        if s['imdb_id']:
-            links.append(('IMDb',
-                          "https://www.imdb.com/title/" + s['imdb_id']))
-        # todo unify rating_bb and episode_fmt
-        # get ratings from imdb
-        i = imdb.IMDB()
-        if self['tv_specifier'].episode is not None:
-            if s['imdb_id']:
-                rating, votes = i.get_rating(s['imdb_id'])
-
-                rating_bb = (bb.format_rating(rating[0], max=rating[1]) + " " +
-                             bb.s1("({votes} votes)".format(
-                                 votes=votes)))
-            else:
-                rating_bb = ""
-
-            description = dedent("""\
-            [b]Episode title[/b]: {title} ({links})
-            [b]Aired[/b]: {air_date} on {network}
-            [b]IMDb Rating[/b]: {rating}
-            [b]Directors[/b]: {directors}
-            [b]Writer(s)[/b]: {writers}
-            [b]Content rating[/b]: {contentrating}""").format(
-                title=s['episode_title'],
-                links=", ".join(bb.link(*l) for l in links),  # noqa: E741
-                air_date=s['air_date'],
-                network=s['network'],
-                rating=rating_bb,
-                directors=' | '.join(s['directors']),
-                writers=' | '.join(s['writers']),
-                contentrating=s['contentrating']
-            )
-        else:
-            description = dedent("""\
-            [b]Network[/b]: {network}
-            [b]Content rating[/b]: {contentrating}\n""").format(
-                contentrating=s['contentrating'],
-                network=s['network'],
-            )
-
-            def episode_fmt(e):
-                if not e['imdb_id']:
-                    return bb.link(e['title'], e['url']) + "\n"
-
-                try:
-                    rating, votes = i.get_rating(e['imdb_id'])
-                except ValueError:
-                    return ''
-                else:
-                    return (bb.link(e['title'], e['url']) + "\n" +
-                            bb.s1(bb.format_rating(*rating)))
-
-            with ThreadPoolExecutor() as executor:
-                episodes = executor.map(episode_fmt, s['episodes'])
-            description += "[b]Episodes[/b]:\n" + bb.list(episodes, style=1)
-
-        return description
+    def _render_markers(self):
+        return [self['source'], self['video_codec'],
+                self['audio_codec'], self['container'],
+                self['resolution']] + self['additional']
 
     def _render_description(self):
         sections = [("Description", self['section_description']),
@@ -675,6 +601,191 @@ class TvSubmission(VideoSubmission):
         return (self['description'] + "\n" +
                 bb.section("Screenshots", bb.center(ss)) +
                 bb.mi(self['mediainfo']))
+
+
+class EpisodeSubmission(TvSubmission):
+    @form_field('title')
+    def _render_form_title(self):
+        return "{t} S{s:02d}E{e:02d} [{m}]".format(
+            t=self['title'], s=self['tv_specifier'].season,
+            e=self['tv_specifier'].episode,
+            m=" / ".join(self['markers']))
+
+    def _render_summary(self):
+        t = tvdb.TVDB()
+        result = t.search(self['tv_specifier'])
+        summary = result.summary()
+        summary.update(self.tvdb_title_i18n(result))
+        return summary
+
+    def _render_section_description(self):
+        summary = self['summary']
+        return summary['seriessummary'] + bb.spoiler(
+            summary['episodesummary'], "Episode description")
+
+    def _render_section_information(self):
+        s = self['summary']
+        links = [('TVDB', s['url'])]
+
+        if s['imdb_id']:
+            links.append(('IMDb',
+                          "https://www.imdb.com/title/" + s['imdb_id']))
+
+        if s['imdb_id']:
+            i = imdb.IMDB()
+            rating, votes = i.get_rating(s['imdb_id'])
+
+            rating_bb = (bb.format_rating(rating[0], max=rating[1]) + " " +
+                         bb.s1("({votes} votes)".format(
+                             votes=votes)))
+        else:
+            rating_bb = ""
+
+        description = dedent("""\
+        [b]Episode title[/b]: {title} ({links})
+        [b]Aired[/b]: {air_date} on {network}
+        [b]IMDb Rating[/b]: {rating}
+        [b]Directors[/b]: {directors}
+        [b]Writer(s)[/b]: {writers}
+        [b]Content rating[/b]: {contentrating}""").format(
+            title=s['episode_title'],
+            links=", ".join(bb.link(*l) for l in links),  # noqa: E741
+            air_date=s['air_date'],
+            network=s['network'],
+            rating=rating_bb,
+            directors=' | '.join(s['directors']),
+            writers=' | '.join(s['writers']),
+            contentrating=s['contentrating']
+            )
+        return description
+
+
+class MultiEpisodeSubmission(TvSubmission):
+    @form_field('title')
+    def _render_form_title(self):
+        return "{t} S{s:02d}{es} [{m}]".format(
+            t=self['title'], s=self['tv_specifier'].season,
+            es="".join("E{:02d}".format(e)
+                       for e in self['tv_specifier'].episode),
+            m=" / ".join(self['markers']))
+
+    def _render_summary(self):
+        t = tvdb.TVDB()
+        results = t.search(self['tv_specifier'])
+        title_i18n = self.tvdb_title_i18n(results[0])
+        summaries = []
+        show_summary = results[0].show_summary()
+        for result in results:
+            summary = result.summary()
+            summaries.append(summary)
+
+        ks = summaries[0].keys()
+        assert all(s.keys() == ks for s in summaries)
+        summary = {k: [s[k] for s in summaries] for k in ks}
+        summary.update(**show_summary)
+        summary.update(**title_i18n)
+        return summary
+
+    def _render_section_description(self):
+        summary = self['summary']
+        return (summary['seriessummary'] +
+                "".join(bb.spoiler(es, "Episode description")
+                        for es in summary['episodesummary']))
+
+    def _render_section_information(self):
+        s = self['summary']
+        links = [[('TVDB', u)] for u in s['url']]
+        rating_bb = []
+
+        for i, imdb_id in enumerate(s['imdb_id']):
+            if imdb_id:
+                links[i].append(
+                    ('IMDb', "https://www.imdb.com/title/" + imdb_id))
+
+                i = imdb.IMDB()
+                rating, votes = i.get_rating(imdb_id)
+
+                rating_bb.append(
+                    (bb.format_rating(rating[0], max=rating[1]) + " " +
+                     bb.s1("({votes} votes)".format(votes=votes))))
+            else:
+                rating_bb.append("")
+
+        description = dedent("""\
+        [b]Episode titles[/b]: {title}
+        [b]Aired[/b]: {air_date} on {network}
+        [b]IMDb Rating[/b]: {rating}
+        [b]Directors[/b]: {directors}
+        [b]Writer(s)[/b]: {writers}
+        [b]Content rating[/b]: {contentrating}""").format(
+            title=' | '.join(
+                "{} ({})".format(
+                    t, ", ".join(bb.link(*l) for l in ls))  # noqa: E741
+                for t, ls in zip(s['episode_title'], links)),
+            air_date=' | '.join(s['air_date']),
+            network=s['network'],
+            rating=' | '.join(rating_bb),
+            directors=' | '.join(set(sum(s['directors'], []))),
+            writers=' | '.join(set(sum(s['writers'], []))),
+            contentrating=s['contentrating']
+            )
+        return description
+
+
+class SeasonSubmission(TvSubmission):
+    @form_field('title')
+    def _render_form_title(self):
+        return "{t} - Season {s} [{m}]".format(
+            t=self['title'],
+            s=self['tv_specifier'].season,
+            m=" / ".join(self['markers']))
+
+    def _render_summary(self):
+        t = tvdb.TVDB()
+        result = t.search(self['tv_specifier'])
+        summary = result.summary()
+        summary.update(self.tvdb_title_i18n(result))
+        return summary
+
+    def _render_section_description(self):
+        summary = self['summary']
+        return summary['seriessummary']
+
+    def _render_section_information(self):
+        s = self['summary']
+        links = [('TVDB', s['url'])]
+
+        imdb_id = s.get('show_imdb_id')
+        if imdb_id:
+            links.append(('IMDb',
+                          "https://www.imdb.com/title/" + imdb_id))
+
+        description = dedent("""\
+        [b]Network[/b]: {network}
+        [b]Content rating[/b]: {contentrating}\n""").format(
+            contentrating=s['contentrating'],
+            network=s['network'],
+            )
+
+        i = imdb.IMDB()
+        # todo unify rating_bb and episode_fmt
+
+        def episode_fmt(e):
+            if not e['imdb_id']:
+                return bb.link(e['title'], e['url']) + "\n"
+
+            try:
+                rating, votes = i.get_rating(e['imdb_id'])
+            except ValueError:
+                return ''
+            else:
+                return (bb.link(e['title'], e['url']) + "\n" +
+                        bb.s1(bb.format_rating(*rating)))
+
+        with ThreadPoolExecutor() as executor:
+            episodes = executor.map(episode_fmt, s['episodes'])
+        description += "[b]Episodes[/b]:\n" + bb.list(episodes, style=1)
+        return description
 
 
 class MovieSubmission(VideoSubmission):
