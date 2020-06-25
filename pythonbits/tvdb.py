@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections.abc import Sequence
 import tvdb_api
 
 from .api_utils import d
@@ -51,7 +52,7 @@ class TvdbResult(object):
             # 'seasons': len(self.show),
             # 'status': self.show['status'],
             'contentrating': self.show['rating'],
-            'imdb_id': self.show['imdbId'],
+            'show_imdb_id': self.show['imdbId'],
         }
 
 
@@ -80,8 +81,11 @@ class TvdbSeason(TvdbResult):
 
 
 class TvdbEpisode(TvdbResult):
+    def show_summary(self):
+        return super(TvdbEpisode, self).summary()
+
     def summary(self):
-        summary = super(TvdbEpisode, self).summary()
+        summary = self.show_summary()
         summary.update(**{
                 'season': self.episode['airedSeason'],
                 'episode': self.episode['episodenumber'],
@@ -111,6 +115,12 @@ class TVDB(object):
         show = self.tvdb[tv_specifier.title]
         season = show[tv_specifier.season]
         if tv_specifier.episode is not None:
-            episode = season[tv_specifier.episode]
-            return TvdbEpisode(show, season, episode)
+            if not isinstance(tv_specifier.episode, Sequence):
+                episode = season[tv_specifier.episode]
+                return TvdbEpisode(show, season, episode)
+
+            # multi-episode
+            return [TvdbEpisode(show, season, season[e])
+                    for e in tv_specifier.episode]
+
         return TvdbSeason(show, season)

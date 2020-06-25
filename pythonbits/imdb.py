@@ -114,7 +114,7 @@ class IMDB(object):
                 return self.get_info(result['imdb_id'])
 
     def get_info(self, imdb_id):
-        log.debug('getinfo')
+        log.debug('imdb getinfo')
         with ThreadPoolExecutor() as executor:
             f_movie = executor.submit(self.imdb.get_title, imdb_id)
             f_credits = executor.submit(self.imdb.get_title_credits, imdb_id)
