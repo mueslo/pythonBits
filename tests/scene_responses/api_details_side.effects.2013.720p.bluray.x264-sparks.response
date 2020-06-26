@@ -1,0 +1,954 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,initial-scale=1.0" />
+<meta content="rescene,srr files,srr database,scene releases,nfo archive,imdb plugin,plugin" name="keywords" />
+<meta content="Release information about Side.Effects.2013.720p.BluRay.x264-SPARKS (Side Effects)" name="description" />
+<meta content="en" http-equiv="content-language" />
+<title>Side.Effects.2013.720p.BluRay.x264-SPARKS - Release Information - srrDB</title>
+<link rel="alternate" type="application/rss+xml" title="RSS feed new SRRs" href="https://www.srrdb.com/feed/srrs" />
+<link rel="alternate" type="application/rss+xml" title="RSS feed new titles" href="https://www.srrdb.com/feed/srrs" />
+<link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700' rel="stylesheet" type="text/css" />
+<link href='https://fonts.googleapis.com/css?family=Ubuntu:700' rel="stylesheet" type="text/css" />
+<link href="https://www.srrdb.com/content/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="https://www.srrdb.com/content/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+<link href="https://www.srrdb.com/content/css/jquery-ui-1.12.0.min.css" rel="stylesheet" type="text/css" />
+<link href="https://www.srrdb.com/content/css/style2.css?1480" rel="stylesheet" type="text/css" />
+<link href="https://www.srrdb.com/content/css/jquery.fileupload.css" rel="stylesheet" type="text/css" />
+<script src="https://www.gstatic.com/charts/loader.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/jquery-ui-1.12.0.min.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/jquery.cookie.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/sprintf-0.7-beta1.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/underscore-min.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/jquery.fileupload.js" type="text/javascript"></script>
+<script src="https://www.srrdb.com/content/js/javascript2.js?r=1480" type="text/javascript"></script>
+</head>
+
+<body>
+
+<div class="row-fluid">
+	<div class="span12 topbar">
+		<div id="topbar-content" class="span9">
+			<div class="span3">
+				<h1 id="site-title"><a href="/">srrDB</a></h1>
+			</div>
+			<div class="span2">
+				<div id="upload">
+					<a href="/release/upload"><span id="upload-icon">Upload</span></a>
+				</div>
+			</div>
+			<div class="span6 offset1">
+				<form action="/browse" method="get">
+					<p><input class="span12" id="search-button" name="q" type="text" placeholder="Search movie or release..." value="" /></p>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container">
+	<div class="row-fluid">
+		<div class="span7">
+			<div class="infobox">
+				<div class="infobox-inner">
+					<div class="infobox-box">
+						<div class="infobox-box-inner">
+							<span class="infobox-headline">1439</span>
+							<div title="80.25% of daily average" class="infobox-bar-container">
+								<div class="infobox-bar-meter" style="width: 80%;"></div>
+							</div>
+							<a title="Uploads today" href="https://www.srrdb.com/browse/date:2020-06-14/1">Uploads today</a>
+						</div>
+					</div>
+					<div class="infobox-box" style="width: 34%">
+						<div class="infobox-box-inner">
+							<span title="Percentage of pred releases uploaded today" class="infobox-headline">100%
+								<a class="bitcoin-donation" href="https://www.srrdb.com/help/#donations" title="Donate in bitcoins!">
+								<img src="https://www.srrdb.com/content/gfx/bitcoin.png" alt="Bitcoin logo" /></a>
+							</span>
+							<div title="Status: 100% of releases today" class="infobox-bar-container">
+								<div class="infobox-bar-meter" style="width: 100%;"></div>
+							</div>
+							<a title="pred today" href="https://www.srrdb.com/pre/pre_date/date:2020-06-14/1">Completed daily pres</a>
+						</div>
+					</div>
+					<div class="infobox-box">
+						<div class="infobox-box-inner">
+							<span class="random-quote">
+No downloads here.
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="span5">
+			<div class="infobox">
+				<div class="infobox-inner profile-box">
+					<div class="profile-info login-form">
+						<form action="/account/login" method="post">
+							<div class="login-username">
+								<label for="login-username">Username:</label>
+								<div><input class="input-login" id="login-username" name="username" type="text" placeholder="Username" /></div>
+							</div>
+							<div class="login-password">
+								<label for="login-password">Password:</label>
+								<div><input class="input-login" id="login-password" name="password" type="password" placeholder="Password" /></div>
+							</div>
+							<div class="login-actions">
+								<div><input class="input-login" name="login" type="submit" value="Login" /></div>
+								<a href="/account/forgot" title="Forgot your password?">Password?</a>
+								<a href="/account/register">Register!</a>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="main">
+		<div class="row-fluid">
+			<div class="span2">
+				<div class="row-fluid">
+				<div class="span12 left-box">
+					<div class="navigation">
+						<h3>NAVIGATION</h3>
+					</div>
+					<div class="leftmenu">
+						<ul class="nav nav-stacked">
+							<li><a href="/">Home</a></li>
+							<li>
+								<a href="/browse/1">Browse</a>
+								<ul class="nav nav-stacked">
+									<li><a href="/browse/confirmed:no/1">Unconfirmed (532067)</a></li>
+									<li><a href="/adds/1">Adds (457437)</a></li>
+									<li><a href="/imdb/index/1">Titles</a></li>
+								</ul>
+							</li>
+							<li><a href="/stats/basic">Statistics</a></li>
+							<li><a href="/pre/index">Pre data</a></li>
+						</ul>
+					</div>
+				</div>
+				</div>
+				<div class="row-fluid">
+				<div class="span12 left-box">
+					<div class="navigation">
+						<h3>INFORMATION</h3>
+					</div>
+					<div id="filter-box" class="content">
+						<ul class="information-list">
+							<li title="Uploader">
+								U: Anonymous							</li>
+							<li title="Date">D: 2013-05-08 03:56:18</li>
+							<li title="Category">C: <a rel="nofollow" href="/browse/category:x264/1">X264</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				</div>
+			</div>
+			<div class="span10">
+				<div class="content">
+					<div class="alert alert-error">
+						You were redirected to this page (side.effects.2013.720p.bluray.x264-sparks)						<button type="button" class="close" data-dismiss="alert">x</button>
+					</div>
+
+
+						<div class="box">
+						<div class="box-header">
+							<h4>
+								MOVIE > 
+								<input class="select-all-input" readonly="readonly" style="width: 160px;" type="text" value="Side Effects (2013)" />
+							</h4>
+							</div>
+						<div class="box-content">
+							<div class="box-content-inner">
+<table class="table-fixed table-imdb">
+	<tr>
+		<td>
+			Rating:<br />
+			7.2/10 (43,135 votes)<br />
+			Genre:<br />
+			<a href="/browse/genre:thriller/1" rel="nofollow">Thriller</a>, 
+<a href="/browse/genre:drama/1" rel="nofollow">Drama</a>, 
+<a href="/browse/genre:crime/1" rel="nofollow">Crime</a><br />
+							Runtime:<br />
+				106 min
+					</td>
+		<td>
+			Country:<br />
+			<a href="/browse/country:usa/1" rel="nofollow">USA</a><br />
+			Language:<br />
+			<a href="/browse/language:french/1" rel="nofollow">French</a>, 
+<a href="/browse/language:english/1" rel="nofollow">English</a><br />
+			More releases:<br />
+			<a href="/browse/imdb:2053463/1" rel="nofollow">tt2053463</a>
+
+		</td>
+		<td style="width: 60%;">
+				<a class="external" href="http://www.imdb.com/title/tt2053463/"><img id="imdbPoster" alt="" height="150" width="100" src="https://www.srrdb.com/content/gfx/poster/noposter.jpg" align="right" /></a>
+				A young woman's world unravels when a drug prescribed by her psychiatrist has unexpected side effects.		</td>
+	</tr>
+</table>
+							</div>
+						</div>
+					</div>
+
+					<div class="box">
+						<div class="box-header">
+							<h4>RELEASE > <input id="release-name" class="select-all-input" readonly="readonly" style="width: 337px;" type="text" value="Side.Effects.2013.720p.BluRay.x264-SPARKS" /></h4>
+							<div class="item-container">
+								<a class="external" title="Google" href="https://encrypted.google.com/search?q=&quot;Side.Effects.2013.720p.BluRay.x264-SPARKS&quot;"><span class="item item-google"></span></a>
+							</div>
+						</div>
+						<div class="box-content">
+							<div class="box-content-inner">
+<table class="table table-bordered table-condensed table-hover table-fixed table-release">
+	<thead>
+		<tr>
+			<th class="release-col1">ReScene version</th>
+			<th>pyReScene 0.5				<span class="group">
+					<a rel="nofollow" href="/browse/group:SPARKS/1">SPARKS</a>
+				</span>
+			</th>
+			<th class="release-filesize no-border">File size</th>
+			<th class="release-crc no-border">CRC</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Download</td>
+			<td class="subhover2" colspan="3">
+				<table class="download-srr">
+					<tr>
+						<td><div><a rel="nofollow" href="/download/srr/Side.Effects.2013.720p.BluRay.x264-SPARKS">Side.Effects.2013.720p.BluRay.x264-SPARKS.srr</a></div></td>
+						<td class="release-filesize" title="72.69 KiB">74,430</td>
+						<td class="release-crc">
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td><div>
+				Stored files
+				<a title="Toggle Ellipsis" href="#" id="toggle-ellipsis"><span class="icon-16 icon-ellipsis"></span></a>
+			</div></td>
+			<td colspan="3" class="subhover">
+				<table class="sortable stored-files">
+					<tbody>
+							<tr id="sfl_54DD7DA9" data-filename="Sample%2Fsparks-se2013-720.sample.srs">
+							<td><div><a class="storedFile" href="/show/file/normal/Side.Effects.2013.720p.BluRay.x264-SPARKS/Sample/sparks-se2013-720.sample.srs" rel="nofollow"><span class="icon-extension icon-srs-video"></span></a> <a rel="nofollow" href="/download/file/Side.Effects.2013.720p.BluRay.x264-SPARKS/Sample/sparks-se2013-720.sample.srs">Sample/sparks-se2013-720.sample.srs</a></div></td>
+							<td class="release-filesize" title="21.91 KiB">22,440</td>
+							<td class="release-crc" title="54DD7DA9">
+															<span style="letter-spacing:0px">54DD7DA9</span>
+														</td>
+						</tr>
+							<tr id="sfl_752D47B0" data-filename="Proof%2Fsparks-se2013-720-proof.jpg">
+							<td><div><a class="storedFile" href="/show/file/normal/Side.Effects.2013.720p.BluRay.x264-SPARKS/Proof/sparks-se2013-720-proof.jpg" rel="nofollow"><span class="icon-extension icon-jpg"></span></a> <a rel="nofollow" href="/download/file/Side.Effects.2013.720p.BluRay.x264-SPARKS/Proof/sparks-se2013-720-proof.jpg">Proof/sparks-se2013-720-proof.jpg</a></div></td>
+							<td class="release-filesize" title="30.99 KiB">31,734</td>
+							<td class="release-crc" title="752D47B0">
+															<span style="letter-spacing:0px">752D47B0</span>
+														</td>
+						</tr>
+							<tr id="sfl_44FDACC0" data-filename="sparks-se2013-720.nfo">
+							<td><div><a class="storedFile" href="/show/file/normal/Side.Effects.2013.720p.BluRay.x264-SPARKS/sparks-se2013-720.nfo" rel="nofollow"><span class="icon-extension icon-nfo"></span></a> <a rel="nofollow" href="/download/file/Side.Effects.2013.720p.BluRay.x264-SPARKS/sparks-se2013-720.nfo">sparks-se2013-720.nfo</a></div></td>
+							<td class="release-filesize" title="4.2 KiB">4,304</td>
+							<td class="release-crc" title="44FDACC0">
+															<span style="letter-spacing:0px">44FDACC0</span>
+														</td>
+						</tr>
+							<tr id="sfl_708DD41C" data-filename="sparks-se2013-720.sfv">
+							<td><div><a class="storedFile" href="/show/file/normal/Side.Effects.2013.720p.BluRay.x264-SPARKS/sparks-se2013-720.sfv" rel="nofollow"><span class="icon-extension icon-sfv"></span></a> <a rel="nofollow" href="/download/file/Side.Effects.2013.720p.BluRay.x264-SPARKS/sparks-se2013-720.sfv">sparks-se2013-720.sfv</a></div></td>
+							<td class="release-filesize" title="2.94 KiB">3,008</td>
+							<td class="release-crc" title="708DD41C">
+															<span style="letter-spacing:0px">708DD41C</span>
+														</td>
+						</tr>
+						</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>RAR-files</td>
+			<td class="subhover" colspan="3">
+				<table>
+					<tbody>
+						<tr>
+							<td>sparks-se2013-720.rar</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">0233504F</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r00</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">0677299D</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r01</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">EC01531C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r02</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">C044ED66</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r03</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">FA484708</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r04</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">41725205</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r05</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A9F30BF5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r06</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">840C9399</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r07</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">2BAC7066</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r08</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A7F4142A</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r09</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">D0A04760</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r10</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">6BD558B2</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r11</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">6E178796</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r12</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">19E7E43D</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r13</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">FFCC1F83</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r14</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A970D95B</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r15</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">87F617A5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r16</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">0A7C2AD4</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r17</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7277867D</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r18</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">C79F4001</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r19</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7E6BA438</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r20</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">3671EF14</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r21</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">BBCBC8B5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r22</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">BCF190DD</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r23</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">27D0767C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r24</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">B00EE001</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r25</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">073DC106</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r26</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">8B9A046A</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r27</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">D802F557</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r28</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">DCB7BC5B</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r29</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">23D37257</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r30</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">0C664E2C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r31</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">403648C1</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r32</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">76512350</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r33</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">5352710E</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r34</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A92EA8C3</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r35</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">9564FE74</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r36</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">6DC41C50</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r37</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">4BD37672</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r38</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">02DEB28D</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r39</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">FAF71B1F</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r40</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">40FAC16E</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r41</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">E65420F9</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r42</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">C51D24B5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r43</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">616F033A</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r44</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">2AB3A89C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r45</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">84338566</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r46</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7EA3F06F</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r47</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">DF40C499</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r48</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">CB54903C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r49</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">CEE9C201</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r50</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">2BA64EA6</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r51</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">01C346EC</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r52</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">39F39945</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r53</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">F38AC573</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r54</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">F676B007</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r55</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">CA5BCAB7</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r56</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7B4560FD</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r57</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">46F0BAE7</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r58</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">1306CAA0</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r59</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">874690DC</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r60</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">DD04B043</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r61</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">1549577C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r62</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">CBB032CE</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r63</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A59AE9B9</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r64</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">1529019F</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r65</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">0E1AB989</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r66</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">64F9FEFD</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r67</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">355D31A5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r68</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">D416E0D5</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r69</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">6AB89D1A</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r70</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">58025821</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r71</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">BE9DA1A0</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r72</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">34848609</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r73</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">E4567113</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r74</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">80FD596E</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r75</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">C11432EC</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r76</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">A9026355</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r77</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">3848AA5B</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r78</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">D9E3E607</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r79</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">5107125B</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r80</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">E2CD502C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r81</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">D90792E8</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r82</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">F04B5266</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r83</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">55AE2CFA</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r84</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7294E926</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r85</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">62DE8D51</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r86</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">57A38E30</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r87</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">21733A9C</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r88</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">C2F39A6D</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r89</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">7BEC3B11</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r90</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">E71C6F28</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r91</td>
+							<td class="release-filesize" title="47.68 MiB">50,000,000</td>
+							<td class="release-crc">6E15D50F</td>
+						</tr>
+						<tr>
+							<td>sparks-se2013-720.r92</td>
+							<td class="release-filesize" title="38.66 MiB">40,537,059</td>
+							<td class="release-crc">085101CE</td>
+						</tr>
+											<tr>
+							<td colspan="3"><hr></td>
+						</tr>
+						<tr>
+							<td><em>Total size:</em></td>
+							<td id="total-size-rars" class="release-filesize" title="4.37 GiB">4,690,537,059</td>
+							<td class="release-crc"></td>
+						</tr>
+										</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>Archived files						</td>
+			<td class="subhover" colspan="3">
+				<table>
+					<tbody>
+						<tr>
+							<td title="2013-05-08 01:37:26">
+															side.effects.2013.720p.bluray.x264-sparks.mkv																						<span title="ISDb hash on OpenSubtitles.org">[<a class="external" rel="nofollow" href="http://www.opensubtitles.org/en/search/sublanguageid-all/moviehash-89e90bf7d04a0776">89e90bf7d04a0776</a>]</span>
+														</td>
+							<td class="release-filesize" title="4.37 GiB">4,690,527,189</td>
+							<td class="release-crc">EF39A8F0</td>
+						</tr>										</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>Video files</td>
+			<td class="subhover" colspan="3">
+				<table>
+					<tbody>
+											<tr>
+							<td>Sample</td>
+							<td class="release-filesize"></td>
+							<td class="release-crc"></td>
+						</tr>
+										<tr>
+							<td class="has-folder">sparks-se2013-720.sample.mkv</td>
+							<td class="release-filesize" title="36.8 MiB">38,590,319</td>
+							<td class="release-crc">024774B7</td>
+						</tr>										</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td>RAR Recovery</td>
+			<td colspan="3">
+				<table>
+					<tbody>
+						<tr>
+								<td colspan="3">Not Present</td>
+							</tr>
+					</tbody>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td><span title="These labels are generated each load based on the release name.">Labels</span></td>
+			<td colspan="3">VIDEO, MOVIE, HD READY, BLURAY, RETAIL, H264</td>
+		</tr>
+		<tr>
+			<td>Warnings (94)</td>
+			<td colspan="3">
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r00.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r01.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r02.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r03.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r04.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r05.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r06.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r07.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r08.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r09.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r10.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r11.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r12.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r13.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r14.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r15.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r16.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r17.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r18.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r19.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r20.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r21.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r22.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r23.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r24.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r25.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r26.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r27.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r28.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r29.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r30.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r31.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r32.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r33.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r34.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r35.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r36.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r37.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r38.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r39.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r40.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r41.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r42.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r43.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r44.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r45.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r46.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r47.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r48.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r49.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r50.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r51.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r52.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r53.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r54.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r55.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r56.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r57.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r58.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r59.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r60.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r61.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r62.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r63.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r64.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r65.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r66.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r67.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r68.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r69.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r70.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r71.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r72.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r73.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r74.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r75.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r76.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r77.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r78.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r79.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r80.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r81.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r82.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r83.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r84.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r85.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r86.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r87.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r88.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r89.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r90.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r91.<br />
+							MHD_FIRSTVOLUME flag set for sparks-se2013-720.r92.<br />
+							Custom RAR packer detected.<br />
+						</td>
+		</tr>
+	</tbody>
+</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="footer">
+					<a href="https://www.srrdb.com/feed">RSS</a> | 
+					<a href="https://www.srrdb.com/help/irc">IRC</a> | 
+					<a href="https://www.srrdb.com/help#api">API</a> | 
+					<a class="external" href="http://rescene.wikidot.com/" style="font-variant: small-caps">Wiki</a> | 
+					<a href="https://www.srrdb.com/help#keywords" style="font-variant: small-caps">Help</a> | 
+					<a href="https://www.srrdb.com/help#about" style="font-variant: small-caps">Contact</a> | 
+					srrDB &copy; 2011-2020 (1480)<br />
+					Execution time: <a class="external" href="https://stats.uptimerobot.com/KZngLsMp6">0.0481</a> - 
+					Memory usage: 0.96MB<br />
+					Design and development: <a href="https://www.srrdb.com/help#about">srrDB Team</a><br />
+					<div class="disclaimer">
+						srrDB is an historical record of the <a class="external" href="https://en.wikipedia.org/wiki/Warez_scene">warez scene</a>. We do not offer illegal downloads nor links to these works. 
+						All meta data gets added by our awesome users. Photographs or pictures can be part of these 
+						historical records, deemed fair use (<a href="https://twitter.com/pyrescene/status/590927078717054976" 
+						class="external">news reporting and research</a>) and are 
+						only a part of the complete work, but copyrights are owned 
+						by their respective creators or right holders.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-27192678-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+</body>
+</html>
