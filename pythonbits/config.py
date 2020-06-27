@@ -8,6 +8,7 @@ import appdirs
 
 from . import __title__ as appname
 from .logging import log
+from . import user_interaction
 
 CONFIG_NAME = appname.lower() + '.cfg'
 CONFIG_DIR = appdirs.user_config_dir(appname.lower())
@@ -55,16 +56,16 @@ class Config():
                 else:
                     raise
 
-            if reg_option['getpass']:
-                value = getpass.getpass(reg_option['query'] + ": ")
-            else:
-                value = input(reg_option['query'] + ": ").strip()
+            with user_interaction.lock:
+                if reg_option['getpass']:
+                    value = getpass.getpass(reg_option['query'] + ": ")
+                else:
+                    value = input(reg_option['query'] + ": ").strip()
 
-            if (reg_option['ask'] and
-                input(
-                    'Would you like to save this value in {}? [Y/n] '.format(
-                        self.config_path)).lower() == 'n'):
-                return value
+                if (reg_option['ask'] and
+                    input('Would you like to save this value in {}? '
+                          '[Y/n] '.format(self.config_path)).lower() == 'n'):
+                    return value
 
             self.set(section, option, value)
 
