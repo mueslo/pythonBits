@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import requests
-from threading import Thread
+from threading import Thread, Event
 from base64 import b64decode
 from zlib import crc32
 
@@ -26,13 +26,15 @@ class ThreadValue(object):
     value = None
 
 
-def crc_thread(path, progress, result):
+def crc_thread(path, progress, result, abort):
     log.debug('Calculating CRC32 value')
     checksum = 0
     i = 0
     chunk_size = 4 * 2**20
     with open(path, 'rb') as f:
         while True:
+            if abort.is_set():
+                return
             i += 1
             data = f.read(chunk_size)
             if not data:
@@ -47,7 +49,7 @@ def crc(path):
     fsize = os.path.getsize(path)
     progress = ThreadValue()
     result = ThreadValue()
-
+    abort = Event()
     widgets = [pb.widgets.RotatingMarker(),
                ' Scene CRC32 check', pb.widgets.Percentage(),
                ' of ', pb.widgets.DataSize('max_value'),
@@ -57,12 +59,17 @@ def crc(path):
                ' ', pb.widgets.AdaptiveETA(),
                ]
 
-    t = Thread(target=crc_thread, args=(path, progress, result), daemon=True)
-    t.start()
-    with pb.ProgressBar(max_value=fsize, max_error=False,
-                        widgets=widgets) as bar:
-        while t.is_alive():
-            bar.update(progress.value)
+    t = Thread(target=crc_thread, args=(path, progress, result, abort),
+               daemon=True)
+    try:
+        t.start()
+        with pb.ProgressBar(max_value=fsize, max_error=False,
+                            widgets=widgets) as bar:
+            while t.is_alive():
+                bar.update(progress.value)
+    except KeyboardInterrupt:
+        abort.set()
+        raise
     return result.value
 
 
