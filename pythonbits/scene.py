@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 import requests
-import progressbar
+from threading import Thread
 from base64 import b64decode
 from zlib import crc32
+
+import progressbar as pb
 
 from .logging import log
 
@@ -20,23 +22,48 @@ def check_scene_rename(fname, release):
                     fname, release_url)
 
 
-def crc(path):
+class ThreadValue(object):
+    value = None
+
+
+def crc_thread(path, progress, result):
     log.debug('Calculating CRC32 value')
     checksum = 0
-    fsize = os.path.getsize(path)
     i = 0
     chunk_size = 4 * 2**20
     with open(path, 'rb') as f:
-        with progressbar.DataTransferBar(max_value=fsize,
-                                         max_error=False) as bar:
-            while True:
-                i += 1
-                data = f.read(chunk_size)
-                if not data:
-                    return checksum & 0xFFFFFFFF
+        while True:
+            i += 1
+            data = f.read(chunk_size)
+            if not data:
+                result.value = checksum & 0xFFFFFFFF
+                return result.value
 
-                bar.update(i*chunk_size)
-                checksum = crc32(data, checksum)
+            progress.value = i*chunk_size
+            checksum = crc32(data, checksum)
+
+
+def crc(path):
+    fsize = os.path.getsize(path)
+    progress = ThreadValue()
+    result = ThreadValue()
+
+    widgets = [pb.widgets.RotatingMarker(),
+               ' Scene CRC32 check', pb.widgets.Percentage(),
+               ' of ', pb.widgets.DataSize('max_value'),
+               ' ', pb.widgets.Bar(),
+               ' ', pb.widgets.FileTransferSpeed(),
+               ' ', pb.widgets.Timer(),
+               ' ', pb.widgets.AdaptiveETA(),
+               ]
+
+    t = Thread(target=crc_thread, args=(path, progress, result), daemon=True)
+    t.start()
+    with pb.ProgressBar(max_value=fsize, max_error=False,
+                        widgets=widgets) as bar:
+        while t.is_alive():
+            bar.update(progress.value)
+    return result.value
 
 
 def is_scene_crc(path):
