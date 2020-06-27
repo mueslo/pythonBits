@@ -25,7 +25,7 @@ from . import templating as bb
 from .submission import (Submission, form_field, finalize,
                          SubmissionAttributeError)
 from .tracker import Tracker
-from .scene import is_scene_crc, query_scene_fname
+from .scene import is_scene_crc, query_scene_fname, abort as abort_scene
 
 
 def format_tag(tag):
@@ -86,6 +86,7 @@ class BbSubmission(Submission):
                 if os.path.exists(path) and not os.path.isdir(path):
                     return is_scene_crc(path)
             except KeyboardInterrupt:
+                abort_scene.set()
                 sys.stdout.write('...skipped\n')
 
             query_scene_fname(path)

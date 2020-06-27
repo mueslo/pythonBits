@@ -10,6 +10,7 @@ import progressbar as pb
 from .logging import log
 
 srrdb = b64decode('aHR0cHM6Ly9zcnJkYi5jb20v').decode('utf8')
+abort = Event()
 
 
 def check_scene_rename(fname, release):
@@ -45,11 +46,10 @@ def crc_thread(path, progress, result, abort):
             checksum = crc32(data, checksum)
 
 
-def crc(path):
+def crc_gen(path):
     fsize = os.path.getsize(path)
     progress = ThreadValue()
     result = ThreadValue()
-    abort = Event()
     widgets = [pb.widgets.RotatingMarker(),
                ' Scene CRC32 check', pb.widgets.Percentage(),
                ' of ', pb.widgets.DataSize('max_value'),
@@ -61,16 +61,19 @@ def crc(path):
 
     t = Thread(target=crc_thread, args=(path, progress, result, abort),
                daemon=True)
-    try:
-        t.start()
-        with pb.ProgressBar(max_value=fsize, max_error=False,
-                            widgets=widgets) as bar:
-            while t.is_alive():
-                bar.update(progress.value)
-    except KeyboardInterrupt:
-        abort.set()
-        raise
-    return result.value
+    t.start()
+    yield t
+    with pb.ProgressBar(max_value=fsize, max_error=False,
+                        widgets=widgets) as bar:
+        while t.is_alive():
+            bar.update(progress.value)
+    yield result.value
+
+
+def crc(path):
+    g = crc_gen(path)
+    next(g)  # launch crc thread
+    return next(g)  # continue to display
 
 
 def is_scene_crc(path):
