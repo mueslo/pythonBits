@@ -4,6 +4,9 @@ import re
 import subprocess
 import math
 import tempfile
+import select
+from queue import Queue, Empty
+from threading import Thread
 from urllib.parse import urlparse
 
 from . import _release as release
@@ -68,7 +71,15 @@ def get_version():
             "Could not find mktorrent, please ensure it is installed.")
 
 
-def make_torrent(fname):
+def read_stdout(process, target):
+    y = select.poll()
+    y.register(process.stdout, select.POLLIN)
+    while process.poll() is None:
+        if y.poll(1):
+            target.put(process.stdout.read(1))
+
+
+def make_torrent_gen(fname):
     fsize = get_size(fname)
     psize_exp = piece_size_exp(fsize)
 
@@ -100,11 +111,31 @@ def make_torrent(fname):
         params.extend(["-s", tracker])
 
     call = [COMMAND] + params + [fname]
-    mktorrent = subprocess.Popen(call, shell=False)
+    stdout = subprocess.PIPE
+    output = Queue()
+    mktorrent = subprocess.Popen(call, stdout=stdout)
+
+    # required so that the pipe does not fill up
+    Thread(target=read_stdout, args=(mktorrent, output), daemon=True).start()
+
+    yield
 
     log.info("Waiting for torrent creation to complete...")
-    mktorrent.wait()
+    while mktorrent.poll() is None:
+        try:
+            b = output.get(timeout=1)
+        except Empty:
+            continue
+        print(b.decode(), end='')
+    print()
+
     if mktorrent.returncode:
         raise MkTorrentException()
 
-    return out_fname
+    yield out_fname
+
+
+def make_torrent(fname):
+    g = make_torrent_gen(fname)
+    next(g)  # start
+    return next(g)  # display
