@@ -25,4 +25,7 @@ def upload(*images, uploader=None):
     if not uploader:
         provider = get_provider()
         uploader = provider()
-    return list(uploader.upload(*images))
+    upload_gen = uploader.upload(*images)
+    if len(images) == 1:
+        return next(upload_gen)
+    return list(upload_gen)
