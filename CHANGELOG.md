@@ -2,17 +2,23 @@
 
 Major feature update
 
-breaking change: Imgur API access. Delete the entire `[Imgur]` section from `~/.config/pythonbits/pythonbits.cfg`.
+new:
+ - music & audiobook submissions
+ - basic threading in API requests (up to ~5x speedup for season packs)
+ - multi-episode submissions
+ - config migration (API keys now embedded, imgur re-auth required)*
 
-new: music
+<sub><sub><sub>*if you encounter issues, delete the entire `[Imgur]` section from your config.</sub></sub></sub> 
 
-fixed: IMDb cast ordering
+fixed:
+ - bug in source selection
+ - IMDb cast ordering (stars are now always first)
 
 ## 3.0.3
 
 Minor feature update
 
-new: ptpimg support (thanks znedw!)
+new: ptpimg support (thanks znedw!  
 fixed: episode naming
 
 ## 3.0.2
