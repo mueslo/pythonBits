@@ -61,8 +61,20 @@ class BbSubmission(Submission):
             fields or self.default_fields)
 
     def subcategory(self):
-        # only video for now
-        return VideoSubmission
+        files = []
+        for root, _, fs in os.walk(self['path']):
+            for f in fs:
+                fpath = os.path.join(root, f)
+                files.append((os.path.getsize(fpath), fpath))
+
+        for size, path in sorted(files, reverse=True):
+            mime_guess, _ = guess_type(path)
+            if mime_guess:
+                mime_guess = mime_guess.split('/')
+                if mime_guess[0] == 'video':
+                    return VideoSubmission
+                elif mime_guess[0] == 'audio':
+                    return AudioSubmission
 
     def subcategorise(self):
         log.debug('Attempting to narrow category')
