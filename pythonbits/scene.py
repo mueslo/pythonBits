@@ -4,6 +4,7 @@ import requests
 from threading import Thread, Event
 from base64 import b64decode
 from zlib import crc32
+from datetime import datetime
 
 import progressbar as pb
 
@@ -13,14 +14,24 @@ srrdb = b64decode('aHR0cHM6Ly9zcnJkYi5jb20v').decode('utf8')
 abort = Event()
 
 
-def check_scene_rename(fname, release):
-    release_url = srrdb + "release/details/{}".format(release)
+def check_rename(fname, release, checksum=None):
+    release_url = srrdb + "api/details/{}".format(release)
     r = requests.get(release_url)
+    r.raise_for_status()
 
-    if fname not in r.text:
-        log.warning('Possibly renamed scene file!\n'
-                    '\tFilename {}\n\tnot found at {}',
-                    fname, release_url)
+    contained_files = r.json()['archived-files']
+    for f in contained_files:
+        if (f['name'] == fname
+                and (not checksum or f['crc'] == "%08X" % checksum)):
+            return
+        elif checksum and f['crc'] == "%08X" % checksum:
+            log.warning("Detected renamed scene file!\n\t"
+                        "{} (original) → {} (local)".format(f['name'], fname))
+            return
+
+    log.warning('Possibly renamed scene file!\n'
+                '\tFilename {}\n\tnot found in release {}',
+                fname, release)
 
 
 class ThreadValue(object):
@@ -61,10 +72,11 @@ def crc_gen(path):
 
     t = Thread(target=crc_thread, args=(path, progress, result, abort),
                daemon=True)
+    start_time = datetime.now()
     t.start()
-    yield t
+    yield
     with pb.ProgressBar(max_value=fsize, max_error=False,
-                        widgets=widgets) as bar:
+                        widgets=widgets, start_time=start_time) as bar:
         while t.is_alive():
             bar.update(progress.value)
     yield result.value
@@ -76,8 +88,7 @@ def crc(path):
     return next(g)  # continue to display
 
 
-def is_scene_crc(path):
-    checksum = crc(path)
+def get_release_crc(checksum):
     log.debug('CRC32 {:08X}', checksum)
     r = requests.get(srrdb + 'api/search/archive-crc:%08X' % checksum)
     r.raise_for_status()
@@ -87,13 +98,19 @@ def is_scene_crc(path):
         log.warning('More than one srrDB result for CRC32 query')
     log.info('Scene checkbox set to {} '
              'due to CRC query result'.format(scene))
-
     if scene:
-        release = r.json()['results'][0]['release']
-        fname = os.path.basename(path)
-        check_scene_rename(fname, release)
+        return r.json()['results'][0]['release']
 
-    return scene
+
+def is_scene_crc(path):
+    checksum = crc(path)
+    release = get_release_crc(checksum)
+
+    if release:
+        fname = os.path.basename(path)
+        check_rename(fname, release, checksum=checksum)
+        return True
+    return False
 
 
 def query_scene_fname(path):

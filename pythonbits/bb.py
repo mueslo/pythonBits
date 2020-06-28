@@ -16,16 +16,17 @@ from requests.exceptions import HTTPError
 
 from .config import config
 from .logging import log
-from .torrent import make_torrent
+from .torrent import make_torrent_gen
 from . import tvdb
 from . import imdb
 from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
-from .submission import (Submission, form_field, finalize,
+from .submission import (Submission, form_field, background, finalize,
                          SubmissionAttributeError)
 from .tracker import Tracker
-from .scene import is_scene_crc, query_scene_fname, abort as abort_scene
+from .scene import (is_scene_crc, query_scene_fname, abort as abort_scene,
+                    get_release_crc, check_rename, crc_gen)
 
 
 def format_tag(tag):
@@ -70,6 +71,8 @@ class BbSubmission(Submission):
                  type(self).__name__, SubCategory.__name__)
         sub = SubCategory(**self.fields)
         sub.depends_on = self.depends_on
+        for field in self._background:
+            setattr(sub, '_render_' + field, self._renderer(field))
         return sub
 
     @staticmethod
@@ -78,16 +81,26 @@ class BbSubmission(Submission):
         return t.upload(**payload)
 
     @form_field('scene', 'checkbox')
+    @background
     def _render_scene(self):
         # todo: if path is directory, choose file for crc
         path = os.path.normpath(self['path'])  # removes trailing slash
         try:
-            try:
-                if os.path.exists(path) and not os.path.isdir(path):
-                    return is_scene_crc(path)
-            except KeyboardInterrupt:
-                abort_scene.set()
-                sys.stdout.write('...skipped\n')
+            if os.path.exists(path) and not os.path.isdir(path):
+                checksum_g = crc_gen(path)
+                next(checksum_g)
+                yield
+                try:
+                    checksum = next(checksum_g)
+                    release = get_release_crc(checksum)
+                    if release:
+                        fname = os.path.basename(path)
+                        check_rename(fname, release, checksum=checksum)
+                        yield True
+                    yield False
+                except KeyboardInterrupt:
+                    abort_scene.set()
+                    sys.stdout.write('...skipped\n')
 
             query_scene_fname(path)
         except HTTPError as e:
@@ -97,9 +110,9 @@ class BbSubmission(Submission):
             choice = input('Is this a scene release? [y/N] ')
 
             if not choice or choice.lower() == 'n':
-                return False
+                yield False
             elif choice.lower() == 'y':
-                return True
+                yield True
 
     def data_method(self, source, target):
         def copy(source, target):
@@ -152,8 +165,9 @@ class BbSubmission(Submission):
 
     @finalize
     @form_field('file_input', 'file')
+    @background
     def _render_torrentfile(self):
-        return make_torrent(self['path'])
+        return make_torrent_gen(self['path'])
 
     def _finalize_torrentfile(self):
         # move data to upload directory
