@@ -660,6 +660,7 @@ class EpisodeSubmission(TvSubmission):
         summary = {k: [s[k] for s in summaries] for k in ks}
         summary.update(**show_summary)
         summary.update(**title_i18n)
+        summary['cover'] = summary['cover'][0]
         return summary
 
     def _render_section_description(self):
