@@ -12,6 +12,7 @@ from .logging import log
 CONFIG_NAME = appname.lower() + '.cfg'
 CONFIG_DIR = appdirs.user_config_dir(appname.lower())
 CONFIG_PATH = path.join(CONFIG_DIR, CONFIG_NAME)
+CONFIG_VERSION = 1
 
 if not path.exists(CONFIG_DIR):
     makedirs(CONFIG_DIR, 0o700)
@@ -71,20 +72,43 @@ class Config():
             return value
 
 
-def migrate_config(config):
+def backup(config):
+    from datetime import datetime
+    t = datetime.now()
+
+    p = config.config_path
+    config.config_path = (config.config_path + "." +
+                          t.strftime("%Y-%m-%dT%H-%M-%S") + '.bak')
+    config._write()
+    log.notice('Old config backed up at {}', config.config_path)
+    config.config_path = p
+
+
+def imgur_api_change(config):
     if config.get('Imgur', 'client_id', None) is not None:
-        log.notice('Migrating config.')
-
-        from datetime import datetime
-        t = datetime.now()
-        p = config.config_path
-        config.config_path = p + "." + t.strftime("%Y-%m-%dT%H-%M-%S") + '.bak'
-        config._write()
-        log.notice('Old config backed up at {}', config.config_path)
-        config.config_path = p
-
         config._config.remove_section('Imgur')
         config._write()
+    else:
+        log.warning('section already removed')
+
+
+def migrate_config(config):
+    migrations = {0: (1, imgur_api_change)}
+    version_args = lambda v: ('General', 'version', v)  # noqa: E731
+
+    cur = int(config.get(*version_args(0)))
+    if cur in migrations:
+        backup(config)
+        while True:
+            cur = int(config.get(*version_args(0)))
+            try:
+                new, mig = migrations[cur]
+            except KeyError:
+                break
+            else:
+                log.notice('Migrating config from {} to {}'.format(cur, new))
+                mig(config)
+                config.set(*version_args(str(new)))
 
 
 config = Config()
