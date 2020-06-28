@@ -61,8 +61,13 @@ class BbSubmission(Submission):
             fields or self.default_fields)
 
     def subcategory(self):
-        files = []
-        for root, _, fs in os.walk(self['path']):
+        path = self['path']
+        if os.path.isfile(path):
+            files = [(os.path.getsize(path), path)]
+        else:
+            files = []
+
+        for root, _, fs in os.walk(path):
             for f in fs:
                 fpath = os.path.join(root, f)
                 files.append((os.path.getsize(fpath), fpath))
@@ -863,35 +868,15 @@ class MovieSubmission(VideoSubmission):
 
 
 class AudioSubmission(BbSubmission):
-    default_fields = ("description", "form_tags", "year", "cover", "artist",
-                      "title", "format", "bitrate", "media")
+    default_fields = ("description", "form_tags", "year", "cover",
+                      "title", "format", "bitrate")
 
     def subcategory(self):
+        release, rg = self['release']
+
+        if 'Audiobook' in rg['secondary-type-list']:
+            return AudiobookSubmission
         return MusicSubmission
-
-
-class MusicSubmission(AudioSubmission):
-    default_fields = (AudioSubmission.default_fields + (
-        'remaster', 'remaster_year', 'remaster_title'))
-    _form_type = 'Music'
-
-    @form_field('remaster_true', 'checkbox')
-    def _render_remaster(self):
-        # todo user input function/module to reduce boilerplating
-        return bool(
-            input('Is this a special/remastered edition? [y/N] ').lower()
-            == 'y')
-
-    @form_field('remaster_year')
-    def _render_remaster_year(self):
-        if self['remaster']:
-            return input('Please enter the remaster year: ')
-
-    @form_field('remaster_title')
-    def _render_remaster_title(self):
-        if self['remaster']:
-            return (input('Please enter the remaster title (optional): ')
-                    or None)
 
     @form_field('format')
     def _render_format(self):
@@ -944,23 +929,6 @@ class MusicSubmission(AudioSubmission):
         log.debug("format:{}\ntags:{}", format, tags)
         raise RuntimeError('Unrecognized format/bitrate')
 
-    @form_field('media')
-    def _render_media(self):
-        # choices = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'DAT', 'Web']
-
-        media = self['summary']['media']
-        if len(media) > 1:
-            log.debug(media)
-        media = media[0]
-
-        if media == 'CD':
-            return media
-        elif media == 'Digital Media':
-            return 'Web'
-        elif "vinyl" in media.lower():
-            return 'Vinyl'
-
-        raise NotImplementedError(media)
 
     def _render_mediainfo_path(self):
         assert os.path.isdir(self['path'])
@@ -1023,7 +991,6 @@ class MusicSubmission(AudioSubmission):
 
     def _render_release(self):
         tags = self['tags']
-        # print(tags)
         if tags['rid']:
             log.info('Found MusicBrainz release in tags')
             release = mb.musicbrainzngs.get_release_by_id(
@@ -1047,8 +1014,8 @@ class MusicSubmission(AudioSubmission):
         # identify self:
         #  - num tracks todo
         #  - scan for mb tags
-        print('rg', rg)
-        print('r', release)
+        log.debug('release-group {}', rg)
+        log.debug('release', release)
 
         # todo: assert release group matches!
         #  e.g.: assert # of tracks equal
@@ -1078,37 +1045,12 @@ class MusicSubmission(AudioSubmission):
         return cover
 
     def _finalize_cover(self):
-        return imagehosting.upload_files(self['cover'])
+        return imagehosting.upload(self['cover'])
 
     @form_field('year')
     def _render_year(self):
         return self['summary']['year']
 
-    @form_field('tags')
-    def _render_form_tags(self):
-        _defaults = {
-            'acoustic', 'alternative', 'ambient', 'blues', 'classic.rock',
-            'classical', 'country', 'dance', 'dubstep', 'electronic',
-            'experimental', 'folk', 'funk', 'hardcore', 'heavy.metal',
-            'hip.hop', 'indie', 'indie.pop', 'instrumental', 'jazz', 'metal',
-            'pop', 'post.hardcore', 'post.rock', 'progressive.rock',
-            'psychedelic', 'punk', 'reggae', 'rock', 'soul', 'trance',
-            'trip.hop'}
-        tags = self['summary']['tags']
-        if not tags:
-            tags = input("No tags found. Please enter tags "
-                         "(comma-separated): ").split(',')
-        tags = set(format_tag(tag) for tag in tags)
-        while True:
-            try:
-                assert tags & _defaults != set()
-            except AssertionError:
-                print("Default tags:\n" + ", ".join(sorted(_defaults)))
-                print("Submission must contain at least one default tag.")
-                tags = rlinput("Enter tags: ", ",".join(tags)).split(',')
-                tags = set(format_tag(tag) for tag in tags)
-            else:
-                return ",".join(tags)
 
     def _render_links(self):
         release, rg = self['release']
@@ -1188,6 +1130,96 @@ class MusicSubmission(AudioSubmission):
 
         return description
 
+    @form_field('scene', 'checkbox')
+    def _render_scene(self):
+        return False
+
+    def _get_tags(self, required_tags):
+        tags = self['summary']['tags']
+        if not tags:
+            tags = input("No tags found. Please enter tags "
+                         "(comma-separated): ").split(',')
+        tags = set(format_tag(tag) for tag in tags)
+        tags -= {'audiobook'}
+        while True:
+            try:
+                assert tags & required_tags != set()
+            except AssertionError:
+                print("Default tags:\n" + ", ".join(sorted(required_tags)))
+                print("Submission must contain at least one default tag.")
+                tags = rlinput("Enter tags: ", ",".join(tags)).split(',')
+                tags = set(format_tag(tag) for tag in tags)
+            else:
+                return ",".join(tags)
+
+
+class AudiobookSubmission(AudioSubmission):
+    _form_type = 'Audiobooks'
+
+    @form_field('tags')
+    def _render_form_tags(self):
+        _defaults = {'fiction', 'non.fiction'}
+        return self._get_tags(_defaults)
+
+    @form_field('title')
+    def _render_title(self):
+        return "{} - {}".format(
+            self['summary']['artist'], self['summary']['title'])
+
+
+class MusicSubmission(AudioSubmission):
+    default_fields = (AudioSubmission.default_fields + (
+         'artist', 'remaster', 'remaster_year', 'remaster_title', 'media',))
+    _form_type = 'Music'
+
+    @form_field('remaster_true', 'checkbox')
+    def _render_remaster(self):
+        # todo user input function/module to reduce boilerplating
+        return bool(
+            input('Is this a special/remastered edition? [y/N] ').lower()
+            == 'y')
+
+    @form_field('remaster_year')
+    def _render_remaster_year(self):
+        if self['remaster']:
+            return input('Please enter the remaster year: ')
+
+    @form_field('remaster_title')
+    def _render_remaster_title(self):
+        if self['remaster']:
+            return (input('Please enter the remaster title (optional): ')
+                    or None)
+
+    @form_field('media')
+    def _render_media(self):
+        # choices = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'DAT', 'Web']
+
+        media = self['summary']['media']
+        if len(media) > 1:
+            log.debug(media)
+        media = media[0]
+
+        if media == 'CD':
+            return media
+        elif media == 'Digital Media':
+            return 'Web'
+        elif "vinyl" in media.lower():
+            return 'Vinyl'
+
+        raise NotImplementedError(media)
+
+    @form_field('tags')
+    def _render_form_tags(self):
+        _defaults = {
+            'acoustic', 'alternative', 'ambient', 'blues', 'classic.rock',
+            'classical', 'country', 'dance', 'dubstep', 'electronic',
+            'experimental', 'folk', 'funk', 'hardcore', 'heavy.metal',
+            'hip.hop', 'indie', 'indie.pop', 'instrumental', 'jazz', 'metal',
+            'pop', 'post.hardcore', 'post.rock', 'progressive.rock',
+            'psychedelic', 'punk', 'reggae', 'rock', 'soul', 'trance',
+            'trip.hop'}
+        return self._get_tags(_defaults)
+
     @form_field('artist')
     def _render_artist(self):
         return self['summary']['artist']
@@ -1195,7 +1227,3 @@ class MusicSubmission(AudioSubmission):
     @form_field('title')
     def _render_title(self):
         return self['summary']['title']
-
-    @form_field('scene', 'checkbox')
-    def _render_scene(self):
-        return False
