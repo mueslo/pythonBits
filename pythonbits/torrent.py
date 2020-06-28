@@ -111,11 +111,11 @@ def make_torrent_gen(fname):
         params.extend(["-s", tracker])
 
     call = [COMMAND] + params + [fname]
-    stdout = subprocess.PIPE
     output = Queue()
-    mktorrent = subprocess.Popen(call, stdout=stdout)
+    mktorrent = subprocess.Popen(call, stdout=subprocess.PIPE,
+                                 start_new_session=True)
 
-    # required so that the pipe does not fill up
+    # so that the pipe does not fill up
     Thread(target=read_stdout, args=(mktorrent, output), daemon=True).start()
 
     yield
@@ -130,7 +130,7 @@ def make_torrent_gen(fname):
     print()
 
     if mktorrent.returncode:
-        raise MkTorrentException()
+        raise MkTorrentException(mktorrent.returncode)
 
     yield out_fname
 
