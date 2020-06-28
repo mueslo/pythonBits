@@ -72,7 +72,7 @@ class BbSubmission(Submission):
                 fpath = os.path.join(root, f)
                 files.append((os.path.getsize(fpath), fpath))
 
-        for size, path in sorted(files, reverse=True):
+        for _, path in sorted(files, reverse=True):
             mime_guess, _ = guess_type(path)
             if mime_guess:
                 mime_guess = mime_guess.split('/')
@@ -929,7 +929,6 @@ class AudioSubmission(BbSubmission):
         log.debug("format:{}\ntags:{}", format, tags)
         raise RuntimeError('Unrecognized format/bitrate')
 
-
     def _render_mediainfo_path(self):
         assert os.path.isdir(self['path'])
 
@@ -1050,7 +1049,6 @@ class AudioSubmission(BbSubmission):
     @form_field('year')
     def _render_year(self):
         return self['summary']['year']
-
 
     def _render_links(self):
         release, rg = self['release']
