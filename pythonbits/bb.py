@@ -184,7 +184,6 @@ class BbSubmission(Submission):
         path_dir, path_base = os.path.split(self['path'])
         if up_dir and not os.path.samefile(up_dir, path_dir):
             target = os.path.join(up_dir, path_base)
-            print(target, os.path.exists(target))
             if not os.path.exists(target):
                 self.data_method(self['path'], target)
             else:
@@ -874,7 +873,7 @@ class AudioSubmission(BbSubmission):
     def subcategory(self):
         release, rg = self['release']
 
-        if 'Audiobook' in rg['secondary-type-list']:
+        if 'Audiobook' in rg.get('secondary-type-list', []):
             return AudiobookSubmission
         return MusicSubmission
 
@@ -967,11 +966,7 @@ class AudioSubmission(BbSubmission):
         # if type(tags) == mutagen.mp3.MP3:
         #     tags = mutagen.mp3.MP3(self['mediainfo_path'], ID3=EasyID3)
 
-        print('tagsdir', dir(tags.info))
-        try:
-            print('encoder', tags.info.encoder_settings)
-        except AttributeError:
-            pass
+        log.debug('tagsdir', dir(tags.info))
         log.debug('type tags', type(tags))
         log.debug('tags', tags.pprint())
 
