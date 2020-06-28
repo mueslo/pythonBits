@@ -117,7 +117,7 @@ class TVDB(object):
         if tv_specifier.episode is not None:
             if not isinstance(tv_specifier.episode, Sequence):
                 episode = season[tv_specifier.episode]
-                return TvdbEpisode(show, season, episode)
+                return [TvdbEpisode(show, season, episode)]
 
             # multi-episode
             return [TvdbEpisode(show, season, season[e])
