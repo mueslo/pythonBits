@@ -253,7 +253,7 @@ class VideoSubmission(BbSubmission):
                 raise Exception('Could not find a season in the path name. '
                                 'Try specifying it in the TITLE argument, '
                                 'e.g. "Some TV Show S02" for a season 2 pack')
-            return TvSpecifier(title, season, guess.get('episode', None))
+            return TvSpecifier(title, season, guess.get('episode'))
 
     @form_field('tags')
     def _render_tags(self):
@@ -541,6 +541,10 @@ class TvSubmission(VideoSubmission):
         'form_description': ('desc', 'text'),
         }
 
+    @property
+    def season(self):
+        return self['tv_specifier'].season
+
     def _render_guess(self):
         return dict(guessit.guessit(self['path'],
                                     options=('--type', 'episode')))
@@ -552,10 +556,9 @@ class TvSubmission(VideoSubmission):
         if type(self) == TvSubmission:
             if self['tv_specifier'].episode is None:
                 return SeasonSubmission
-            elif not isinstance(self['tv_specifier'].episode, abc.Sequence):
-                return EpisodeSubmission
             else:
-                return MultiEpisodeSubmission
+                return EpisodeSubmission
+
         return type(self)
 
     @staticmethod
@@ -604,69 +607,19 @@ class TvSubmission(VideoSubmission):
 
 
 class EpisodeSubmission(TvSubmission):
-    @form_field('title')
-    def _render_form_title(self):
-        return "{t} S{s:02d}E{e:02d} [{m}]".format(
-            t=self['title'], s=self['tv_specifier'].season,
-            e=self['tv_specifier'].episode,
-            m=" / ".join(self['markers']))
+    @property
+    def episodes(self):
+        episodes = self['tv_specifier'].episode
+        if isinstance(episodes, abc.Sequence):
+            return episodes
+        return [episodes]
 
-    def _render_summary(self):
-        t = tvdb.TVDB()
-        result = t.search(self['tv_specifier'])
-        summary = result.summary()
-        summary.update(self.tvdb_title_i18n(result))
-        return summary
-
-    def _render_section_description(self):
-        summary = self['summary']
-        return summary['seriessummary'] + bb.spoiler(
-            summary['episodesummary'], "Episode description")
-
-    def _render_section_information(self):
-        s = self['summary']
-        links = [('TVDB', s['url'])]
-
-        if s['imdb_id']:
-            links.append(('IMDb',
-                          "https://www.imdb.com/title/" + s['imdb_id']))
-
-        if s['imdb_id']:
-            i = imdb.IMDB()
-            rating, votes = i.get_rating(s['imdb_id'])
-
-            rating_bb = (bb.format_rating(rating[0], max=rating[1]) + " " +
-                         bb.s1("({votes} votes)".format(
-                             votes=votes)))
-        else:
-            rating_bb = ""
-
-        description = dedent("""\
-        [b]Episode title[/b]: {title} ({links})
-        [b]Aired[/b]: {air_date} on {network}
-        [b]IMDb Rating[/b]: {rating}
-        [b]Directors[/b]: {directors}
-        [b]Writer(s)[/b]: {writers}
-        [b]Content rating[/b]: {contentrating}""").format(
-            title=s['episode_title'],
-            links=", ".join(bb.link(*l) for l in links),  # noqa: E741
-            air_date=s['air_date'],
-            network=s['network'],
-            rating=rating_bb,
-            directors=' | '.join(s['directors']),
-            writers=' | '.join(s['writers']),
-            contentrating=s['contentrating']
-            )
-        return description
-
-
-class MultiEpisodeSubmission(TvSubmission):
     @form_field('title')
     def _render_form_title(self):
         return "{t} S{s:02d}{es} [{m}]".format(
-            t=self['title'], s=self['tv_specifier'].season,
+            t=self['title'], s=self.season,
             es="".join("E{:02d}".format(e)
-                       for e in self['tv_specifier'].episode),
+                       for e in self.episodes),
             m=" / ".join(self['markers']))
 
     def _render_summary(self):
