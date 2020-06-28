@@ -35,21 +35,26 @@ class RegisteringType(type):
         for field, (form_field, form_field_type) in form_field_mappers.items():
             add_mapper(field, form_field, form_field_type)
 
+        cls._background = getattr(cls, '_background', [])
         for key, val in attrs.items():
+            field, n = re.subn(re_frender, '', key)
+            if n != 1:
+                continue
+
             try:
                 form_field, form_field_type = getattr(val, 'form_field')
             except AttributeError:
                 pass  # most attributes are not a form_field mapper
             else:
-                field, n = re.subn(re_frender, '', key)
-                assert n == 1  # only then is it a field renderer
                 add_mapper(field, form_field, form_field_type)
 
             # get fields that need finalization
             if getattr(val, 'needs_finalization', False):
-                field, n = re.subn(re_frender, '', key)
-                assert n == 1  # only then is it a field renderer
                 cls._to_finalize = getattr(cls, '_to_finalize', []) + [field]
+
+            # get fields that need to run in background
+            if getattr(val, 'background', False):
+                cls._background = cls._background + [field]
 
 
 form_field_types = {'text', 'checkbox', 'file'}  # todo select
@@ -67,11 +72,61 @@ def finalize(f):
     return f
 
 
+def background(f):
+    """
+    This field renderer can be started ahead of time in the background.
+
+    The renderer must return a generator with two yield statements.
+    First yield statement: job started
+    Second yield statement: job finished with return value
+
+    Should be applied before any other decorators.
+
+    Another caveat: It has to be a function that is valid, i.e.
+     non-reimplemented for all subclasses too, as it is launched before
+     sub-categorization finishes.
+    """
+    return BackgroundField(f)
+
+
+class BackgroundField(object):
+    background = True
+    def __init__(self, f):
+        self.f = f
+        self.instance = None
+        self.generator = None
+        self.finished = False
+        self.value = None
+
+    def start(self):
+        if not self.generator:
+            log.notice('launching {} in background', self.f.__name__)
+            self.generator = self.f()
+            next(self.generator)
+
+    def join(self):
+        self.start()
+        if not self.finished:
+            self.value = next(self.generator)
+            self.finished = True
+        return self.value
+
+    def __get__(self, instance, owner):
+        self.f = self.f.__get__(instance, owner)  # bind method
+        return self
+
+    def __call__(self):
+        return self.join()
+
+
 class CachedRenderer(object):
     def __init__(self, **kwargs):
         log.debug("Creating cached renderer {}", kwargs)
         self.fields = kwargs
         self.depends_on = {}
+
+    def _renderer(self, field):
+        return getattr(self, '_render_' + field)
 
     def __getitem__(self, field):
         # todo: better way to track dependencies. explicit @requires decorator?
@@ -93,7 +148,7 @@ class CachedRenderer(object):
             return self.fields[field]
         except KeyError:
             try:
-                field_renderer = getattr(self, '_render_' + field)
+                field_renderer = self._renderer(field)
             except AttributeError:
                 raise SubmissionAttributeError(
                     self.__class__.__name__ + " does not contain or "
@@ -179,12 +234,16 @@ class Submission(CachedRenderer, metaclass=RegisteringType):
             ["Field {k}:\n\t{v}\n".format(k=k, v=v)
              for k, v in list(self.fields.items())])
 
+    @property
+    def form_fields(self):
+        return list(self.registry['mappers'].keys())
+
     @finalize
     def _render_submit(self):
         # todo dict map field names
         # todo truncate long fields in preview
 
-        return self.show_fields(list(self.registry['mappers'].keys()))
+        return self.show_fields(self.form_fields)
 
     def _finalize_submit(self):
         return self.submit(self['payload'])
@@ -220,6 +279,17 @@ class Submission(CachedRenderer, metaclass=RegisteringType):
 
         consolewidth = 80
         s = ""
+
+        log.debug('fields {}', fields)
+        # todo smarter reordering with explicit dependencies
+        for bg_field in self._background:
+            if bg_field in fields:
+                fields.append(bg_field)
+                fields.remove(bg_field)
+                renderer = self._renderer(bg_field)
+                renderer.start()
+        log.debug('reordered {}', fields)
+
         for field in fields:
             val = self[field]
             field_str = field
