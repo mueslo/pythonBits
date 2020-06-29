@@ -124,14 +124,11 @@ class PtpImgUploader:
             return self._perform(files=files)
 
     def upload(self, *images):
-        for image in images:
-            if urlparse(image).scheme in ('http', 'https'):
-                yield self.upload_urls(image)
-            elif urlparse(image).scheme in ('file', ''):
-                yield self.upload_files(image)
-            else:
-                raise Exception('Unknown image URI scheme '
-                                '{}'.format(urlparse(image).scheme))
+        files, urls = _partition(images)
+        if urls:
+            yield from self.upload_urls(*urls)
+        if files:
+            yield from self.upload_files(*files)
 
 
 def _partition(files_or_urls):
