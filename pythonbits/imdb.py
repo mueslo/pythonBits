@@ -60,7 +60,6 @@ class ImdbResult(object):
         except Exception:
             return 'Not rated'
 
-
     def summary(self):
         return {
             'title': get(self.movie, 'base', 'title'),
@@ -68,6 +67,7 @@ class ImdbResult(object):
             'directors': get(self.movie, 'credits', 'director', default=[]),
             'runtime': self.runtime,
             'rating': (get(self.movie, 'ratings', 'rating'), 10),
+            'metacritic': get(self.movie, 'metacriticScore'),
             'name': get(self.movie, 'base', 'title'),
             'votes': get(self.movie, 'ratings', 'ratingCount', default=0),
             'cover': get(self.movie, 'base', 'image', 'url'),

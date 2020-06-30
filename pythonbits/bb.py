@@ -832,12 +832,20 @@ class MovieSubmission(VideoSubmission):
         # todo: synopsis/longer description
         n = self['options']['num_cast']
         summary = self['summary']
+        metacritic = summary['metacritic']
         links = [("IMDb", summary['url'])]
+
+        try:
+            links.append(("Metacritic", metacritic['metacriticUrl']))
+        except TypeError:
+            pass
 
         return dedent("""\
         [b]Title[/b]: {name} ({links})
         [b]MPAA[/b]: {mpaa}
-        [b]Rating[/b]: {rating} [size=1]({votes} votes)[/size]
+        [b]IMDb rating[/b]: {rating} [size=1]({votes} votes)[/size]
+        [b]Metacritic[/b]: {metascore} [size=1]({metacount} reviews)[/size] | \
+{metauser} [size=1]({metavotes} votes)[/size]
         [b]Runtime[/b]: {runtime}
         [b]Director(s)[/b]: {directors}
         [b]Writer(s)[/b]: {writers}
@@ -847,6 +855,10 @@ class MovieSubmission(VideoSubmission):
             mpaa=summary['mpaa'],
             rating=bb.format_rating(summary['rating'][0],
                                     max=summary['rating'][1]),
+            metascore=str(metacritic.get('metaScore')),
+            metacount=str(metacritic.get('reviewCount', 0)),
+            metauser=str(metacritic.get('userScore')),
+            metavotes=str(metacritic.get('userRatingCount', 0)),
             votes=summary['votes'],
             runtime=summary['runtime'],
             directors=" | ".join(imdb_link(d) for d in summary['directors']),
