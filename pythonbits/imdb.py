@@ -53,6 +53,14 @@ class ImdbResult(object):
         star_ids = set(star['id'] for star in stars)
         return stars + [actor for actor in cast if actor['id'] not in star_ids]
 
+    @property
+    def mpaa_rating(self):
+        try:
+            return self.movie.certificate.certificate
+        except Exception:
+            return 'Not rated'
+
+
     def summary(self):
         return {
             'title': get(self.movie, 'base', 'title'),
@@ -66,7 +74,7 @@ class ImdbResult(object):
             'genres': get(self.movie, 'genres', default=[]),
             'cast': self.cast,
             'writers': get(self.movie, 'credits', 'writer', default=[]),
-            'mpaa': "",
+            'mpaa': self.mpaa_rating,
             'description': self.description,
             'url': self.url,
             'year': get(self.movie, 'base', 'year')}
@@ -126,6 +134,7 @@ class IMDB(object):
         movie.credits = f_credits.result()['credits']
         movie.stars = f_aux.result()['principals']
         movie.genres = f_genres.result()['genres']
+        movie.certificate = f_aux.result().get('certificate')
         title_versions = f_versions.result()
         movie.titles = {item["region"]: item["title"]
                         for item in title_versions['alternateTitles']
