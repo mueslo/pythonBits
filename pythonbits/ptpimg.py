@@ -13,7 +13,6 @@ import mimetypes
 import os
 from io import BytesIO
 from textwrap import dedent
-from urllib.parse import urlparse
 
 import requests
 
