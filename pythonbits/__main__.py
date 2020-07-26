@@ -74,6 +74,8 @@ def parse_args():
                             'help': "Number of screenshots"},
         'num_cast': {'type': int, 'default': 10,
                      'help': "Number of actors to use in tags"},
+        'num_directors': {'type': int, 'default': 2,
+                          'help': "Number of directors to use in tags"},
         'data_method': {'type': str, 'default': 'auto',
                         'choices': ['hard', 'sym', 'copy', 'move'],
                         'help': "Data method to use for placing media files"}
