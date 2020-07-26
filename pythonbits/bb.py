@@ -283,7 +283,11 @@ class VideoSubmission(BbSubmission):
         # todo: get episode-specific actors (from imdb?)
 
         n = self['options']['num_cast']
+        d = self['options']['num_directors']
         tags = list(self['summary']['genres'])
+        tags += [a['name']
+                 for a in self['summary']['directors'][:d]
+                 if a['name']]
         tags += [a['name']
                  for a in self['summary']['cast'][:n]
                  if a['name']]
@@ -450,6 +454,8 @@ class VideoSubmission(BbSubmission):
             return 'VP9'
         elif video_track['codec_id'] == 'XVID':
             return 'XVid'
+        elif video_track['codec_id'] == 'MP42':
+            return 'DivX'
         elif video_track['format'] == 'MPEG Video':
             return 'MPEG-2'
         else:
@@ -475,11 +481,12 @@ class VideoSubmission(BbSubmission):
         if audio_track['codec_id'].startswith('A_'):
             audio_track['codec_id'] = audio_track['codec_id'][2:]
         audio_codecs = ('AC3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3', 'TRUEHD',
-                        'PCM')
+                        'PCM', '2000')
         for c in audio_codecs:
             if audio_track['codec_id'].startswith(c):
                 c = c.replace('EAC3', 'AC-3') \
                      .replace('AC3', 'AC-3') \
+                     .replace('2000', 'AC-3') \
                      .replace('TRUEHD', 'True-HD')
                 return c
 
