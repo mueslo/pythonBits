@@ -7,23 +7,26 @@ new:
  - basic threading in API requests (up to ~5x speedup for season packs)
  - multi-episode submissions
  - config migration (API keys now embedded, imgur re-auth required)*
+ - metacritic rating for movies
+ - added directors to tags (thanks to znedw)
 
 <sub><sub><sub>*if you encounter issues, delete the entire `[Imgur]` section from your config.</sub></sub></sub> 
 
 fixed:
  - bug in source selection
  - IMDb cast ordering (stars are now always first)
+ - missing MPAA rating
 
 ## 3.0.3
 
 Minor feature update
 
-new: ptpimg support (thanks znedw!  
+new: ptpimg support (thanks to znedw)
 fixed: episode naming
 
 ## 3.0.2
 
-Maintenance update (thanks plotski, eeeeve, ...)
+Maintenance update (thanks to plotski, eeeeve, ...)
 
 breaking change: dropped Python 2 support
 
