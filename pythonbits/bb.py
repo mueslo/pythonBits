@@ -839,7 +839,7 @@ class MovieSubmission(VideoSubmission):
 
         try:
             links.append(("Metacritic", metacritic['metacriticUrl']))
-        except TypeError:
+        except (TypeError, KeyError):
             pass
 
         return dedent("""\
