@@ -285,12 +285,14 @@ class VideoSubmission(BbSubmission):
         n = self['options']['num_cast']
         d = self['options']['num_directors']
         tags = list(self['summary']['genres'])
-        tags += [a['name']
-                 for a in self['summary']['directors'][:d]
-                 if a['name']]
-        tags += [a['name']
-                 for a in self['summary']['cast'][:n]
-                 if a['name']]
+        if 'directors' in self['summary']:
+            tags += [a['name']
+                     for a in self['summary']['directors'][:d]
+                     if a['name']]
+        if 'cast' in self['summary']:
+            tags += [a['name']
+                     for a in self['summary']['cast'][:n]
+                     if a['name']]
 
         # Maximum tags length is 200 characters
         def tags_string(tags):
