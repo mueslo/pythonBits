@@ -137,6 +137,6 @@ class IMDB(object):
         movie.certificate = f_aux.result().get('certificate')
         title_versions = f_versions.result()
         movie.titles = {item["region"]: item["title"]
-                        for item in title_versions['alternateTitles']
+                        for item in title_versions.get('alternateTitles', [])
                         if "region" in item and "title" in item}
         return ImdbResult(movie)
