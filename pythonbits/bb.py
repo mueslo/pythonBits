@@ -81,6 +81,10 @@ class BbSubmission(Submission):
                 elif mime_guess[0] == 'audio':
                     return AudioSubmission
 
+        raise Exception("Unable to guess category using known mimetypes. "
+                        "Consider explicitly specifying the submission "
+                        "category.")
+
     def subcategorise(self):
         log.debug('Attempting to narrow category')
         SubCategory = self.subcategory()
