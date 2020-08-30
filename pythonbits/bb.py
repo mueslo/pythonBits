@@ -1061,15 +1061,22 @@ class AudioSubmission(BbSubmission):
             'tags': [t['name'] for t in
                      sorted(rg.get('tag-list', []),
                             key=lambda t: int(t['count']))][-5:],
-            'media': [m.get('format', 'CD') for m in release['medium-list']],
-            'cover': mb.get_artwork(rg['id']),
+            'media': ([m.get('format', 'CD') for m in release['medium-list']]
+                      if release else None),
             }
 
     @finalize
     @form_field('image')
     def _render_cover(self):
-        cover = self['summary']['cover']
-        assert cover is not None
+        release, rg = self['release']
+        cover = None
+        if release:
+            cover = mb.get_release_cover(release['id'])
+        cover = cover or mb.get_release_group_cover(rg['id'])
+
+        if cover is None:
+            cover = input('No cover art found, please manually type cover '
+                          'location: ')
         return cover
 
     def _finalize_cover(self):
