@@ -960,7 +960,8 @@ class AudioSubmission(BbSubmission):
             return 'Lossless'
 
         log.debug("format:{}\ntags:{}", format, tags)
-        raise RuntimeError('Unrecognized format/bitrate')
+        log.notice('Unrecognized format/bitrate, assuming "Other"')
+        return 'Other'
 
     def _render_mediainfo_path(self):
         assert os.path.isdir(self['path'])
