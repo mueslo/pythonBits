@@ -26,7 +26,7 @@ from . import musicbrainz as mb
 from . import imagehosting
 from .ffmpeg import FFMpeg
 from . import templating as bb
-from .submission import (Submission, form_field, finalize,
+from .submission import (Submission, form_field, finalize, cat_map,
                          SubmissionAttributeError, rlinput)
 from .tracker import Tracker
 from .scene import is_scene_crc, query_scene_fname
@@ -81,9 +81,15 @@ class BbSubmission(Submission):
                 elif mime_guess[0] == 'audio':
                     return AudioSubmission
 
-        raise Exception("Unable to guess category using known mimetypes. "
-                        "Consider explicitly specifying the submission "
-                        "category.")
+        log.info("Unable to guess submission category using known mimetypes")
+        while True:
+            cat = input("Please manually specify category. "
+                        "\nOptions: {}\nCategory: ".format(
+                ", ".join(cat_map.keys())))
+            try:
+                return cat_map[cat]
+            except KeyError:
+                print('Invalid category.')
 
     def subcategorise(self):
         log.debug('Attempting to narrow category')
@@ -571,6 +577,7 @@ class VideoSubmission(BbSubmission):
 
 class TvSubmission(VideoSubmission):
     default_fields = VideoSubmission.default_fields + ('form_description',)
+    _cat_id = 'tv'
     _form_type = 'TV'
     __form_fields__ = {
         'form_title': ('title', 'text'),
@@ -781,6 +788,7 @@ class SeasonSubmission(TvSubmission):
 class MovieSubmission(VideoSubmission):
     default_fields = (VideoSubmission.default_fields +
                       ("description", "mediainfo", "screenshots"))
+    _cat_id = 'movie'
     _form_type = 'Movies'
     __form_fields__ = {
         # field -> form field, type
@@ -1173,6 +1181,7 @@ class AudioSubmission(BbSubmission):
 
 
 class AudiobookSubmission(AudioSubmission):
+    _cat_id = 'audiobook'
     _form_type = 'Audiobooks'
 
     @form_field('tags')
@@ -1189,6 +1198,7 @@ class AudiobookSubmission(AudioSubmission):
 class MusicSubmission(AudioSubmission):
     default_fields = (AudioSubmission.default_fields + (
          'artist', 'remaster', 'remaster_year', 'remaster_title', 'media',))
+    _cat_id = 'music'
     _form_type = 'Music'
 
     @form_field('remaster_true', 'checkbox')
