@@ -8,9 +8,20 @@ from . import __title__ as appname, __version__ as version, _github as github
 musicbrainzngs.set_useragent(appname, version, github)
 
 
-def get_artwork(release_group_id):
+def get_release_group_cover(release_group_id):
     try:
         data = musicbrainzngs.get_release_group_image_list(release_group_id)
+    except musicbrainzngs.musicbrainz.ResponseError:
+        return None
+
+    for image in data["images"]:
+        if "Front" in image["types"] and image["approved"]:
+            return image["thumbnails"]["large"]
+
+
+def get_release_cover(release_id):
+    try:
+        data = musicbrainzngs.get_image_list(release_id)
     except musicbrainzngs.musicbrainz.ResponseError:
         return None
 
@@ -74,7 +85,7 @@ def find_release(release_title, artist=None):
     print(terminaltables.SingleTable(table_data).table)
     while True:
         choice = input(
-            "Select the exact release, if known: ")
+            "Select the exact release, if known (Enter to skip): ")
         try:
             choice = results[int(choice)]
         except (IndexError, ValueError):
