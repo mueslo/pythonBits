@@ -80,7 +80,7 @@ def find_release(release_title, artist=None):
         table_data.append((i, r['title'], r['medium-list'][0]['track-count'],
                            r.get('date', '?'), r.get('country', '?'),
                            label, r.get('status', '?'),
-                           r['medium-list'][0]['format']))
+                           r['medium-list'][0].get('format', '?')))
 
     print(terminaltables.SingleTable(table_data).table)
     while True:
