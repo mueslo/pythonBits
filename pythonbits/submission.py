@@ -25,12 +25,16 @@ class SubmissionAttributeError(Exception):
 
 
 re_frender = re.compile("^_render_(?=[a-z_]*$)")
+cat_map = {}
 
 
 class RegisteringType(type):
     def __init__(cls, name, bases, attrs):
         cls.registry = copy.deepcopy(getattr(cls, 'registry',
                                              {'mappers': {}, 'types': {}}))
+
+        if hasattr(cls, '_cat_id'):
+            cat_map[cls._cat_id] = cls
 
         def add_mapper(f, ff, fft):
             log.debug("{} adding mapper {} for {} ({})",

@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from . import __version__ as version
 from . import bb
 from . import logging
-from .submission import SubmissionAttributeError
+from .submission import SubmissionAttributeError, cat_map
 
 
 def parse_args():
@@ -22,9 +22,6 @@ def parse_args():
                               "(e.g. \"Lawrence of Arabia\" or \"The Walking "
                               "Dead S01\") (optional)"))
 
-    cat_map = {'movie': bb.MovieSubmission,
-               'tv': bb.TvSubmission,
-               'music': bb.MusicSubmission}
     parser.add_argument("-c", "--category", choices=list(cat_map.keys()))
     parser.add_argument("-u", "--set-field", nargs=2, action='append',
                         metavar=('FIELD', 'VALUE'), default=[],
