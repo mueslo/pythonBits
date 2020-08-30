@@ -45,7 +45,10 @@ def find_release_group(release_title, artist=None):
         except IndexError:
             pass
         else:
-            return choice
+            return musicbrainzngs.get_release_group_by_id(
+                choice['id'],
+                includes=['tags', 'artist-credits', 'url-rels']
+                )['release-group']
 
 
 def find_release(release_title, artist=None):
@@ -76,8 +79,9 @@ def find_release(release_title, artist=None):
             choice = results[int(choice)]
         except (IndexError, ValueError):
             if choice == '':
-                return release_group, None
+                return None, release_group
         else:
             release = musicbrainzngs.get_release_by_id(
-                choice['id'], includes=['media', 'recordings'])['release']
-            return release_group, release
+                choice['id'], includes=['release-groups', 'media',
+                                        'recordings', 'url-rels'])['release']
+            return release, release_group
