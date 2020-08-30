@@ -84,8 +84,8 @@ class BbSubmission(Submission):
         log.info("Unable to guess submission category using known mimetypes")
         while True:
             cat = input("Please manually specify category. "
-                        "\nOptions: {}\nCategory: ".format(
-                ", ".join(cat_map.keys())))
+                        "\nOptions: {}"
+                        "\nCategory: ".format(", ".join(cat_map.keys())))
             try:
                 return cat_map[cat]
             except KeyError:
@@ -1037,7 +1037,7 @@ class AudioSubmission(BbSubmission):
             else:
                 query_artist = tags['artist']
                 query = tags['title']
-            rg, release = mb.find_release(query, artist=query_artist)
+            release, rg = mb.find_release(query, artist=query_artist)
 
         # identify self:
         #  - num tracks todo
