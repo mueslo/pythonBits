@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __title__ = "pythonBits"
-__version__ = "3.1a4"
+__version__ = "3.1b1"
 __copyright__ = "Copyright 2018, The pythonBits Authors"
 __maintainer__ = "mueslo"
 __license__ = "GPLv3"
