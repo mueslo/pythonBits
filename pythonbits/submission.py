@@ -34,7 +34,8 @@ class RegisteringType(type):
                                              {'mappers': {}, 'types': {}}))
 
         if hasattr(cls, '_cat_id'):
-            cat_map[cls._cat_id] = cls
+            if cls._cat_id not in cat_map:
+                cat_map[cls._cat_id] = cls
 
         def add_mapper(f, ff, fft):
             log.debug("{} adding mapper {} for {} ({})",
