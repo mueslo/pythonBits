@@ -8,7 +8,8 @@ def get_psk():
     seed = config.get('Tracker', 'domain').encode('utf8')
     test = sha224(seed).hexdigest()
     if not test.endswith('f280f') and not test.endswith('5abc3'):
-        raise Exception('Wrong domain! Manually fix {}'.format(config.config_path))
+        raise Exception('Wrong domain! '
+                        'Manually fix {}'.format(config.config_path))
     return sha256(seed).hexdigest()
 
 def d(a):
