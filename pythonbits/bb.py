@@ -293,12 +293,16 @@ class VideoSubmission(BbSubmission):
         # todo: get episode-specific actors (from imdb?)
 
         n = self['options']['num_cast']
-        d = self['options']['num_directors']
         tags = list(self['summary']['genres'])
-        if 'directors' in self['summary']:
-            tags += [a['name']
-                     for a in self['summary']['directors'][:d]
-                     if a['name']]
+
+        # only add the Director tag/s for movie submissions
+        if(self.subcategory() == MovieSubmission):
+            d = self['options']['num_directors']
+            if 'directors' in self['summary']:
+                tags += [a['name']
+                         for a in self['summary']['directors'][:d]
+                         if a['name']]
+
         if 'cast' in self['summary']:
             tags += [a['name']
                      for a in self['summary']['cast'][:n]
