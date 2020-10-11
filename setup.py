@@ -45,9 +45,11 @@ setup(
         "musicbrainzngs~=0.7",
         "terminaltables~=3.1",
     ],
-    python_requires=">=3.5,<4.0",
+    python_requires=">=3.5,<3.9",
     tests_require=['tox', 'pytest', 'flake8', 'pytest-logbook'],
     classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
