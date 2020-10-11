@@ -12,6 +12,7 @@ def get_psk():
                         'Manually fix {}'.format(config.config_path))
     return sha256(seed).hexdigest()
 
+
 def d(a):
     psk = get_psk()
     return "".join([chr(ord(a[i]) ^ ord(psk[i])) for i in range(len(a))])

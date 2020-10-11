@@ -49,6 +49,12 @@ def format_choices(choices):
     ])
 
 
+def uniq(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
+
 class BbSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
 
@@ -293,20 +299,20 @@ class VideoSubmission(BbSubmission):
         # todo: get episode-specific actors (from imdb?)
 
         n = self['options']['num_cast']
+        d = self['options']['num_directors']
         tags = list(self['summary']['genres'])
 
-        # only add the Director tag/s for movie submissions
-        if(self.subcategory() == MovieSubmission):
-            d = self['options']['num_directors']
-            if 'directors' in self['summary']:
-                tags += [a['name']
-                         for a in self['summary']['directors'][:d]
-                         if a['name']]
+        if 'directors' in self['summary']:
+            tags += [a['name']
+                     for a in self['summary']['directors'][:d]
+                     if a['name']]
 
         if 'cast' in self['summary']:
             tags += [a['name']
                      for a in self['summary']['cast'][:n]
                      if a['name']]
+
+        tags = uniq(tags)
 
         # Maximum tags length is 200 characters
         def tags_string(tags):
@@ -687,6 +693,10 @@ class EpisodeSubmission(TvSubmission):
         summary.update(**show_summary)
         summary.update(**title_i18n)
         summary['cover'] = summary['cover'][0]
+        directors = uniq([n for names in summary['directors'] for n in names])
+        summary['directors'] = [{'name': name} for name in directors]
+        writers = uniq([n for names in summary['writers'] for n in names])
+        summary['writers'] = [{'name': name} for name in writers]
         return summary
 
     def _render_section_description(self):
@@ -728,8 +738,8 @@ class EpisodeSubmission(TvSubmission):
             air_date=' | '.join(s['air_date']),
             network=s['network'],
             rating=' | '.join(rating_bb),
-            directors=' | '.join(set(sum(s['directors'], []))),
-            writers=' | '.join(set(sum(s['writers'], []))),
+            directors=' | '.join(d['name'] for d in s['directors']),
+            writers=' | '.join(w['name'] for w in s['writers']),
             contentrating=s['contentrating']
             )
         return description
