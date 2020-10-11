@@ -13,9 +13,18 @@ CONFIG_NAME = appname.lower() + '.cfg'
 CONFIG_DIR = appdirs.user_config_dir(appname.lower())
 CONFIG_PATH = path.join(CONFIG_DIR, CONFIG_NAME)
 CONFIG_VERSION = 1
+DEFAULT = object()
 
 if not path.exists(CONFIG_DIR):
     makedirs(CONFIG_DIR, 0o700)
+
+
+class ConfidentialOption(Exception):
+    pass
+
+
+class UnregisteredOption(Exception):
+    pass
 
 
 class Config():
@@ -23,13 +32,11 @@ class Config():
 
     def __init__(self, config_path=None):
         self.config_path = config_path or CONFIG_PATH
-        self._config = configparser.ConfigParser()
+        self._config = configparser.ConfigParser(allow_no_value=True)
 
     def register(self, section, option, query, ask=False, getpass=False):
         self.registry[(section, option)] = {
             'query': query, 'ask': ask, 'getpass': getpass}
-
-        # todo: ask to remember choice if save is declined
 
     def _write(self):
         with open(self.config_path, 'w') as configfile:
@@ -42,33 +49,49 @@ class Config():
         self._config.set(section, option, value)
         self._write()
 
-    def get(self, section, option, default='dontguessthis'):
+    def get(self, section, option, default=DEFAULT):
         self._config.read(self.config_path)
-        try:
-            return self._config.get(section, option)
-        except (configparser.NoSectionError, configparser.NoOptionError):
 
+        try:
+            value = self._config.get(section, option)
+            if value is None:
+                raise ConfidentialOption
+            return value
+        except (configparser.NoSectionError, configparser.NoOptionError,
+                ConfidentialOption) as e:
+            # if getter default is set, return it instead
+            if default is not DEFAULT:
+                return default
+
+            # get registered config option
             try:
                 reg_option = self.registry[(section, option)]
             except KeyError:
-                if default != 'dontguessthis':  # dirty hack
-                    return default
-                else:
-                    raise
+                raise UnregisteredOption((section, option))
 
+            # get value from user query
             if reg_option['getpass']:
                 value = getpass.getpass(reg_option['query'] + ": ")
             else:
                 value = input(reg_option['query'] + ": ").strip()
 
-            if (reg_option['ask'] and
-                input(
-                    'Would you like to save this value in {}? [Y/n] '.format(
-                        self.config_path)).lower() == 'n'):
+            # user does not want to be prompted to save this option
+            if isinstance(e, ConfidentialOption):
                 return value
 
-            self.set(section, option, value)
+            # user has choice ('ask') to save option value
+            if reg_option['ask']:
+                c = input('Would you like to save this value in {}? '
+                          'nr = no, and remember choice\n'
+                          '[Y/n/nr]'.format(self.config_path)).lower()
 
+                if c == 'n':
+                    return value
+                elif c == 'nr':
+                    self.set(section, option, None)
+                    return value
+
+            self.set(section, option, value)
             return value
 
 
