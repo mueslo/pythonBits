@@ -457,42 +457,52 @@ class VideoSubmission(BbSubmission):
 
     def _render_video_codec(self):
         video_track = self['tracks']['video']
-        # norm_bitrate = (float(bit_rate) /
-        #     (video_track.width*video_track.height))
-        if (video_track['codec_id'] in ('V_MPEG4/ISO/AVC', 'AVC', 'avc1') or
-                video_track['format'] == 'AVC'):
-            if 'x264' in video_track.get('writing_library', ''):
-                return 'x264'
-            else:
-                return 'H.264'
-        elif video_track['codec_id'] in ('V_MPEGH/ISO/HEVC', 'HEVC'):
-            if 'x265' in video_track.get('writing_library', ''):
-                return 'x265'
-            else:
-                return 'H.265'
-        elif video_track['codec_id'] in ('V_MS/VFW/FOURCC / WVC1',):
-            return 'VC-1'
-        elif 'VP9' in video_track['codec_id']:
-            return 'VP9'
-        elif video_track['codec_id'] == 'XVID':
-            return 'XVid'
-        elif video_track['codec_id'] == 'MP42':
-            return 'DivX'
-        elif video_track['format'] == 'MPEG Video':
-            return 'MPEG-2'
+        codec_id = video_track['codec_id']
+
+        match_list = [('(V_MPEG4/ISO/)?AVC1?', 'H.264'),
+                      ('(V_MPEGH/ISO/)?HEVC', 'H.265'),
+                      ('(V_MS/VFW/FOURCC / )?WVC1', 'VC-1'),
+                      ('VP9', 'VP9'),
+                      ('XVID', 'XVid'),
+                      ('(MP42|DX[45]0)', 'DivX'),
+                      ('(V_)?MPEG2', 'MPEG-2')
+                      ]
+
+        norm_codec_id = None
+        for rx, rv in match_list:
+            rx = re.compile(rx, flags=re.IGNORECASE)
+            if rx.match(codec_id):
+                norm_codec_id = rv
+                break
         else:
-            msg = "Unknown or unsupported video codec '{}' ({})".format(
-                            video_track.get('codec_id'),
-                            video_track.get('writing_library'))
-            raise RuntimeError(msg)
+            if video_track['format'] == 'MPEG Video':
+                if video_track['format_version'] == 'Version 1':
+                    norm_codec_id = 'MPEG-1'
+                elif video_track['format_version'] == 'Version 2':
+                    norm_codec_id = 'MPEG-2'
+            elif video_track['format'] == 'AVC':
+                norm_codec_id = 'H.264'
+
+        # x264/5 is not a codec, but the rules is the rules
+        if (norm_codec_id == 'H.264' and
+                'x264' in video_track.get('writing_library', '')):
+            return 'x264'
+        elif (norm_codec_id == 'H.265' and
+              'x265' in video_track.get('writing_library', '')):
+            return 'x265'
+        elif norm_codec_id:
+            return norm_codec_id
+
+        msg = "Unknown or unsupported video codec '{}' ({}, {})".format(
+                        video_track.get('codec_id'),
+                        video_track.get('format'),
+                        video_track.get('writing_library'))
+        raise RuntimeError(msg)
 
     def _render_audio_codec(self):
         audio_track = self['tracks']['audio'][0]  # main audio track
-        if (audio_track.get('codec_id_hint') == 'MP3' or
-                audio_track['codec_id'] in ('MPA1L3', '55')):
+        if audio_track.get('codec_id_hint') == 'MP3':
             return 'MP3'
-        elif audio_track['codec_id'].lower().startswith('mp4a'):
-            return 'AAC'
         elif 'Dolby Atmos' in audio_track['commercial_name']:
             return 'Dolby Atmos'
         elif 'DTS-HD' in audio_track['commercial_name']:
@@ -500,19 +510,23 @@ class VideoSubmission(BbSubmission):
                 return 'DTS:X'
             return 'DTS-HD'
 
-        if audio_track['codec_id'].startswith('A_'):
-            audio_track['codec_id'] = audio_track['codec_id'][2:]
-        # Could be "ac-3"
-        audio_track['codec_id'] = audio_track['codec_id'].upper()
-        audio_codecs = ('AC3', 'AC-3', 'EAC3', 'DTS', 'FLAC', 'AAC', 'MP3',
-                        'TRUEHD', 'PCM', '2000')
-        for c in audio_codecs:
-            if audio_track['codec_id'].startswith(c):
-                c = c.replace('EAC3', 'AC-3') \
-                     .replace('AC3', 'AC-3') \
-                     .replace('2000', 'AC-3') \
-                     .replace('TRUEHD', 'True-HD')
-                return c
+        codec_id = audio_track['codec_id']
+        if codec_id.startswith('A_'):
+            codec_id = codec_id[2:]
+
+        match_list = [('(E?AC-?3|2000)', 'AC-3'),
+                      ('DTS', 'DTS'),
+                      ('FLAC', 'FLAC'),
+                      ('(AAC|MP4A)', 'AAC'),
+                      ('(MP3|MPA1L3|55)', 'MP3'),
+                      ('TRUEHD', 'True-HD'),
+                      ('PCM', 'PCM'),
+                      ]
+
+        for rx, rv in match_list:
+            rx = re.compile(rx, flags=re.IGNORECASE)
+            if rx.match(codec_id):
+                return rv
 
         raise ValueError("Unknown or unsupported audio codec '{}'".format(
             audio_track['codec_id']))
