@@ -24,6 +24,8 @@ from . import tvdb
 from . import imdb
 from . import musicbrainz as mb
 from . import imagehosting
+from . import goodreads
+from .googlebooks import find_cover, find_categories
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize, cat_map,
@@ -150,6 +152,7 @@ class BbSubmission(Submission):
             'movie': ['hard', 'sym', 'copy', 'move'],
             'tv': ['hard', 'sym', 'copy', 'move'],
             'music': ['copy', 'move'],
+            'book': ['copy', 'move'],
             }
 
         method_map = {'hard': os.link,
@@ -928,6 +931,140 @@ class MovieSubmission(VideoSubmission):
     @form_field('desc')
     def _render_form_description(self):
         return self['description']
+
+
+class BookSubmission(BbSubmission):
+
+    _cat_id = 'book'
+    _form_type = 'E-Books'
+
+    def _desc(self):
+        s = self['summary']
+        return re.sub('<[^<]+?>', '', s['description'])
+
+    @form_field('book_retail', 'checkbox')
+    def _render_retail(self):
+        return bool(
+            input('Is this a retail release? [y/N]  ').lower()
+            == 'y')
+
+    @form_field('book_language')
+    def _render_language(self):
+        return self['summary']['language']
+
+    @form_field('book_publisher')
+    def _render_publisher(self):
+        return self['summary']['publisher']
+
+    @form_field('book_author')
+    def _render_author(self):
+        return self['summary']['authors'][0]['name']
+
+    @form_field('book_format')
+    def _render_format(self):
+        book_format = {
+            'EPUB': 'EPUB',
+            'MOBI': 'MOBI',
+            'PDF': 'PDF',
+            'HTML': 'HTML',
+            'TXT': 'TXT',
+            'DJVU': 'DJVU',
+            'CHM': 'CHM',
+            'CBR': 'CBR',
+            'CBZ': 'CBZ',
+            'CB7': 'CB7',
+            'TXT': 'TXT',
+            'AZW3': 'AZW3',
+            }
+
+        _, ext = os.path.splitext(self['path'])
+        return book_format[ext.replace('.', '').upper()]
+
+    def _render_summary(self):
+        gr = goodreads.Goodreads()
+        return gr.search(self['path'])
+
+    @form_field('book_year')
+    def _render_year(self):
+        if 'summary' in self.fields:
+            return self['summary']['publication_year']
+        else:
+            while True:
+                year = input('Please enter year: ')
+                try:
+                    year = int(year)
+                except ValueError:
+                    pass
+                else:
+                    return year
+
+    @form_field('book_isbn')
+    def _render_isbn(self):
+        if 'summary' in self.fields:
+            return self['summary'].get('isbn', '')
+
+    @form_field('title')
+    def _render_form_title(self):
+        if 'summary' in self.fields:
+            return self['summary'].get('title', '')
+
+    @form_field('tags')
+    def _render_tags(self):
+        categories = find_categories(self['summary']['isbn'])
+        authors = self['summary']['authors']
+        return ",".join(uniq(list(format_tag(a['name']) for a in authors) +
+                             list(format_tag(a) for a in categories)))
+
+    def _render_section_information(self):
+        def gr_author_link(gra):
+            return bb.link(gra['name'], gra['link'])
+
+        book = self['summary']
+        links = [("Goodreads", book['url'])]
+
+        return dedent("""\
+        [b]Title[/b]: {title} ({links})
+        [b]ISBN[/b]: {isbn}
+        [b]Publisher[/b]: {publisher}
+        [b]Publication Year[/b]: {publication_year}
+        [b]Rating[/b]: {rating} [size=1]({ratings_count} ratings)[/size]
+        [b]Author(s)[/b]: {authors}""").format(
+            links=", ".join(bb.link(*l) for l in links),
+            title=book['title'],
+            isbn=book['isbn'],
+            publisher=book['publisher'],
+            publication_year=book['publication_year'],
+            rating=bb.format_rating(float(book['average_rating']),
+                                    max=5),
+            ratings_count=book['ratings_count'],
+            authors=" | ".join(gr_author_link(a) for a in book['authors'])
+        )
+
+    def _render_section_description(self):
+        return self._desc()
+
+    @form_field('desc')
+    def _render_description(self):
+        sections = [("Description", self['section_description']),
+                    ("Information", self['section_information'])]
+
+        description = "\n".join(bb.section(*s) for s in sections)
+        description += bb.release
+
+        return description
+
+    @finalize
+    @form_field('image')
+    def _render_cover(self):
+        # Goodreads usually won't give you a cover image as they don't have the
+        # the right to distribute them
+        if 'nophoto' in self['summary']['image_url']:
+            return find_cover(self['summary']['isbn'])
+        else:
+            return self['summary']['image_url']
+
+    def _finalize_cover(self):
+        return imagehosting.upload(self['cover'])
 
 
 class AudioSubmission(BbSubmission):
