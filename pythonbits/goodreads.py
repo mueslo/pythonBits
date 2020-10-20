@@ -41,7 +41,14 @@ def _extract_author(auth):
 
 
 def _extract_language(alpha_3):
-    return pycountry.languages.get(alpha_3=alpha_3).name
+    try:
+        return pycountry.languages.get(alpha_3=alpha_3).name
+    except AttributeError:
+        try:
+            return pycountry.languages.get(alpha_2=alpha_3[:2]).name
+        except AttributeError:
+            # I give up
+            return input('Please specify the book\'s Language: ')
 
 
 def _extract_shelves(shelves, take):
