@@ -942,6 +942,9 @@ class BookSubmission(BbSubmission):
         s = self['summary']
         return re.sub('<[^<]+?>', '', s['description'])
 
+    def _render_scene(self):
+        return False
+
     @form_field('book_retail', 'checkbox')
     def _render_retail(self):
         return bool(
@@ -1012,15 +1015,32 @@ class BookSubmission(BbSubmission):
     def _render_tags(self):
         categories = find_categories(self['summary']['isbn'])
         authors = self['summary']['authors']
-        return ",".join(uniq(list(format_tag(a['name']) for a in authors) +
-                             list(format_tag(a) for a in categories)))
+        shelves = self['summary']['shelves']
+
+        tags = uniq(list(format_tag(a['name']) for a in authors) +
+                    list(format_tag(c) for c in categories) +
+                    list(format_tag(s['name']) for s in shelves))
+        # Maximum tags length is 200 characters
+
+        def tags_string(tags):
+            return ",".join(format_tag(tag) for tag in tags)
+        while len(tags_string(tags)) > 200:
+            del tags[-1]
+        return tags_string(tags)
 
     def _render_section_information(self):
         def gr_author_link(gra):
             return bb.link(gra['name'], gra['link'])
 
         book = self['summary']
-        links = [("Goodreads", book['url'])]
+        isbn = book['isbn']
+        links = [('Goodreads', book['url']),
+                 ('Amazon', 'http://amzn.com/{}'
+                  .format(isbn)),
+                 ('LibraryThing', 'http://www.librarything.com/isbn/{}/'
+                  .format(isbn)),
+                 ('Google Books', 'http://books.google.com/books?vid=ISBN{}'
+                  .format(isbn))]
 
         return dedent("""\
         [b]Title[/b]: {title} ({links})
@@ -1031,7 +1051,7 @@ class BookSubmission(BbSubmission):
         [b]Author(s)[/b]: {authors}""").format(
             links=", ".join(bb.link(*l) for l in links),
             title=book['title'],
-            isbn=book['isbn'],
+            isbn=isbn,
             publisher=book['publisher'],
             publication_year=book['publication_year'],
             rating=bb.format_rating(float(book['average_rating']),
