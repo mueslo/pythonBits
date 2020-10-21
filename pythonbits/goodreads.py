@@ -41,6 +41,8 @@ def _extract_author(auth):
 
 
 def _extract_language(alpha_3):
+    if not alpha_3:
+        return _read_language()
     try:
         return pycountry.languages.get(alpha_3=alpha_3).name
     except AttributeError:
@@ -48,7 +50,11 @@ def _extract_language(alpha_3):
             return pycountry.languages.get(alpha_2=alpha_3[:2]).name
         except AttributeError:
             # I give up
-            return input('Please specify the book\'s Language: ')
+            return _read_language()
+
+
+def _read_language():
+    return input('Please specify the book\'s Language: ')
 
 
 def _extract_shelves(shelves, take):
@@ -104,7 +110,7 @@ class Goodreads(object):
 
         if isbn:
             log.debug("Searching Goodreads by ISBN {} for '{}'",
-                      isbn, book['Title'])
+                      isbn, book.get('Title', isbn))
             return self.show_by_isbn(isbn)
         elif book['Title']:
             search_term = book['Title']

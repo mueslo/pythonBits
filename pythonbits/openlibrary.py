@@ -3,13 +3,11 @@
 
 """
 Note, read https://openlibrary.org/dev/docs/api/covers
-The cover access by ids other than CoverID and OLID are rate-limited. 
+The cover access by ids other than CoverID and OLID are rate-limited.
 Currently only 100 requests/IP are allowed for every 5 minutes.
-If any IP tries to access more that the allowed limit, 
+If any IP tries to access more that the allowed limit,
 the service will return "403 Forbidden" status.
 """
-
-from .logging import log
 
 API_URL = 'http://covers.openlibrary.org/b/{}/{}-{}.jpg'
 
