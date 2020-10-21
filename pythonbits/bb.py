@@ -1182,7 +1182,7 @@ class AudioSubmission(BbSubmission):
         # get first file over 1 MiB
         for dp, _, fns in os.walk(self['path']):
             for fn in fns:
-                g = guess_type(fn)[0]
+                g = mimetypes.guess_type(fn)[0]
                 if g and g.startswith('audio'):
                     return os.path.join(dp, fn)  # return full path
         raise Exception('No media file found')
