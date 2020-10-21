@@ -9,7 +9,7 @@ from textwrap import dedent
 from collections import namedtuple, abc
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import timedelta
-from mimetypes import guess_type
+import mimetypes
 
 import pymediainfo
 import mutagen
@@ -59,6 +59,17 @@ def uniq(seq):
 
 class BbSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
+    ebook_types = {'application/epub+zip': 'EPUB',
+                   'application/x-mobipocket-ebook': 'MOBI',
+                   'application/pdf': 'PDF',
+                   'text/html': 'HTML',
+                   'text/plain': 'TXT',
+                   'image/vnd.djvu': 'DJVU',
+                   'application/vnd.ms-htmlhelp': 'CHM',
+                   'application/x-cbr': 'CBR',
+                   'application/x-cbz': 'CBZ',
+                   'application/x-cb7': 'CB7',
+                   'application/x-mobi8-ebook': 'AZW3'}
 
     def show_fields(self, fields):
         return super(BbSubmission, self).show_fields(
@@ -70,6 +81,7 @@ class BbSubmission(Submission):
 
     def subcategory(self):
         path = self['path']
+        self.add_ebook_mime_types()
         if os.path.isfile(path):
             files = [(os.path.getsize(path), path)]
         else:
@@ -81,14 +93,15 @@ class BbSubmission(Submission):
                 files.append((os.path.getsize(fpath), fpath))
 
         for _, path in sorted(files, reverse=True):
-            mime_guess, _ = guess_type(path)
+            mime_guess, _ = mimetypes.guess_type(path)
             if mime_guess:
                 mime_guess = mime_guess.split('/')
                 if mime_guess[0] == 'video':
                     return VideoSubmission
                 elif mime_guess[0] == 'audio':
                     return AudioSubmission
-
+                elif self.subcategorise_ebook('/'.join(mime_guess)):
+                    return BookSubmission
         log.info("Unable to guess submission category using known mimetypes")
         while True:
             cat = input("Please manually specify category. "
@@ -110,6 +123,30 @@ class BbSubmission(Submission):
         sub = SubCategory(**self.fields)
         sub.depends_on = self.depends_on
         return sub
+
+    def add_ebook_mime_types(self):
+        contentTypes = mimetypes.types_map
+        contentTypes.update(
+            {
+                '.epub':    'application/epub+zip',
+                '.mobi':    'application/x-mobipocket-ebook',
+                '.pdf':     'application/pdf',
+                '.html':    'text/html',
+                '.txt':     'text/plain',
+                '.djvu':    'image/vnd.djvu',
+                '.chm':     'application/vnd.ms-htmlhelp',
+                '.cbr':     'application/x-cbr',
+                '.cbz':     'application/x-cbz',
+                '.cb7':     'application/x-cb7',
+                '.azw3':    'application/x-mobi8-ebook'
+            }
+        )
+
+    def subcategorise_ebook(self, mime):
+        try:
+            return self.ebook_types.get(mime)
+        except KeyError:
+            return False
 
     @staticmethod
     def submit(payload):
@@ -965,23 +1002,9 @@ class BookSubmission(BbSubmission):
 
     @form_field('book_format')
     def _render_format(self):
-        book_format = {
-            'EPUB': 'EPUB',
-            'MOBI': 'MOBI',
-            'PDF': 'PDF',
-            'HTML': 'HTML',
-            'TXT': 'TXT',
-            'DJVU': 'DJVU',
-            'CHM': 'CHM',
-            'CBR': 'CBR',
-            'CBZ': 'CBZ',
-            'CB7': 'CB7',
-            'TXT': 'TXT',
-            'AZW3': 'AZW3',
-            }
-
-        _, ext = os.path.splitext(self['path'])
-        return book_format[ext.replace('.', '').upper()]
+        mime_type, _ = mimetypes.guess_type(self['path'])
+        fmt = self.subcategorise_ebook(mime_type)
+        return fmt
 
     def _render_summary(self):
         gr = goodreads.Goodreads()
