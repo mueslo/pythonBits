@@ -26,6 +26,7 @@ from . import musicbrainz as mb
 from . import imagehosting
 from . import goodreads
 from .googlebooks import find_cover, find_categories
+from .openlibrary import format_cover_url
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize, cat_map,
@@ -1099,9 +1100,11 @@ class BookSubmission(BbSubmission):
     @finalize
     @form_field('image')
     def _render_cover(self):
+        if(config.get('Books', 'use_openlibrary').lower() == "true"):
+            return format_cover_url('isbn', self['summary']['isbn'], 'L')
         # Goodreads usually won't give you a cover image as they don't have the
         # the right to distribute them
-        if 'nophoto' in self['summary']['image_url']:
+        elif 'nophoto' in self['summary']['image_url']:
             return find_cover(self['summary']['isbn'])
         else:
             return self['summary']['image_url']
