@@ -1,4 +1,5 @@
-sudo: false
+os: linux
+dist: xenial
 language: python
 cache: 
   pip: true
@@ -12,7 +13,7 @@ script:
 - tox
 deploy:
   provider: pypi
-  user: mueslo
+  username: mueslo
   password:
     secure: mxidlBUmwJXWaUQi7oLY23ZlXcs85TWwfdkUWfd3OoeMdzGHmff6dN4xq9AX+etRdI5j1MVyjAt1He7TOja+vKUXKrnMw0n+zr1t0Z+VwupFbQrYYJeYqzw39SUaoYJ7TzrT4qAor1AiPluNt3TDW8TB0oNbAXslo+kT1vu2hyQKgAptP6XebXDiAfpGswQtVXkaRJc1mwRLtfOToBwZoCaMRB6INgjfhg0yQlXl95TU/El0v2IJi9+w2rMJfpXHQFA4CRlUgUUmD4+Iqqbo5Bv5EmRyCj5Awkr4MXL1xZR6NbiD41n9hQhMiZ4Vfz39i4fHsSoTRYmUEXhIAVZeL4CNqu3xhp9WrjpnurN0Fr0yOO6yNWG1Tz/HyT6oppjDHrnrEcqKkBQUqRFlJACVcKtlpEC0PR5oJ2DFcffmoAgCgh6mGD4BO3rLpd5d3hlGmg3eXcfmkYxJUjQesOaSlpaFYf8QzVpNpOwS3yxF22/c6VCb1pmh3uMirKtxOHZLU7NplO2f8nJEfo0jyqKr13YSIoK1uyRwMot0kQFsUI2D5klxVS1Xi2FAsT69OlROXeZAQgVZMO6RWWhQwJ1yiZUTA454bV1W4uQuaWaGkQZ5pigU6IB7HdbCEl9IJ/FvcNvrDJ78MoTMlk4+R+LdY5dcOP6qSTlbrCx0XsKqnQM=
   on:
