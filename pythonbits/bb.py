@@ -623,6 +623,9 @@ class TvSubmission(VideoSubmission):
     def _render_search_title(self):
         return self['tv_specifier'].title
 
+    def _render_tvdb_id(self):
+        return None
+
     def subcategory(self):
         if type(self) == TvSubmission:
             if self['tv_specifier'].episode is None:
@@ -695,7 +698,7 @@ class EpisodeSubmission(TvSubmission):
 
     def _render_summary(self):
         t = tvdb.TVDB()
-        results = t.search(self['tv_specifier'])
+        results = t.search(self['tv_specifier'], self['tvdb_id'])
         title_i18n = self.tvdb_title_i18n(results[0])
         summaries = []
         show_summary = results[0].show_summary()
@@ -771,7 +774,7 @@ class SeasonSubmission(TvSubmission):
 
     def _render_summary(self):
         t = tvdb.TVDB()
-        result = t.search(self['tv_specifier'])
+        result = t.search(self['tv_specifier'], self['tvdb_id'])
         summary = result.summary()
         summary.update(self.tvdb_title_i18n(result))
         return summary
