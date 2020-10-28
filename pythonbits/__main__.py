@@ -2,7 +2,7 @@
 from os import path
 from argparse import ArgumentParser
 
-from . import __version__ as version
+from . import __version__ as version, flags
 from . import bb
 from . import logging
 from .submission import SubmissionAttributeError, cat_map
@@ -75,7 +75,9 @@ def parse_args():
                           'help': "Number of directors to use in tags"},
         'data_method': {'type': str, 'default': 'auto',
                         'choices': ['hard', 'sym', 'copy', 'move'],
-                        'help': "Data method to use for placing media files"}
+                        'help': "Data method to use for placing media files"},
+        'headless': {'action': 'store_true', 'default': False,
+                     'help': 'Skip user interaction if possible or exit'},
     }
 
     options = parser.add_argument_group(
@@ -92,6 +94,10 @@ def parse_args():
     args.options = {}
     for o in options_d.keys():
         args.options[o] = getattr(args, o)
+
+    headless = args.options.pop('headless')
+    if headless:
+        flags.add('headless')
 
     set_field = dict(args.set_field)
 
@@ -121,7 +127,7 @@ def _main(Category, set_fields, get_fields):
             break
 
     if sub.needs_finalization():
-        if sub.confirm_finalization(get_fields):
+        if sub.confirm_finalization(get_fields) or 'headless' in flags:
             sub.finalize()
         else:
             return
