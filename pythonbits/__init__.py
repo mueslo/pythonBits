@@ -8,3 +8,5 @@ __license__ = "GPLv3"
 
 _release = __title__ + " " + __version__
 _github = 'https://github.com/' + __maintainer__ + '/' + __title__
+
+flags = set()
