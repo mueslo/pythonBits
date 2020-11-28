@@ -126,8 +126,9 @@ def _main(Category, set_fields, get_fields):
         else:
             break
 
+    headless = 'headless' in flags
     if sub.needs_finalization():
-        if sub.confirm_finalization(get_fields) or 'headless' in flags:
+        if headless or sub.confirm_finalization(get_fields):
             sub.finalize()
         else:
             return
