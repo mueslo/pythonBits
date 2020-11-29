@@ -1181,9 +1181,9 @@ class AudioSubmission(BbSubmission):
                 [b]Status[/b]: {status}
                 [b]Release[/b]: {thisrel} ({country})""").format(
             release="https://musicbrainz.org/release/" + release['id'],
-            status=release['status'],
-            thisrel=release['date'],
-            country=release['country'],
+            status=release.get('status', "Unknown"),
+            thisrel=release.get('date', "Unknown"),
+            country=release.get('country', "Unknown"),
             )
 
         if tags['encoder_info']:
