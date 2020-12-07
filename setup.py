@@ -45,7 +45,7 @@ setup(
         "musicbrainzngs~=0.7",
         "terminaltables~=3.1",
     ],
-    python_requires=">=3.5,<3.9",
+    python_requires=">=3.5,<4",
     tests_require=['tox', 'pytest', 'flake8', 'pytest-logbook'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -57,6 +57,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Topic :: Internet",
         "Topic :: Multimedia",
