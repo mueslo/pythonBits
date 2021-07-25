@@ -83,6 +83,8 @@ class ImgurUploader(object):
                 params['data'] = {'image': image}
             elif urlparse(image).scheme in ('file', ''):
                 params['files'] = {'image': open(urlparse(image).path, "rb")}
+            elif urlparse(image).scheme in ('c', 'd', 'e'):
+                params['files'] = {'image': open(str(image), "rb")}
             else:
                 raise Exception('Unknown image URI scheme',
                                 urlparse(image).scheme)
