@@ -54,7 +54,6 @@ class Tracker():
                     backoff = min(2**_tries/100, 5.)
                     log.info('Encountered login bug; trying again after '
                               '{}s back-off'.format(backoff))
-                    #breakpoint()
                     time.sleep(backoff)
                     self._login(session, _tries=_tries+1)
                 else:
@@ -89,7 +88,7 @@ class Tracker():
         log.notice("Logging in {} to {}",
                    config.get('Tracker', 'username'),
                    config.get('Tracker', 'domain'))
-        cj_path = os.path.join(appdirs.user_cache_dir(title.lower()), 
+        cj_path = os.path.join(appdirs.user_cache_dir(title.lower()),
                                'tracker_cookies.txt')
         with requests.Session() as s:
             s.cookies = MozillaCookieJar(cj_path)
