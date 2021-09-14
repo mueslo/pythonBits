@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-import requests
 import contextlib
 import re
+import os
 import time
+from http.cookiejar import MozillaCookieJar
+
+import requests
+import appdirs
 
 from . import __version__ as version, __title__ as title
 from .config import config
@@ -24,7 +28,7 @@ class Tracker():
     headers = {'User-Agent': '{}/{}'.format(title, version)}
 
     def _login(self, session, _tries=0):
-        maxtries = 10
+        maxtries = 30
 
         domain = config.get('Tracker', 'domain')
         login_url = "https://{}/login.php".format(domain)
@@ -38,7 +42,7 @@ class Tracker():
 
         if 'href="login.php"' in resp.text:
             if 'id="loginform"' in resp.text:
-                raise TrackerException("Login failed")
+                raise TrackerException("Login failed (wrong credentials?)")
             elif 'You are banned' in resp.text:
                 raise TrackerException(
                     "Login failed (login attempts exceeded)")
@@ -47,16 +51,17 @@ class Tracker():
                 # doesn't contain the login form) without logging you in
                 # todo: convert this to a retry decorator
                 if _tries < maxtries:
-                    backoff = min(10**_tries/1000, 16.)
-                    log.debug('Encountered login bug; trying again after '
+                    backoff = min(2**_tries/100, 5.)
+                    log.info('Encountered login bug; trying again after '
                               '{}s back-off'.format(backoff))
+                    #breakpoint()
                     time.sleep(backoff)
                     self._login(session, _tries=_tries+1)
                 else:
-                    log.debug('Encountered login bug; '
-                              'giving up after '
-                              '{} login attempts'.format(_tries))
-                    raise TrackerException("Login failed")
+                    log.notice('Encountered login bug; '
+                               'giving up after '
+                               '{} login attempts'.format(_tries))
+                    raise TrackerException("Login failed (server login bug)")
         elif 'logout.php' in resp.text:
             # Login successful, find and remember logout URL
             match = re.search(r"logout\.php\?auth=[0-9a-f]{32}", resp.text)
@@ -84,11 +89,19 @@ class Tracker():
         log.notice("Logging in {} to {}",
                    config.get('Tracker', 'username'),
                    config.get('Tracker', 'domain'))
+        cj_path = os.path.join(appdirs.user_cache_dir(title.lower()), 
+                               'tracker_cookies.txt')
         with requests.Session() as s:
+            s.cookies = MozillaCookieJar(cj_path)
+            try:
+                s.cookies.load()
+            except FileNotFoundError:
+                s.cookies.save()
             s.headers.update(self.headers)
             self._login(s)
             yield s
             self._logout(s)
+            s.cookies.save()
         log.notice("Logged out {} of ",
                    config.get('Tracker', 'username'),
                    config.get('Tracker', 'domain'))
