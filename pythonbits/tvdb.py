@@ -44,7 +44,7 @@ class TvdbResult(object):
 
     def summary(self):
         return {
-            'title': self.show['seriesname'],
+            'title': self.show['seriesName'],
             'network': self.show['network'],
             'genres': self.show['genre'],
             'seriessummary': self.show['overview'],
@@ -70,7 +70,7 @@ class TvdbSeason(TvdbResult):
                 self.show['slug'], episode['id'])
 
             s["episodes"].append({
-                'title': episode['episodename'],
+                'title': episode['episodeName'],
                 'url': episode_url,
                 'imdb_id': episode['imdbId'],
                 'rating': episode['siteRating']})
@@ -88,13 +88,13 @@ class TvdbEpisode(TvdbResult):
         summary = self.show_summary()
         summary.update(**{
                 'season': self.episode['airedSeason'],
-                'episode': self.episode['episodenumber'],
-                'episode_title': self.episode['episodename'],
+                'episode': self.episode['airedEpisodeNumber'],
+                'episode_title': self.episode['episodeName'],
                 'imdb_id': self.episode['imdbId'],
                 'directors': self.episode['directors'],
-                'air_date': self.episode['firstaired'],
-                # 'air_dow': self.show['airs_dayofweek'],
-                # 'air_time': self.show['airs_time'],
+                'air_date': self.episode['firstAired'],
+                # 'air_dow': self.show['airsDayOfWeek'],
+                # 'air_time': self.show['airsTime'],
                 'writers': self.episode['writers'],
                 'rating': self.episode['siteRating'],
                 'votes': self.episode['siteRatingCount'],
@@ -102,7 +102,7 @@ class TvdbEpisode(TvdbResult):
                 'language': self.episode['language'],
                 'url': 'https://thetvdb.com/series/{}'.format(
                     self.show['slug']),
-                'cover': self.banner(self.episode['seasonnumber'])})
+                'cover': self.banner(self.episode['airedSeason'])})
         return summary
 
 
