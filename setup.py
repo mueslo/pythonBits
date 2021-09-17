@@ -44,6 +44,8 @@ setup(
         "mutagen~=1.44",
         "musicbrainzngs~=0.7",
         "terminaltables~=3.1",
+        "goodreads_api_client~=0.1.0.dev4",
+        "pycountry~=20.7.3"
     ],
     python_requires=">=3.5,<3.10",
     tests_require=['tox', 'pytest', 'flake8', 'pytest-logbook'],

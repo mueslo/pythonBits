@@ -9,7 +9,7 @@ from textwrap import dedent
 from collections import namedtuple, abc
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import timedelta
-from mimetypes import guess_type
+import mimetypes
 
 import pymediainfo
 import mutagen
@@ -24,6 +24,9 @@ from . import tvdb
 from . import imdb
 from . import musicbrainz as mb
 from . import imagehosting
+from . import goodreads
+from .googlebooks import find_cover, find_categories
+from .openlibrary import format_cover_url
 from .ffmpeg import FFMpeg
 from . import templating as bb
 from .submission import (Submission, form_field, finalize, cat_map,
@@ -57,6 +60,17 @@ def uniq(seq):
 
 class BbSubmission(Submission):
     default_fields = ("form_title", "tags", "cover")
+    ebook_types = {'application/epub+zip': 'EPUB',
+                   'application/x-mobipocket-ebook': 'MOBI',
+                   'application/pdf': 'PDF',
+                   'text/html': 'HTML',
+                   'text/plain': 'TXT',
+                   'image/vnd.djvu': 'DJVU',
+                   'application/vnd.ms-htmlhelp': 'CHM',
+                   'application/x-cbr': 'CBR',
+                   'application/x-cbz': 'CBZ',
+                   'application/x-cb7': 'CB7',
+                   'application/x-mobi8-ebook': 'AZW3'}
 
     def show_fields(self, fields):
         return super(BbSubmission, self).show_fields(
@@ -68,6 +82,7 @@ class BbSubmission(Submission):
 
     def subcategory(self):
         path = self['path']
+        self.add_ebook_mime_types()
         if os.path.isfile(path):
             files = [(os.path.getsize(path), path)]
         else:
@@ -79,14 +94,15 @@ class BbSubmission(Submission):
                 files.append((os.path.getsize(fpath), fpath))
 
         for _, path in sorted(files, reverse=True):
-            mime_guess, _ = guess_type(path)
+            mime_guess, _ = mimetypes.guess_type(path)
             if mime_guess:
                 mime_guess = mime_guess.split('/')
                 if mime_guess[0] == 'video':
                     return VideoSubmission
                 elif mime_guess[0] == 'audio':
                     return AudioSubmission
-
+                elif self.subcategorise_ebook('/'.join(mime_guess)):
+                    return BookSubmission
         log.info("Unable to guess submission category using known mimetypes")
         while True:
             cat = input("Please manually specify category. "
@@ -108,6 +124,30 @@ class BbSubmission(Submission):
         sub = SubCategory(**self.fields)
         sub.depends_on = self.depends_on
         return sub
+
+    def add_ebook_mime_types(self):
+        contentTypes = mimetypes.types_map
+        contentTypes.update(
+            {
+                '.epub':    'application/epub+zip',
+                '.mobi':    'application/x-mobipocket-ebook',
+                '.pdf':     'application/pdf',
+                '.html':    'text/html',
+                '.txt':     'text/plain',
+                '.djvu':    'image/vnd.djvu',
+                '.chm':     'application/vnd.ms-htmlhelp',
+                '.cbr':     'application/x-cbr',
+                '.cbz':     'application/x-cbz',
+                '.cb7':     'application/x-cb7',
+                '.azw3':    'application/x-mobi8-ebook'
+            }
+        )
+
+    def subcategorise_ebook(self, mime):
+        try:
+            return self.ebook_types.get(mime)
+        except KeyError:
+            return False
 
     @staticmethod
     def submit(payload):
@@ -150,6 +190,7 @@ class BbSubmission(Submission):
             'movie': ['hard', 'sym', 'copy', 'move'],
             'tv': ['hard', 'sym', 'copy', 'move'],
             'music': ['copy', 'move'],
+            'book': ['copy', 'move'],
             }
 
         method_map = {'hard': os.link,
@@ -935,6 +976,148 @@ class MovieSubmission(VideoSubmission):
         return self['description']
 
 
+class BookSubmission(BbSubmission):
+
+    _cat_id = 'book'
+    _form_type = 'E-Books'
+
+    def _desc(self):
+        s = self['summary']
+        return re.sub('<[^<]+?>', '', s['description'])
+
+    def _render_scene(self):
+        return False
+
+    @form_field('book_retail', 'checkbox')
+    def _render_retail(self):
+        return bool(
+            input('Is this a retail release? [y/N]  ').lower()
+            == 'y')
+
+    @form_field('book_language')
+    def _render_language(self):
+        return self['summary']['language']
+
+    @form_field('book_publisher')
+    def _render_publisher(self):
+        return self['summary']['publisher']
+
+    @form_field('book_author')
+    def _render_author(self):
+        return self['summary']['authors'][0]['name']
+
+    @form_field('book_format')
+    def _render_format(self):
+        mime_type, _ = mimetypes.guess_type(self['path'])
+        fmt = self.subcategorise_ebook(mime_type)
+        return fmt
+
+    def _render_summary(self):
+        gr = goodreads.Goodreads()
+        return gr.search(self['path'])
+
+    @form_field('book_year')
+    def _render_year(self):
+        if 'summary' in self.fields:
+            return self['summary']['publication_year']
+        else:
+            while True:
+                year = input('Please enter year: ')
+                try:
+                    year = int(year)
+                except ValueError:
+                    pass
+                else:
+                    return year
+
+    @form_field('book_isbn')
+    def _render_isbn(self):
+        if 'summary' in self.fields:
+            return self['summary'].get('isbn', '')
+
+    @form_field('title')
+    def _render_form_title(self):
+        if 'summary' in self.fields:
+            return self['summary'].get('title', '')
+
+    @form_field('tags')
+    def _render_tags(self):
+        categories = find_categories(self['summary']['isbn'])
+        authors = self['summary']['authors']
+        shelves = self['summary']['shelves']
+
+        tags = uniq(list(format_tag(a['name']) for a in authors) +
+                    list(format_tag(c) for c in categories) +
+                    list(format_tag(s['name']) for s in shelves))
+        # Maximum tags length is 200 characters
+
+        def tags_string(tags):
+            return ",".join(format_tag(tag) for tag in tags)
+        while len(tags_string(tags)) > 200:
+            del tags[-1]
+        return tags_string(tags)
+
+    def _render_section_information(self):
+        def gr_author_link(gra):
+            return bb.link(gra['name'], gra['link'])
+
+        book = self['summary']
+        isbn = book['isbn']
+        links = [('Goodreads', book['url']),
+                 ('Amazon', 'http://amzn.com/{}'
+                  .format(isbn)),
+                 ('LibraryThing', 'http://www.librarything.com/isbn/{}/'
+                  .format(isbn)),
+                 ('Google Books', 'http://books.google.com/books?vid=ISBN{}'
+                  .format(isbn))]
+
+        return dedent("""\
+        [b]Title[/b]: {title} ({links})
+        [b]ISBN[/b]: {isbn}
+        [b]Publisher[/b]: {publisher}
+        [b]Publication Year[/b]: {publication_year}
+        [b]Rating[/b]: {rating} [size=1]({ratings_count} ratings)[/size]
+        [b]Author(s)[/b]: {authors}""").format(
+            links=", ".join(bb.link(*l) for l in links),
+            title=book['title'],
+            isbn=isbn,
+            publisher=book['publisher'],
+            publication_year=book['publication_year'],
+            rating=bb.format_rating(float(book['average_rating']),
+                                    max=5),
+            ratings_count=book['ratings_count'],
+            authors=" | ".join(gr_author_link(a) for a in book['authors'])
+        )
+
+    def _render_section_description(self):
+        return self._desc()
+
+    @form_field('desc')
+    def _render_description(self):
+        sections = [("Description", self['section_description']),
+                    ("Information", self['section_information'])]
+
+        description = "\n".join(bb.section(*s) for s in sections)
+        description += bb.release
+
+        return description
+
+    @finalize
+    @form_field('image')
+    def _render_cover(self):
+        if(config.get('Books', 'use_openlibrary').lower() == "true"):
+            return format_cover_url('isbn', self['summary']['isbn'], 'L')
+        # Goodreads usually won't give you a cover image as they don't have the
+        # the right to distribute them
+        elif 'nophoto' in self['summary']['image_url']:
+            return find_cover(self['summary']['isbn'])
+        else:
+            return self['summary']['image_url']
+
+    def _finalize_cover(self):
+        return imagehosting.upload(self['cover'])
+
+
 class AudioSubmission(BbSubmission):
     default_fields = ("description", "form_tags", "year", "cover",
                       "title", "format", "bitrate")
@@ -1004,7 +1187,7 @@ class AudioSubmission(BbSubmission):
         # get first file over 1 MiB
         for dp, _, fns in os.walk(self['path']):
             for fn in fns:
-                g = guess_type(fn)[0]
+                g = mimetypes.guess_type(fn)[0]
                 if g and g.startswith('audio'):
                     return os.path.join(dp, fn)  # return full path
         raise Exception('No media file found')
