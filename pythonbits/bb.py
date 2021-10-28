@@ -1244,7 +1244,7 @@ class MusicSubmission(AudioSubmission):
     _cat_id = 'music'
     _form_type = 'Music'
 
-    @form_field('remaster_true', 'checkbox')
+    @form_field('remaster', 'checkbox')
     def _render_remaster(self):
         # todo user input function/module to reduce boilerplating
         return bool(
