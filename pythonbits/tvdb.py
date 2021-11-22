@@ -112,6 +112,7 @@ class TVDB(object):
                                   actors=True, apikey=d(api_key))
 
     def search(self, tv_specifier, tvdb_id=None):
+        tvdb_id = tvdb_id if tvdb_id is None else int(tvdb_id)
         show = self.tvdb[tvdb_id or tv_specifier.title]
         season = show[tv_specifier.season]
         if tv_specifier.episode is not None:
