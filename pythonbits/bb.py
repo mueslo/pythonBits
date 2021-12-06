@@ -17,6 +17,7 @@ import guessit
 from unidecode import unidecode
 from requests.exceptions import HTTPError
 
+from . import flags
 from .config import config
 from .logging import log
 from .torrent import make_torrent
@@ -697,7 +698,7 @@ class EpisodeSubmission(TvSubmission):
             m=" / ".join(self['markers']))
 
     def _render_summary(self):
-        t = tvdb.TVDB()
+        t = tvdb.TVDB(interactive=('headless' not in flags))
         results = t.search(self['tv_specifier'], self['tvdb_id'])
         title_i18n = self.tvdb_title_i18n(results[0])
         summaries = []
